@@ -43,7 +43,7 @@ export const AppShell = () => {
             size="small"
             onClick={() => navigate('/focus')}
           >
-            {state.pomodoro.isRunning ? 'Pomodoro' : 'Timer'} {minutes}:{seconds}
+            {state.pomodoro.isRunning ? 'Active session' : 'Timer'} {minutes}:{seconds}
           </Button>
         </Stack>
       </Box>

@@ -1,4 +1,5 @@
 import PlayArrowRounded from '@mui/icons-material/PlayArrowRounded';
+import CheckCircleRounded from '@mui/icons-material/CheckCircleRounded';
 import { Box, Button, Card, CardContent, LinearProgress, Stack, Typography } from '@mui/material';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -16,6 +17,14 @@ export const DashboardScreen = () => {
   const completed = state.tasks.filter((task) => task.status === 'done').length;
   const progress = state.tasks.length ? Math.round((completed / state.tasks.length) * 100) : 0;
   const totalFocusMinutes = state.pomodoro.completedWorkSessions * state.settings.pomodoroMinutes;
+  const activeRound = state.rounds.find((round) => round.id === state.pomodoro.activeRoundId)
+    ?? state.rounds.find((round) => round.status === 'active');
+  const plannedSessionTasks = activeRound
+    ? activeRound.taskIds
+      .map((taskId) => state.tasks.find((task) => task.id === taskId))
+      .filter((task): task is NonNullable<typeof task> => !!task)
+    : [];
+  const hasTodayTasks = state.tasks.length > 0;
 
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
@@ -35,11 +44,42 @@ export const DashboardScreen = () => {
             {state.pomodoro.phase === 'work' ? 'Active focus session' : 'Break in progress'}
           </Typography>
           <Typography variant="h4" mt={1} mb={2}>
-            {state.pomodoro.phase === 'work' ? 'Work on one high-impact task now' : 'Take your break, then return for the next session'}
+            {state.pomodoro.phase === 'work'
+              ? (plannedSessionTasks.length > 0 ? 'Your next planned tasks' : 'Ready to plan your next focus round?')
+              : 'Take your break, then return for the next session'}
           </Typography>
-          <Button size="large" variant="contained" startIcon={<PlayArrowRounded />} onClick={() => navigate('/focus')}>
-            Open Timer
-          </Button>
+          {plannedSessionTasks.length > 0 ? (
+            <>
+              <Typography color="text.secondary" mb={2}>These tasks are queued for your current session.</Typography>
+              <Stack spacing={1.25} mb={2.5}>
+                {plannedSessionTasks.map((task) => (
+                  <Stack key={task.id} direction="row" spacing={1} alignItems="center">
+                    <CheckCircleRounded color="primary" fontSize="small" />
+                    <Typography>{task.title}</Typography>
+                  </Stack>
+                ))}
+              </Stack>
+              <Button size="large" variant="contained" startIcon={<PlayArrowRounded />} onClick={() => navigate('/focus')}>
+                Open Timer
+              </Button>
+            </>
+          ) : (
+            <>
+              <Typography color="text.secondary" mb={2}>
+                {hasTodayTasks
+                  ? 'Assign tasks to this round before starting your next active session.'
+                  : 'Add tasks to Today\'s Tasks first, then assign them into a round.'}
+              </Typography>
+              <Button
+                size="large"
+                variant="contained"
+                startIcon={<PlayArrowRounded />}
+                onClick={() => navigate(hasTodayTasks ? '/rounds' : '/tasks-today')}
+              >
+                {hasTodayTasks ? 'Assign tasks' : 'Add today\'s tasks'}
+              </Button>
+            </>
+          )}
         </CardContent>
       </Card>
 
