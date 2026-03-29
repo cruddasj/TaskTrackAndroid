@@ -155,6 +155,7 @@ export const TaskBankScreen = () => {
                 </IconButton>
                 <IconButton
                   size="small"
+                  sx={{ px: 0.5 }}
                   onClick={() => {
                     deleteTaskBankItem(task.id);
                     showSuccessMessage('Task Bank item deleted.');
