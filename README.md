@@ -35,6 +35,7 @@ TaskTrack is a Pomodoro-driven task planner designed for daily execution. You ca
 - Uses consistent green styling for guidance callouts (for example, setup and Pomodoro guidance) to match the app theme.
 - Replaces the **Task templates** summary card on **Task Bank** with direct, beginner-friendly **Task Bank guidance** copy.
 - Uses red delete icons across task, round, category, and task-bank delete actions.
+- Keeps the **Add** button in **Settings → Task categories** using normal button sizing and alignment next to the **New category** input.
 - Prevents duplicate entries in **Today's Tasks** by warning when the same task name is added again (including quick-adds from Task Bank).
 - Uses dashboard guidance language that emphasizes focused attention periods across small, manageable tasks.
 - Uses consistent **Active Session** terminology across the dashboard and focus timer screens.
