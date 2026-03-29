@@ -68,7 +68,11 @@ export const FocusScreen = () => {
           onClick={() =>
             state.pomodoro.isRunning
               ? pausePomodoro()
-              : startPomodoro(activeTask?.id ?? state.tasks[0]?.id ?? '', activeTask?.roundId, activeTask?.estimateMinutes)
+              : startPomodoro(
+                  activeTask?.id ?? state.tasks[0]?.id ?? '',
+                  activeTask?.roundId,
+                  state.settings.pomodoroMinutes,
+                )
           }
           sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', width: 88, height: 88, '&:hover': { bgcolor: 'primary.main' } }}
         >

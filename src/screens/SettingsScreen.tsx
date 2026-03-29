@@ -5,9 +5,10 @@ import { useMemo, useState } from 'react';
 import { useAppState } from '../state/AppStateContext';
 
 export const SettingsScreen = () => {
-  const { state, setUserName, addCategory, deleteCategory } = useAppState();
+  const { state, setUserName, addCategory, deleteCategory, setPomodoroMinutes } = useAppState();
   const [name, setName] = useState(state.userName);
   const [newCategory, setNewCategory] = useState('');
+  const [pomodoroMinutes, setPomodoroMinutesInput] = useState(String(state.settings.pomodoroMinutes));
 
   const needsName = !state.userName.trim();
   const categoryExists = useMemo(
@@ -27,7 +28,11 @@ export const SettingsScreen = () => {
       </Box>
 
       {needsName && (
-        <Alert icon={<InfoOutlined fontSize="inherit" />} severity="info">
+        <Alert
+          icon={<InfoOutlined fontSize="inherit" />}
+          severity="success"
+          sx={{ bgcolor: 'rgba(145,247,142,0.12)', color: 'primary.main', '& .MuiAlert-icon': { color: 'primary.main' } }}
+        >
           This is your setup page. You can also manage your own task categories here any time.
         </Alert>
       )}
@@ -48,6 +53,34 @@ export const SettingsScreen = () => {
               disabled={!name.trim()}
             >
               Save name
+            </Button>
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent>
+          <Stack spacing={2}>
+            <Typography variant="h5">Pomodoro duration</Typography>
+            <TextField
+              label="Recommended minutes per round"
+              type="number"
+              inputProps={{ min: 1 }}
+              value={pomodoroMinutes}
+              onChange={(event) => setPomodoroMinutesInput(event.target.value)}
+              helperText="Default is 25 minutes."
+            />
+            <Button
+              variant="contained"
+              onClick={() => {
+                const minutes = Number(pomodoroMinutes);
+                if (!Number.isFinite(minutes) || minutes <= 0) return;
+                setPomodoroMinutes(minutes);
+                setPomodoroMinutesInput(String(Math.round(minutes)));
+              }}
+              disabled={!pomodoroMinutes.trim() || Number(pomodoroMinutes) <= 0}
+            >
+              Save pomodoro length
             </Button>
           </Stack>
         </CardContent>

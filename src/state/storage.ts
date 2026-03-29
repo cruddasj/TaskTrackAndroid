@@ -1,6 +1,7 @@
 import { AppState } from '../types';
 
 const STORAGE_KEY = 'tasktrack.state.v2';
+const DEFAULT_POMODORO_MINUTES = 25;
 
 const defaultCategories = [
   'Household chores',
@@ -91,11 +92,14 @@ const defaultState: AppState = {
       status: 'upcoming',
     },
   ],
+  settings: {
+    pomodoroMinutes: DEFAULT_POMODORO_MINUTES,
+  },
   pomodoro: {
     isRunning: false,
     startedAt: null,
-    totalSeconds: 25 * 60,
-    remainingSeconds: 25 * 60,
+    totalSeconds: DEFAULT_POMODORO_MINUTES * 60,
+    remainingSeconds: DEFAULT_POMODORO_MINUTES * 60,
     activeTaskId: 't1',
     activeRoundId: 'r1',
   },
@@ -111,6 +115,12 @@ const normalizeState = (raw: Partial<AppState>): AppState => {
     tasks: raw.tasks ?? defaultState.tasks,
     taskPacks: raw.taskPacks ?? defaultState.taskPacks,
     rounds: raw.rounds ?? defaultState.rounds,
+    settings: {
+      pomodoroMinutes:
+        raw.settings?.pomodoroMinutes && raw.settings.pomodoroMinutes > 0
+          ? raw.settings.pomodoroMinutes
+          : DEFAULT_POMODORO_MINUTES,
+    },
     pomodoro: {
       ...defaultState.pomodoro,
       ...raw.pomodoro,
