@@ -90,7 +90,8 @@ export const FocusScreen = () => {
       sx={{
         minHeight: '100dvh',
         px: { xs: 2, sm: 3, md: 4 },
-        py: { xs: 2, md: 3 },
+        pt: 'calc(env(safe-area-inset-top, 0px) + 16px)',
+        pb: 'calc(env(safe-area-inset-bottom, 0px) + 20px)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -100,7 +101,7 @@ export const FocusScreen = () => {
         spacing={{ xs: 2, md: 3 }}
         alignItems="center"
         justifyContent="space-between"
-        sx={{ width: '100%', maxWidth: 980, height: '100%', maxHeight: 'calc(100dvh - 32px)' }}
+        sx={{ width: '100%', maxWidth: 980, height: '100%', maxHeight: 'calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 36px)' }}
       >
         <Box width="100%" display="flex" justifyContent="space-between" alignItems="center" px={{ xs: 0.5, md: 1 }}>
           <Typography variant="h5" color="primary.main" fontWeight={800}>Deep Focus Mode</Typography>
@@ -160,7 +161,7 @@ export const FocusScreen = () => {
           </CardContent>
         </Card>
 
-        <Stack direction="row" spacing={3} alignItems="center" pb={1}>
+        <Stack direction="row" spacing={3} alignItems="center" pb={2}>
           <IconButton sx={{ bgcolor: '#1a1a1a' }} onClick={resetPomodoro}><ReplayRounded /></IconButton>
           <IconButton
             onClick={() =>
