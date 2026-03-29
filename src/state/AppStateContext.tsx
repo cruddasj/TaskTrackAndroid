@@ -24,6 +24,7 @@ type Action =
   | { type: 'SET_POMODORO_MINUTES'; payload: { minutes: number } }
   | { type: 'START_POMODORO'; payload: { taskId: string; roundId?: string; minutes?: number } }
   | { type: 'PAUSE_POMODORO' }
+  | { type: 'COMPLETE_POMODORO' }
   | { type: 'TICK' }
   | { type: 'RESET_POMODORO' };
 
@@ -220,6 +221,16 @@ const reducer = (state: AppState, action: Action): AppState => {
           startedAt: null,
         },
       };
+    case 'COMPLETE_POMODORO':
+      return {
+        ...state,
+        pomodoro: {
+          ...state.pomodoro,
+          isRunning: false,
+          startedAt: null,
+          remainingSeconds: 0,
+        },
+      };
     case 'TICK': {
       if (!state.pomodoro.isRunning || state.pomodoro.remainingSeconds <= 0) return state;
       return {
@@ -262,6 +273,7 @@ interface AppStateContextValue {
   setPomodoroMinutes: (minutes: number) => void;
   startPomodoro: (taskId: string, roundId?: string, minutes?: number) => void;
   pausePomodoro: () => void;
+  completePomodoro: () => void;
   resetPomodoro: () => void;
 }
 
@@ -315,6 +327,7 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
       setPomodoroMinutes: (minutes) => dispatch({ type: 'SET_POMODORO_MINUTES', payload: { minutes } }),
       startPomodoro: (taskId, roundId, minutes) => dispatch({ type: 'START_POMODORO', payload: { taskId, roundId, minutes } }),
       pausePomodoro: () => dispatch({ type: 'PAUSE_POMODORO' }),
+      completePomodoro: () => dispatch({ type: 'COMPLETE_POMODORO' }),
       resetPomodoro: () => dispatch({ type: 'RESET_POMODORO' }),
     }),
     [state],

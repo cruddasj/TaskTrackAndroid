@@ -20,7 +20,7 @@ const formatTime = (seconds: number): string => {
 export const FocusScreen = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { state, startPomodoro, pausePomodoro, resetPomodoro, toggleTask, assignTasksToRound } = useAppState();
+  const { state, startPomodoro, pausePomodoro, completePomodoro, resetPomodoro, toggleTask, assignTasksToRound } = useAppState();
   const [sessionReviewOpen, setSessionReviewOpen] = useState(false);
   const [confirmedDoneIds, setConfirmedDoneIds] = useState<string[]>([]);
   const requestedRoundId = searchParams.get('roundId') ?? undefined;
@@ -173,7 +173,7 @@ export const FocusScreen = () => {
           >
             {state.pomodoro.isRunning ? <PauseRounded fontSize="large" /> : <PlayArrowRounded fontSize="large" />}
           </IconButton>
-          <IconButton sx={{ bgcolor: '#1a1a1a' }} onClick={() => navigate('/tasks-today')}><SkipNextRounded /></IconButton>
+          <IconButton sx={{ bgcolor: '#1a1a1a' }} onClick={completePomodoro}><SkipNextRounded /></IconButton>
         </Stack>
       </Stack>
 
