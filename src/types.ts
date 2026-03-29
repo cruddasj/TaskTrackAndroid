@@ -29,6 +29,8 @@ export interface PomodoroState {
 }
 
 export interface AppState {
+  userName: string;
+  categories: string[];
   tasks: Task[];
   rounds: Round[];
   pomodoro: PomodoroState;

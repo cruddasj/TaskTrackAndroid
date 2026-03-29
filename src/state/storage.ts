@@ -2,13 +2,24 @@ import { AppState } from '../types';
 
 const STORAGE_KEY = 'tasktrack.state.v1';
 
+const defaultCategories = [
+  'Household chores',
+  'Health and wellbeing',
+  'Work and study',
+  'Errands',
+  'Personal projects',
+  'Uncategorized',
+];
+
 const defaultState: AppState = {
+  userName: '',
+  categories: defaultCategories,
   tasks: [
     {
       id: 't1',
       title: 'Clean kitchen counters',
       description: 'Wipe, disinfect and dry all prep surfaces.',
-      category: 'Kitchen',
+      category: 'Household chores',
       estimateMinutes: 25,
       status: 'in_progress',
       roundId: 'r1',
@@ -17,7 +28,7 @@ const defaultState: AppState = {
       id: 't2',
       title: 'Water indoor ferns',
       description: 'Check moisture and mist leaves.',
-      category: 'Garden',
+      category: 'Health and wellbeing',
       estimateMinutes: 25,
       status: 'todo',
       roundId: 'r1',
@@ -26,7 +37,7 @@ const defaultState: AppState = {
       id: 't3',
       title: 'Sort incoming mail',
       description: 'Separate bills, recycle spam, archive records.',
-      category: 'Admin',
+      category: 'Errands',
       estimateMinutes: 25,
       status: 'todo',
       roundId: 'r2',
@@ -60,12 +71,28 @@ const defaultState: AppState = {
   },
 };
 
+const normalizeState = (raw: Partial<AppState>): AppState => {
+  const categories = raw.categories && raw.categories.length > 0 ? raw.categories : defaultCategories;
+  return {
+    ...defaultState,
+    ...raw,
+    userName: raw.userName ?? '',
+    categories,
+    tasks: raw.tasks ?? defaultState.tasks,
+    rounds: raw.rounds ?? defaultState.rounds,
+    pomodoro: {
+      ...defaultState.pomodoro,
+      ...raw.pomodoro,
+    },
+  };
+};
+
 export const loadState = (): AppState => {
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) return defaultState;
 
   try {
-    return JSON.parse(raw) as AppState;
+    return normalizeState(JSON.parse(raw) as Partial<AppState>);
   } catch {
     return defaultState;
   }

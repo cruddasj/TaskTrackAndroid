@@ -3,9 +3,17 @@ import { AppState, PomodoroState, Task } from '../types';
 import { loadState, saveState } from './storage';
 import { notifyPomodoroComplete, playAlarmBell, requestNotificationPermissions } from '../services/notifications';
 
+type NewTask = Omit<Task, 'id' | 'status'>;
+type EditableTask = Omit<Task, 'status'>;
+
 type Action =
-  | { type: 'ADD_TASK'; payload: Omit<Task, 'id' | 'status'> }
+  | { type: 'ADD_TASK'; payload: NewTask }
+  | { type: 'UPDATE_TASK'; payload: EditableTask }
+  | { type: 'DELETE_TASK'; payload: { id: string } }
   | { type: 'TOGGLE_TASK'; payload: { id: string } }
+  | { type: 'SET_USER_NAME'; payload: { userName: string } }
+  | { type: 'ADD_CATEGORY'; payload: { category: string } }
+  | { type: 'DELETE_CATEGORY'; payload: { category: string } }
   | { type: 'START_POMODORO'; payload: { taskId: string; roundId?: string; minutes?: number } }
   | { type: 'PAUSE_POMODORO' }
   | { type: 'TICK' }
@@ -27,6 +35,35 @@ const reducer = (state: AppState, action: Action): AppState => {
         ],
       };
     }
+    case 'UPDATE_TASK':
+      return {
+        ...state,
+        tasks: state.tasks.map((task) => {
+          if (task.id !== action.payload.id) return task;
+          return {
+            ...task,
+            ...action.payload,
+          };
+        }),
+      };
+    case 'DELETE_TASK': {
+      const remainingTasks = state.tasks.filter((task) => task.id !== action.payload.id);
+      const activeTaskId = state.pomodoro.activeTaskId === action.payload.id ? undefined : state.pomodoro.activeTaskId;
+      return {
+        ...state,
+        tasks: remainingTasks,
+        rounds: state.rounds.map((round) => ({
+          ...round,
+          taskIds: round.taskIds.filter((id) => id !== action.payload.id),
+        })),
+        pomodoro: {
+          ...state.pomodoro,
+          activeTaskId,
+          isRunning: activeTaskId ? state.pomodoro.isRunning : false,
+          startedAt: activeTaskId ? state.pomodoro.startedAt : null,
+        },
+      };
+    }
     case 'TOGGLE_TASK':
       return {
         ...state,
@@ -38,6 +75,36 @@ const reducer = (state: AppState, action: Action): AppState => {
           };
         }),
       };
+    case 'SET_USER_NAME':
+      return {
+        ...state,
+        userName: action.payload.userName,
+      };
+    case 'ADD_CATEGORY': {
+      if (state.categories.includes(action.payload.category)) return state;
+      return {
+        ...state,
+        categories: [...state.categories, action.payload.category],
+      };
+    }
+    case 'DELETE_CATEGORY': {
+      const category = action.payload.category;
+      if (state.categories.length <= 1) return state;
+      const nextCategories = state.categories.filter((item) => item !== category);
+      const fallbackCategory = nextCategories[0] ?? 'Uncategorized';
+      return {
+        ...state,
+        categories: nextCategories,
+        tasks: state.tasks.map((task) =>
+          task.category === category
+            ? {
+                ...task,
+                category: fallbackCategory,
+              }
+            : task,
+        ),
+      };
+    }
     case 'START_POMODORO': {
       const totalSeconds = (action.payload.minutes ?? 25) * 60;
       const pomodoro: PomodoroState = {
@@ -88,8 +155,13 @@ const reducer = (state: AppState, action: Action): AppState => {
 
 interface AppStateContextValue {
   state: AppState;
-  addTask: (task: Omit<Task, 'id' | 'status'>) => void;
+  addTask: (task: NewTask) => void;
+  updateTask: (task: EditableTask) => void;
+  deleteTask: (id: string) => void;
   toggleTask: (id: string) => void;
+  setUserName: (userName: string) => void;
+  addCategory: (category: string) => void;
+  deleteCategory: (category: string) => void;
   startPomodoro: (taskId: string, roundId?: string, minutes?: number) => void;
   pausePomodoro: () => void;
   resetPomodoro: () => void;
@@ -131,7 +203,12 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
     () => ({
       state,
       addTask: (task) => dispatch({ type: 'ADD_TASK', payload: task }),
+      updateTask: (task) => dispatch({ type: 'UPDATE_TASK', payload: task }),
+      deleteTask: (id) => dispatch({ type: 'DELETE_TASK', payload: { id } }),
       toggleTask: (id) => dispatch({ type: 'TOGGLE_TASK', payload: { id } }),
+      setUserName: (userName) => dispatch({ type: 'SET_USER_NAME', payload: { userName } }),
+      addCategory: (category) => dispatch({ type: 'ADD_CATEGORY', payload: { category } }),
+      deleteCategory: (category) => dispatch({ type: 'DELETE_CATEGORY', payload: { category } }),
       startPomodoro: (taskId, roundId, minutes) => dispatch({ type: 'START_POMODORO', payload: { taskId, roundId, minutes } }),
       pausePomodoro: () => dispatch({ type: 'PAUSE_POMODORO' }),
       resetPomodoro: () => dispatch({ type: 'RESET_POMODORO' }),
