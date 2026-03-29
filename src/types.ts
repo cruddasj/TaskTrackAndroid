@@ -10,6 +10,14 @@ export interface Task {
   roundId?: string;
 }
 
+export interface TaskBankItem {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  estimateMinutes: number;
+}
+
 export interface TaskPackTask {
   id: string;
   title: string;
@@ -47,6 +55,7 @@ export interface AppState {
   userName: string;
   categories: string[];
   tasks: Task[];
+  taskBank: TaskBankItem[];
   taskPacks: TaskPack[];
   rounds: Round[];
   settings: {

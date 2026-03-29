@@ -108,6 +108,9 @@ export const RoundsScreen = () => {
         <DialogTitle>Assign tasks to {editingRound?.title}</DialogTitle>
         <DialogContent>
           <Stack mt={0.5}>
+            {state.tasks.length === 0 && (
+              <Typography color="text.secondary">No tasks in today&apos;s list yet. Add from Task Bank first.</Typography>
+            )}
             {state.tasks.map((task) => (
               <FormControlLabel
                 key={task.id}

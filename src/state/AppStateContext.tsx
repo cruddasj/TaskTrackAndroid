@@ -1,16 +1,22 @@
 import { createContext, useContext, useEffect, useMemo, useReducer } from 'react';
-import { AppState, PomodoroState, Task, TaskPack } from '../types';
+import { AppState, PomodoroState, Task, TaskBankItem, TaskPack } from '../types';
 import { loadState, saveState } from './storage';
 import { notifyPomodoroComplete, playAlarmBell, requestNotificationPermissions } from '../services/notifications';
 
 type NewTask = Omit<Task, 'id' | 'status'>;
 type EditableTask = Omit<Task, 'status'>;
+type NewTaskBankItem = Omit<TaskBankItem, 'id'>;
+type EditableTaskBankItem = TaskBankItem;
 type NewTaskPack = Omit<TaskPack, 'id'>;
 
 type Action =
   | { type: 'ADD_TASK'; payload: NewTask }
   | { type: 'UPDATE_TASK'; payload: EditableTask }
   | { type: 'DELETE_TASK'; payload: { id: string } }
+  | { type: 'ADD_TASK_FROM_BANK'; payload: { taskBankItemId: string } }
+  | { type: 'ADD_TASK_BANK_ITEM'; payload: NewTaskBankItem }
+  | { type: 'UPDATE_TASK_BANK_ITEM'; payload: EditableTaskBankItem }
+  | { type: 'DELETE_TASK_BANK_ITEM'; payload: { id: string } }
   | { type: 'TOGGLE_TASK'; payload: { id: string } }
   | { type: 'SET_USER_NAME'; payload: { userName: string } }
   | { type: 'ADD_CATEGORY'; payload: { category: string } }
@@ -69,6 +75,44 @@ const reducer = (state: AppState, action: Action): AppState => {
         },
       };
     }
+    case 'ADD_TASK_FROM_BANK': {
+      const sourceTask = state.taskBank.find((item) => item.id === action.payload.taskBankItemId);
+      if (!sourceTask) return state;
+      return {
+        ...state,
+        tasks: [
+          ...state.tasks,
+          {
+            ...sourceTask,
+            id: crypto.randomUUID(),
+            status: 'todo',
+          },
+        ],
+      };
+    }
+    case 'ADD_TASK_BANK_ITEM': {
+      const id = crypto.randomUUID();
+      return {
+        ...state,
+        taskBank: [...state.taskBank, { ...action.payload, id }],
+      };
+    }
+    case 'UPDATE_TASK_BANK_ITEM':
+      return {
+        ...state,
+        taskBank: state.taskBank.map((task) => {
+          if (task.id !== action.payload.id) return task;
+          return {
+            ...task,
+            ...action.payload,
+          };
+        }),
+      };
+    case 'DELETE_TASK_BANK_ITEM':
+      return {
+        ...state,
+        taskBank: state.taskBank.filter((task) => task.id !== action.payload.id),
+      };
     case 'TOGGLE_TASK':
       return {
         ...state,
@@ -219,8 +263,12 @@ const reducer = (state: AppState, action: Action): AppState => {
 interface AppStateContextValue {
   state: AppState;
   addTask: (task: NewTask) => void;
+  addTaskFromBank: (taskBankItemId: string) => void;
   updateTask: (task: EditableTask) => void;
   deleteTask: (id: string) => void;
+  addTaskBankItem: (task: NewTaskBankItem) => void;
+  updateTaskBankItem: (task: EditableTaskBankItem) => void;
+  deleteTaskBankItem: (id: string) => void;
   toggleTask: (id: string) => void;
   setUserName: (userName: string) => void;
   addCategory: (category: string) => void;
@@ -270,8 +318,12 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
     () => ({
       state,
       addTask: (task) => dispatch({ type: 'ADD_TASK', payload: task }),
+      addTaskFromBank: (taskBankItemId) => dispatch({ type: 'ADD_TASK_FROM_BANK', payload: { taskBankItemId } }),
       updateTask: (task) => dispatch({ type: 'UPDATE_TASK', payload: task }),
       deleteTask: (id) => dispatch({ type: 'DELETE_TASK', payload: { id } }),
+      addTaskBankItem: (task) => dispatch({ type: 'ADD_TASK_BANK_ITEM', payload: task }),
+      updateTaskBankItem: (task) => dispatch({ type: 'UPDATE_TASK_BANK_ITEM', payload: task }),
+      deleteTaskBankItem: (id) => dispatch({ type: 'DELETE_TASK_BANK_ITEM', payload: { id } }),
       toggleTask: (id) => dispatch({ type: 'TOGGLE_TASK', payload: { id } }),
       setUserName: (userName) => dispatch({ type: 'SET_USER_NAME', payload: { userName } }),
       addCategory: (category) => dispatch({ type: 'ADD_CATEGORY', payload: { category } }),
