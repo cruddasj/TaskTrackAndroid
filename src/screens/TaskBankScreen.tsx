@@ -1,28 +1,11 @@
-import AddRounded from '@mui/icons-material/AddRounded';
-import CheckCircleOutlineRounded from '@mui/icons-material/CheckCircleOutlineRounded';
 import DeleteOutlineRounded from '@mui/icons-material/DeleteOutlineRounded';
 import EditOutlined from '@mui/icons-material/EditOutlined';
 import PlaylistAddRounded from '@mui/icons-material/PlaylistAddRounded';
-import RadioButtonUncheckedRounded from '@mui/icons-material/RadioButtonUncheckedRounded';
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  MenuItem,
-  Stack,
-  TextField,
-  Typography,
-} from '@mui/material';
-import { useEffect, useMemo, useState } from 'react';
-import { Task, TaskBankItem, TaskPackTask } from '../types';
+import { Box, Button, Card, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Stack, TextField, Typography } from '@mui/material';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
+import { TaskBankItem, TaskPackTask } from '../types';
 
 interface TaskFormState {
   title: string;
@@ -58,32 +41,15 @@ const emptyPackForm: PackFormState = {
   ],
 };
 
-export const TasksScreen = () => {
-  const {
-    state,
-    addTask,
-    addTaskFromBank,
-    updateTask,
-    deleteTask,
-    addTaskBankItem,
-    updateTaskBankItem,
-    deleteTaskBankItem,
-    toggleTask,
-    addTaskPack,
-    deleteTaskPack,
-  } = useAppState();
+export const TaskBankScreen = () => {
+  const navigate = useNavigate();
+  const { state, addTaskFromBank, addTaskBankItem, updateTaskBankItem, deleteTaskBankItem, addTaskPack, deleteTaskPack } = useAppState();
+
   const [open, setOpen] = useState(false);
   const [packOpen, setPackOpen] = useState(false);
-  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [editingTaskBankId, setEditingTaskBankId] = useState<string | null>(null);
-  const [formMode, setFormMode] = useState<'today' | 'bank'>('today');
   const [form, setForm] = useState<TaskFormState>(emptyForm);
   const [packForm, setPackForm] = useState<PackFormState>(emptyPackForm);
-
-  const remainingTodayTasks = useMemo(
-    () => state.tasks.filter((task) => task.status !== 'done').length,
-    [state.tasks],
-  );
 
   useEffect(() => {
     if (!form.category && state.categories.length > 0) {
@@ -91,38 +57,13 @@ export const TasksScreen = () => {
     }
   }, [form.category, state.categories]);
 
-  const openCreateTodayDialog = () => {
-    setFormMode('today');
-    setEditingTaskId(null);
-    setEditingTaskBankId(null);
-    setForm({ ...emptyForm, category: state.categories[0] ?? '' });
-    setOpen(true);
-  };
-
   const openCreateBankDialog = () => {
-    setFormMode('bank');
-    setEditingTaskId(null);
     setEditingTaskBankId(null);
     setForm({ ...emptyForm, category: state.categories[0] ?? '' });
-    setOpen(true);
-  };
-
-  const openEditTodayDialog = (task: Task) => {
-    setFormMode('today');
-    setEditingTaskId(task.id);
-    setEditingTaskBankId(null);
-    setForm({
-      title: task.title,
-      description: task.description,
-      category: task.category,
-      estimateMinutes: String(task.estimateMinutes),
-    });
     setOpen(true);
   };
 
   const openEditBankDialog = (task: TaskBankItem) => {
-    setFormMode('bank');
-    setEditingTaskId(null);
     setEditingTaskBankId(task.id);
     setForm({
       title: task.title,
@@ -135,9 +76,31 @@ export const TasksScreen = () => {
 
   const closeDialog = () => {
     setOpen(false);
-    setEditingTaskId(null);
     setEditingTaskBankId(null);
     setForm(emptyForm);
+  };
+
+  const saveTask = () => {
+    const title = form.title.trim();
+    const description = form.description.trim() || 'Custom task';
+    const category = form.category || state.categories[0] || 'Uncategorized';
+    const estimateMinutes = Number(form.estimateMinutes);
+
+    if (!title || !Number.isFinite(estimateMinutes) || estimateMinutes <= 0) return;
+
+    if (editingTaskBankId) {
+      updateTaskBankItem({
+        id: editingTaskBankId,
+        title,
+        description,
+        category,
+        estimateMinutes,
+      });
+    } else {
+      addTaskBankItem({ title, description, category, estimateMinutes });
+    }
+
+    closeDialog();
   };
 
   const openPackDialog = () => {
@@ -161,53 +124,6 @@ export const TasksScreen = () => {
     setPackForm(emptyPackForm);
   };
 
-  const saveTask = () => {
-    const title = form.title.trim();
-    const description = form.description.trim() || 'Custom task';
-    const category = form.category || state.categories[0] || 'Uncategorized';
-    const estimateMinutes = Number(form.estimateMinutes);
-
-    if (!title || !Number.isFinite(estimateMinutes) || estimateMinutes <= 0) return;
-
-    if (formMode === 'today') {
-      if (editingTaskId) {
-        const existingTask = state.tasks.find((task) => task.id === editingTaskId);
-        if (!existingTask) return;
-        updateTask({
-          ...existingTask,
-          title,
-          description,
-          category,
-          estimateMinutes,
-        });
-      } else {
-        addTask({
-          title,
-          description,
-          category,
-          estimateMinutes,
-        });
-      }
-    } else if (editingTaskBankId) {
-      updateTaskBankItem({
-        id: editingTaskBankId,
-        title,
-        description,
-        category,
-        estimateMinutes,
-      });
-    } else {
-      addTaskBankItem({
-        title,
-        description,
-        category,
-        estimateMinutes,
-      });
-    }
-
-    closeDialog();
-  };
-
   const savePack = () => {
     const name = packForm.name.trim();
     const normalizedTasks = packForm.tasks
@@ -221,11 +137,7 @@ export const TasksScreen = () => {
 
     if (!name || normalizedTasks.length === 0) return;
 
-    addTaskPack({
-      name,
-      cadence: packForm.cadence,
-      tasks: normalizedTasks,
-    });
+    addTaskPack({ name, cadence: packForm.cadence, tasks: normalizedTasks });
     closePackDialog();
   };
 
@@ -246,65 +158,29 @@ export const TasksScreen = () => {
   return (
     <Stack spacing={2}>
       <Box>
-        <Typography variant="h3">Tasks</Typography>
-        <Typography color="text.secondary">Build your task bank, then pull what you need into today.</Typography>
+        <Typography variant="h3">Task Bank</Typography>
+        <Typography color="text.secondary">A reusable reference list of tasks. Copy any task into Today&apos;s Tasks when needed.</Typography>
       </Box>
 
       <Card>
         <CardContent>
-          <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between" spacing={1.5}>
             <Box>
-              <Typography variant="h5">Today&apos;s tasks</Typography>
-              <Typography color="text.secondary">{remainingTodayTasks} remaining · These are assignable to rounds.</Typography>
+              <Typography variant="h5">Banked tasks</Typography>
+              <Typography color="text.secondary">Manage your common tasks here. They are not directly assigned to rounds.</Typography>
             </Box>
-            <Button variant="contained" onClick={openCreateTodayDialog}>Add today task</Button>
+            <Stack direction="row" spacing={1}>
+              <Button variant="outlined" onClick={() => navigate('/tasks-today')}>Open today&apos;s tasks</Button>
+              <Button variant="outlined" onClick={openPackDialog}>New pack</Button>
+              <Button variant="contained" onClick={openCreateBankDialog}>New bank task</Button>
+            </Stack>
           </Stack>
         </CardContent>
       </Card>
 
-      {state.tasks.map((task) => (
-        <Card key={task.id}>
-          <CardContent>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
-              <Stack direction="row" spacing={1} alignItems="center">
-                <Typography variant="h5">{task.title}</Typography>
-                <IconButton size="small" onClick={() => openEditTodayDialog(task)} aria-label={`edit-${task.id}`}>
-                  <EditOutlined fontSize="small" />
-                </IconButton>
-                <IconButton size="small" onClick={() => deleteTask(task.id)} aria-label={`delete-${task.id}`}>
-                  <DeleteOutlineRounded fontSize="small" />
-                </IconButton>
-              </Stack>
-              {task.status === 'done' ? (
-                <CheckCircleOutlineRounded color="primary" />
-              ) : (
-                <RadioButtonUncheckedRounded color="primary" />
-              )}
-            </Stack>
-            <Typography color="text.secondary" mb={2}>{task.description}</Typography>
-            <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
-              <Chip label={task.category} />
-              <Chip label={`${task.estimateMinutes} min`} variant="outlined" />
-              {task.roundId && <Chip label="Assigned to round" color="secondary" variant="outlined" />}
-              <Button size="small" onClick={() => toggleTask(task.id)}>{task.status === 'done' ? 'Mark Todo' : 'Mark Done'}</Button>
-            </Stack>
-          </CardContent>
-        </Card>
-      ))}
-
       <Card>
         <CardContent>
           <Stack spacing={2}>
-            <Stack direction="row" alignItems="center" justifyContent="space-between">
-              <Box>
-                <Typography variant="h5">Task bank</Typography>
-                <Typography color="text.secondary">Reusable tasks you can add to today any time.</Typography>
-              </Box>
-              <Stack direction="row" spacing={1}>
-                <Button variant="outlined" onClick={openCreateBankDialog}>New bank task</Button>
-                <Button variant="outlined" onClick={openPackDialog}>New pack</Button>
-              </Stack>
-            </Stack>
             {state.taskBank.map((task) => (
               <Stack key={task.id} direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
                 <Box>
@@ -312,7 +188,7 @@ export const TasksScreen = () => {
                   <Typography variant="body2" color="text.secondary">{task.category} · {task.estimateMinutes} min</Typography>
                 </Box>
                 <Stack direction="row" spacing={1}>
-                  <Button size="small" onClick={() => addTaskFromBank(task.id)} startIcon={<PlaylistAddRounded />}>Add to today</Button>
+                  <Button size="small" onClick={() => addTaskFromBank(task.id)} startIcon={<PlaylistAddRounded />}>Copy to today</Button>
                   <IconButton size="small" onClick={() => openEditBankDialog(task)} aria-label={`edit-bank-${task.id}`}>
                     <EditOutlined fontSize="small" />
                   </IconButton>
@@ -352,26 +228,10 @@ export const TasksScreen = () => {
         </CardContent>
       </Card>
 
-      <IconButton
-        color="primary"
-        onClick={openCreateTodayDialog}
-        sx={{ position: 'fixed', right: 24, bottom: 92, bgcolor: 'primary.main', color: 'primary.contrastText', '&:hover': { bgcolor: 'primary.main' } }}
-      >
-        <AddRounded />
-      </IconButton>
-
       <Dialog open={open} onClose={closeDialog} fullWidth>
-        <DialogTitle>
-          {editingTaskId || editingTaskBankId ? 'Edit task' : `Add ${formMode === 'today' ? "today's task" : 'task bank item'}`}
-        </DialogTitle>
+        <DialogTitle>{editingTaskBankId ? 'Edit task bank item' : 'Add task bank item'}</DialogTitle>
         <DialogContent>
-          <TextField
-            margin="dense"
-            label="Task title"
-            fullWidth
-            value={form.title}
-            onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
-          />
+          <TextField margin="dense" label="Task title" fullWidth value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} />
           <TextField
             margin="dense"
             label="Description"
@@ -381,14 +241,7 @@ export const TasksScreen = () => {
             value={form.description}
             onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))}
           />
-          <TextField
-            margin="dense"
-            label="Category"
-            fullWidth
-            select
-            value={form.category}
-            onChange={(event) => setForm((current) => ({ ...current, category: event.target.value }))}
-          >
+          <TextField margin="dense" label="Category" fullWidth select value={form.category} onChange={(event) => setForm((current) => ({ ...current, category: event.target.value }))}>
             {state.categories.map((category) => (
               <MenuItem key={category} value={category}>{category}</MenuItem>
             ))}
@@ -405,9 +258,7 @@ export const TasksScreen = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={closeDialog}>Cancel</Button>
-          <Button variant="contained" onClick={saveTask}>
-            Save
-          </Button>
+          <Button variant="contained" onClick={saveTask}>Save</Button>
         </DialogActions>
       </Dialog>
 
@@ -415,12 +266,7 @@ export const TasksScreen = () => {
         <DialogTitle>Create task pack</DialogTitle>
         <DialogContent>
           <Stack spacing={1.5} mt={0.5}>
-            <TextField
-              label="Pack name"
-              fullWidth
-              value={packForm.name}
-              onChange={(event) => setPackForm((current) => ({ ...current, name: event.target.value }))}
-            />
+            <TextField label="Pack name" fullWidth value={packForm.name} onChange={(event) => setPackForm((current) => ({ ...current, name: event.target.value }))} />
             <TextField
               label="Cadence"
               select

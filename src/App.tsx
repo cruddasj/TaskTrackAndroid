@@ -7,7 +7,8 @@ import { FocusScreen } from './screens/FocusScreen';
 import { InsightsScreen } from './screens/InsightsScreen';
 import { RoundsScreen } from './screens/RoundsScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
-import { TasksScreen } from './screens/TasksScreen';
+import { TaskBankScreen } from './screens/TaskBankScreen';
+import { TodaysTasksScreen } from './screens/TodaysTasksScreen';
 import { theme } from './theme';
 
 const SetupGate = () => {
@@ -29,7 +30,9 @@ export default function App() {
         <Route element={<SetupGate />}>
           <Route path="/" element={<AppShell />}>
             <Route index element={<DashboardScreen />} />
-            <Route path="tasks" element={<TasksScreen />} />
+            <Route path="tasks" element={<Navigate to="/tasks-today" replace />} />
+            <Route path="tasks-today" element={<TodaysTasksScreen />} />
+            <Route path="task-bank" element={<TaskBankScreen />} />
             <Route path="rounds" element={<RoundsScreen />} />
             <Route path="insights" element={<InsightsScreen />} />
             <Route path="settings" element={<SettingsScreen />} />
