@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useReducer } from 'react';
-import { AppState, PomodoroState, Task, TaskBankItem, TaskPack } from '../types';
+import { AppState, PomodoroState, Task, TaskBankItem } from '../types';
 import { loadState, saveState } from './storage';
 import { notifyPomodoroComplete, playAlarmBell, requestNotificationPermissions } from '../services/notifications';
 
@@ -7,7 +7,6 @@ type NewTask = Omit<Task, 'id' | 'status'>;
 type EditableTask = Omit<Task, 'status'>;
 type NewTaskBankItem = Omit<TaskBankItem, 'id'>;
 type EditableTaskBankItem = TaskBankItem;
-type NewTaskPack = Omit<TaskPack, 'id'>;
 
 type Action =
   | { type: 'ADD_TASK'; payload: NewTask }
@@ -21,8 +20,6 @@ type Action =
   | { type: 'SET_USER_NAME'; payload: { userName: string } }
   | { type: 'ADD_CATEGORY'; payload: { category: string } }
   | { type: 'DELETE_CATEGORY'; payload: { category: string } }
-  | { type: 'ADD_TASK_PACK'; payload: NewTaskPack }
-  | { type: 'DELETE_TASK_PACK'; payload: { id: string } }
   | { type: 'ASSIGN_TASKS_TO_ROUND'; payload: { roundId: string; taskIds: string[] } }
   | { type: 'SET_POMODORO_MINUTES'; payload: { minutes: number } }
   | { type: 'START_POMODORO'; payload: { taskId: string; roundId?: string; minutes?: number } }
@@ -154,18 +151,6 @@ const reducer = (state: AppState, action: Action): AppState => {
         ),
       };
     }
-    case 'ADD_TASK_PACK': {
-      const id = crypto.randomUUID();
-      return {
-        ...state,
-        taskPacks: [...state.taskPacks, { ...action.payload, id }],
-      };
-    }
-    case 'DELETE_TASK_PACK':
-      return {
-        ...state,
-        taskPacks: state.taskPacks.filter((pack) => pack.id !== action.payload.id),
-      };
     case 'ASSIGN_TASKS_TO_ROUND': {
       const { roundId, taskIds } = action.payload;
       const taskIdSet = new Set(taskIds);
@@ -273,8 +258,6 @@ interface AppStateContextValue {
   setUserName: (userName: string) => void;
   addCategory: (category: string) => void;
   deleteCategory: (category: string) => void;
-  addTaskPack: (taskPack: NewTaskPack) => void;
-  deleteTaskPack: (id: string) => void;
   assignTasksToRound: (roundId: string, taskIds: string[]) => void;
   setPomodoroMinutes: (minutes: number) => void;
   startPomodoro: (taskId: string, roundId?: string, minutes?: number) => void;
@@ -328,8 +311,6 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
       setUserName: (userName) => dispatch({ type: 'SET_USER_NAME', payload: { userName } }),
       addCategory: (category) => dispatch({ type: 'ADD_CATEGORY', payload: { category } }),
       deleteCategory: (category) => dispatch({ type: 'DELETE_CATEGORY', payload: { category } }),
-      addTaskPack: (taskPack) => dispatch({ type: 'ADD_TASK_PACK', payload: taskPack }),
-      deleteTaskPack: (id) => dispatch({ type: 'DELETE_TASK_PACK', payload: { id } }),
       assignTasksToRound: (roundId, taskIds) => dispatch({ type: 'ASSIGN_TASKS_TO_ROUND', payload: { roundId, taskIds } }),
       setPomodoroMinutes: (minutes) => dispatch({ type: 'SET_POMODORO_MINUTES', payload: { minutes } }),
       startPomodoro: (taskId, roundId, minutes) => dispatch({ type: 'START_POMODORO', payload: { taskId, roundId, minutes } }),

@@ -9,8 +9,8 @@ import { useAppState } from '../state/AppStateContext';
 
 const tabs = [
   { label: 'Dashboard', path: '/', icon: <DashboardOutlined /> },
-  { label: "Today's Tasks", path: '/tasks-today', icon: <ListAltOutlined /> },
   { label: 'Task Bank', path: '/task-bank', icon: <ListAltOutlined /> },
+  { label: "Today's Tasks", path: '/tasks-today', icon: <ListAltOutlined /> },
   { label: 'Rounds', path: '/rounds', icon: <TimerOutlined /> },
   { label: 'Insights', path: '/insights', icon: <InsightsOutlined /> },
   { label: 'Settings', path: '/settings', icon: <SettingsOutlined /> },
