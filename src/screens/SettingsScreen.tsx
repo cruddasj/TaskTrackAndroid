@@ -1,7 +1,9 @@
 import DeleteOutlineRounded from '@mui/icons-material/DeleteOutlineRounded';
 import InfoOutlined from '@mui/icons-material/InfoOutlined';
+import VolumeUpRounded from '@mui/icons-material/VolumeUpRounded';
 import { Alert, Box, Button, Card, CardContent, IconButton, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { useMemo, useState } from 'react';
+import { playAlarmTone } from '../services/notifications';
 import { useAppState } from '../state/AppStateContext';
 
 export const SettingsScreen = () => {
@@ -116,6 +118,14 @@ export const SettingsScreen = () => {
               <MenuItem value="chime">Chime</MenuItem>
               <MenuItem value="digital">Digital</MenuItem>
             </TextField>
+            <Button
+              variant="outlined"
+              color="secondary"
+              startIcon={<VolumeUpRounded />}
+              onClick={() => playAlarmTone(state.settings.alarmTone)}
+            >
+              Preview alarm tone
+            </Button>
             <Button
               variant="contained"
               onClick={() => {
