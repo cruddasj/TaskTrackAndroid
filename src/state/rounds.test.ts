@@ -1,4 +1,4 @@
-import { buildNewRound, hasEmptyRoundWithoutTasks, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
+import { advanceActiveRound, buildNewRound, hasEmptyRoundWithoutTasks, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
 
 describe('round helpers', () => {
   it('detects when a round has no tasks assigned', () => {
@@ -55,5 +55,21 @@ describe('round helpers', () => {
 
     expect(tasks[0].roundId).toBeUndefined();
     expect(tasks[1].roundId).toBe('r2');
+  });
+
+  it('advances to the next open round after a break', () => {
+    const result = advanceActiveRound(
+      [
+        { id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'active' },
+        { id: 'r2', title: 'Round 2', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'upcoming' },
+        { id: 'r3', title: 'Round 3', scheduledTime: '', durationMinutes: 25, taskIds: ['t3'], status: 'done' },
+      ],
+      'r1',
+    );
+
+    expect(result.nextRoundId).toBe('r2');
+    expect(result.rounds.find((round) => round.id === 'r1')?.status).toBe('upcoming');
+    expect(result.rounds.find((round) => round.id === 'r2')?.status).toBe('active');
+    expect(result.rounds.find((round) => round.id === 'r3')?.status).toBe('done');
   });
 });

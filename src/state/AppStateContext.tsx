@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { AlarmTone, dismissNativeAlarmNotifications, notifyPomodoroComplete, requestNotificationPermissions, startRepeatingAlarm } from '../services/notifications';
 import { AppState, PomodoroState, Round, Task, TaskBankItem } from '../types';
-import { buildNewRound, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
+import { advanceActiveRound, buildNewRound, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
 import { createDemoState, loadState, saveState } from './storage';
 
 type NewTask = Omit<Task, 'id' | 'status' | 'plannedDate' | 'completedAt'>;
@@ -38,6 +38,7 @@ type Action =
   | { type: 'START_POMODORO'; payload: { taskId: string; roundId?: string; minutes?: number } }
   | { type: 'PAUSE_POMODORO' }
   | { type: 'COMPLETE_POMODORO' }
+  | { type: 'SKIP_POMODORO' }
   | { type: 'TICK' }
   | { type: 'RESET_POMODORO' }
   | { type: 'ADVANCE_POMODORO_PHASE' };
@@ -356,6 +357,33 @@ const reducer = (state: AppState, action: Action): AppState => {
         ...state,
         pomodoro: { ...state.pomodoro, isRunning: false, startedAt: null, remainingSeconds: 0 },
       };
+    case 'SKIP_POMODORO': {
+      const completedWorkSessions =
+        state.pomodoro.phase === 'work' ? state.pomodoro.completedWorkSessions + 1 : state.pomodoro.completedWorkSessions;
+      const nextPhase: PomodoroState['phase'] =
+        state.pomodoro.phase === 'work'
+          ? completedWorkSessions % state.settings.sessionsBeforeLongBreak === 0
+            ? 'long_break'
+            : 'short_break'
+          : 'work';
+      const totalSeconds = getPhaseSeconds(state, nextPhase);
+      const roundProgression = nextPhase === 'work' ? advanceActiveRound(state.rounds, state.pomodoro.activeRoundId) : undefined;
+
+      return {
+        ...state,
+        rounds: roundProgression?.rounds ?? state.rounds,
+        pomodoro: {
+          ...state.pomodoro,
+          phase: nextPhase,
+          completedWorkSessions,
+          isRunning: true,
+          startedAt: Date.now(),
+          totalSeconds,
+          remainingSeconds: totalSeconds,
+          activeRoundId: roundProgression?.nextRoundId ?? state.pomodoro.activeRoundId,
+        },
+      };
+    }
     case 'TICK': {
       if (!state.pomodoro.isRunning || state.pomodoro.remainingSeconds <= 0) return state;
       return {
@@ -381,9 +409,11 @@ const reducer = (state: AppState, action: Action): AppState => {
             : 'short_break'
           : 'work';
       const totalSeconds = getPhaseSeconds(state, nextPhase);
+      const roundProgression = nextPhase === 'work' ? advanceActiveRound(state.rounds, state.pomodoro.activeRoundId) : undefined;
 
       return {
         ...state,
+        rounds: roundProgression?.rounds ?? state.rounds,
         pomodoro: {
           ...state.pomodoro,
           phase: nextPhase,
@@ -392,6 +422,7 @@ const reducer = (state: AppState, action: Action): AppState => {
           startedAt: Date.now(),
           totalSeconds,
           remainingSeconds: totalSeconds,
+          activeRoundId: roundProgression?.nextRoundId ?? state.pomodoro.activeRoundId,
         },
       };
     }
@@ -431,6 +462,7 @@ interface AppStateContextValue {
   startPomodoro: (taskId: string, roundId?: string, minutes?: number) => void;
   pausePomodoro: () => void;
   completePomodoro: () => void;
+  skipPomodoro: () => void;
   resetPomodoro: () => void;
   dismissAlarm: () => void;
   showSuccessMessage: (message: string) => void;
@@ -545,6 +577,7 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
       startPomodoro: (taskId, roundId, minutes) => dispatch({ type: 'START_POMODORO', payload: { taskId, roundId, minutes } }),
       pausePomodoro: () => dispatch({ type: 'PAUSE_POMODORO' }),
       completePomodoro: () => dispatch({ type: 'COMPLETE_POMODORO' }),
+      skipPomodoro: () => dispatch({ type: 'SKIP_POMODORO' }),
       resetPomodoro: () => dispatch({ type: 'RESET_POMODORO' }),
       dismissAlarm,
       showSuccessMessage,

@@ -4,7 +4,7 @@ import PlayArrowRounded from '@mui/icons-material/PlayArrowRounded';
 import RadioButtonUncheckedRounded from '@mui/icons-material/RadioButtonUncheckedRounded';
 import ReplayRounded from '@mui/icons-material/ReplayRounded';
 import SkipNextRounded from '@mui/icons-material/SkipNextRounded';
-import { Box, Button, Card, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, Typography } from '@mui/material';
+import { Alert, Box, Button, Card, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, Typography } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
@@ -20,7 +20,7 @@ const formatTime = (seconds: number): string => {
 export const FocusScreen = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { state, startPomodoro, pausePomodoro, completePomodoro, resetPomodoro, toggleTask, assignTasksToRound } = useAppState();
+  const { state, startPomodoro, pausePomodoro, skipPomodoro, resetPomodoro, toggleTask, assignTasksToRound } = useAppState();
   const [sessionReviewOpen, setSessionReviewOpen] = useState(false);
   const [confirmedDoneIds, setConfirmedDoneIds] = useState<string[]>([]);
   const requestedRoundId = searchParams.get('roundId') ?? undefined;
@@ -144,26 +144,32 @@ export const FocusScreen = () => {
           <Typography color="text.secondary">{activeRound?.title ?? 'No round selected'}</Typography>
         </Stack>
 
-        <Card sx={{ width: '100%', maxWidth: 780, maxHeight: { xs: 220, md: 280 }, overflow: 'hidden' }}>
-          <CardContent>
-            <Stack spacing={1} sx={{ maxHeight: '100%', overflowY: 'auto', pr: 0.5 }}>
-              <Typography variant="h6">Tasks in this session</Typography>
-              {roundTasks.map((task) => (
-                <Stack key={task.id} direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
-                  <Typography>{task.title}</Typography>
-                  <Button
-                    size="small"
-                    startIcon={task.status === 'done' ? <CheckCircleOutlineRounded /> : <RadioButtonUncheckedRounded />}
-                    onClick={() => toggleTask(task.id)}
-                  >
-                    {task.status === 'done' ? 'Done' : 'Mark done'}
-                  </Button>
-                </Stack>
-              ))}
-              {roundTasks.length === 0 && <Typography color="text.secondary">No tasks assigned to this session yet.</Typography>}
-            </Stack>
-          </CardContent>
-        </Card>
+        {state.pomodoro.phase === 'work' ? (
+          <Card sx={{ width: '100%', maxWidth: 780, maxHeight: { xs: 220, md: 280 }, overflow: 'hidden' }}>
+            <CardContent>
+              <Stack spacing={1} sx={{ maxHeight: '100%', overflowY: 'auto', pr: 0.5 }}>
+                <Typography variant="h6">Tasks in this session</Typography>
+                {roundTasks.map((task) => (
+                  <Stack key={task.id} direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
+                    <Typography>{task.title}</Typography>
+                    <Button
+                      size="small"
+                      startIcon={task.status === 'done' ? <CheckCircleOutlineRounded /> : <RadioButtonUncheckedRounded />}
+                      onClick={() => toggleTask(task.id)}
+                    >
+                      {task.status === 'done' ? 'Done' : 'Mark done'}
+                    </Button>
+                  </Stack>
+                ))}
+                {roundTasks.length === 0 && <Typography color="text.secondary">No tasks assigned to this session yet.</Typography>}
+              </Stack>
+            </CardContent>
+          </Card>
+        ) : (
+          <Alert severity="success" sx={{ width: '100%', maxWidth: 780 }}>
+            Break in progress. Tasks are hidden until your next focus session starts.
+          </Alert>
+        )}
 
         <Stack direction="row" spacing={3} alignItems="center" pb={2}>
           <IconButton sx={{ bgcolor: '#1a1a1a' }} onClick={resetPomodoro}><ReplayRounded /></IconButton>
@@ -181,7 +187,7 @@ export const FocusScreen = () => {
           >
             {state.pomodoro.isRunning ? <PauseRounded fontSize="large" /> : <PlayArrowRounded fontSize="large" />}
           </IconButton>
-          <IconButton sx={{ bgcolor: '#1a1a1a' }} onClick={completePomodoro}><SkipNextRounded /></IconButton>
+          <IconButton sx={{ bgcolor: '#1a1a1a' }} onClick={skipPomodoro}><SkipNextRounded /></IconButton>
         </Stack>
       </Stack>
 
