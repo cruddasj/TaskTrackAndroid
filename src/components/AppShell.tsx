@@ -5,6 +5,7 @@ import SettingsOutlined from '@mui/icons-material/SettingsOutlined';
 import TimerOutlined from '@mui/icons-material/TimerOutlined';
 import { BottomNavigation, BottomNavigationAction, Box, Paper, Typography } from '@mui/material';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useAppState } from '../state/AppStateContext';
 
 const tabs = [
   { label: 'Dashboard', path: '/', icon: <DashboardOutlined /> },
@@ -15,9 +16,12 @@ const tabs = [
 ];
 
 export const AppShell = () => {
+  const { state } = useAppState();
   const navigate = useNavigate();
   const location = useLocation();
-  const current = tabs.find((tab) => tab.path === location.pathname)?.path ?? false;
+  const isFirstTimeUser = !state.userName.trim();
+  const visibleTabs = isFirstTimeUser ? tabs.filter((tab) => tab.path === '/settings') : tabs;
+  const current = visibleTabs.find((tab) => tab.path === location.pathname)?.path ?? false;
 
   return (
     <Box minHeight="100dvh" bgcolor="background.default" pb={10}>
@@ -36,7 +40,7 @@ export const AppShell = () => {
           showLabels
           sx={{ bgcolor: 'transparent', height: 72 }}
         >
-          {tabs.map((tab) => (
+          {visibleTabs.map((tab) => (
             <BottomNavigationAction key={tab.path} value={tab.path} label={tab.label} icon={tab.icon} />
           ))}
         </BottomNavigation>
