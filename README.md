@@ -11,6 +11,7 @@ TaskTrack is a Pomodoro-driven task planner designed for daily execution. You ca
 - Lets users reorder rounds directly from the Rounds page using up/down controls.
 - Shows a session-aware dashboard card that lists planned round tasks and guides users to assign or add tasks when a round is empty.
 - Uses **upcoming round** language on the dashboard and prevents assignment prompts while a break is active.
+- Uses a today-focused completion metric on the dashboard (`Today's planned tasks completed`) instead of `Daily velocity`, with supporting stat labels that explicitly refer to the current day.
 - Shows a 7-day dashboard summary of completed focus minutes grouped by category.
 - Shows a 7-day activity history with planned/completed counts by day.
 - Uses dashboard guidance language that emphasizes focused attention periods across small, manageable tasks.
