@@ -2,6 +2,7 @@ import CircleOutlined from '@mui/icons-material/CircleOutlined';
 import AddRounded from '@mui/icons-material/AddRounded';
 import ArrowDropDownRounded from '@mui/icons-material/ArrowDropDownRounded';
 import ArrowDropUpRounded from '@mui/icons-material/ArrowDropUpRounded';
+import DeleteOutlineRounded from '@mui/icons-material/DeleteOutlineRounded';
 import {
   Alert,
   Box,
@@ -26,7 +27,7 @@ import { useAppState } from '../state/AppStateContext';
 import { hasEmptyRoundWithoutTasks } from '../state/rounds';
 
 export const RoundsScreen = () => {
-  const { state, assignTasksToRound, autoGroupTodayTasks, moveRound, createRound, showSuccessMessage } = useAppState();
+  const { state, assignTasksToRound, autoGroupTodayTasks, moveRound, createRound, deleteRound, showSuccessMessage } = useAppState();
   const [editingRoundId, setEditingRoundId] = useState<string | null>(null);
   const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
   const [roundCreationValidationMessage, setRoundCreationValidationMessage] = useState<string | null>(null);
@@ -77,10 +78,11 @@ export const RoundsScreen = () => {
       return;
     }
 
-    const newRoundId = createRound();
+    createRound();
     setRoundCreationValidationMessage(null);
     showSuccessMessage('New round created.');
-    openRoundAssignment(newRoundId);
+    setEditingRoundId(null);
+    setSelectedTaskIds([]);
   };
 
   const handleQuickAssignToRound = (taskId: string, event: SelectChangeEvent<string>) => {
@@ -146,6 +148,12 @@ export const RoundsScreen = () => {
             <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
               <Typography variant="h5">{round.title} ({state.settings.pomodoroMinutes} min)</Typography>
               <Stack direction="row" spacing={0.25}>
+                <IconButton size="small" onClick={() => {
+                  deleteRound(round.id);
+                  showSuccessMessage(`${round.title} deleted. Tasks moved to Unassigned today tasks.`);
+                }} aria-label={`delete-round-${round.id}`}>
+                  <DeleteOutlineRounded />
+                </IconButton>
                 <IconButton size="small" onClick={() => moveRound(round.id, 'up')} aria-label={`move-round-up-${round.id}`}>
                   <ArrowDropUpRounded />
                 </IconButton>
