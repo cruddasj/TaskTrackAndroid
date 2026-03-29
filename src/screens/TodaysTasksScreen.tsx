@@ -6,6 +6,7 @@ import RadioButtonUncheckedRounded from '@mui/icons-material/RadioButtonUnchecke
 import { Box, Button, Card, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useAppState } from '../state/AppStateContext';
+import { hasDuplicateTodayTaskTitle } from '../state/tasks';
 import { Task } from '../types';
 
 interface TaskFormState {
@@ -29,8 +30,9 @@ export const TodaysTasksScreen = () => {
   const [open, setOpen] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [form, setForm] = useState<TaskFormState>(emptyForm);
+  const [validationMessage, setValidationMessage] = useState<string | null>(null);
 
-    useEffect(() => {
+  useEffect(() => {
     if (!form.category && state.categories.length > 0) {
       setForm((current) => ({ ...current, category: state.categories[0] }));
     }
@@ -57,6 +59,7 @@ export const TodaysTasksScreen = () => {
     setOpen(false);
     setEditingTaskId(null);
     setForm(emptyForm);
+    setValidationMessage(null);
   };
 
   const saveTask = () => {
@@ -66,6 +69,10 @@ export const TodaysTasksScreen = () => {
     const estimateMinutes = Number(form.estimateMinutes);
 
     if (!title || !Number.isFinite(estimateMinutes) || estimateMinutes <= 0) return;
+    if (hasDuplicateTodayTaskTitle(state.tasks, todayKey, title, editingTaskId ?? undefined)) {
+      setValidationMessage('A task with this name already exists in Today\'s Tasks.');
+      return;
+    }
 
     if (editingTaskId) {
       const existingTask = state.tasks.find((task) => task.id === editingTaskId);
@@ -83,6 +90,7 @@ export const TodaysTasksScreen = () => {
       showSuccessMessage('Today task created.');
     }
 
+    setValidationMessage(null);
     closeDialog();
   };
 
@@ -164,7 +172,22 @@ export const TodaysTasksScreen = () => {
       <Dialog open={open} onClose={closeDialog} fullWidth>
         <DialogTitle>{editingTaskId ? 'Edit today task' : "Add today's task"}</DialogTitle>
         <DialogContent>
-          <TextField margin="dense" label="Task title" fullWidth value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} />
+          <TextField
+            margin="dense"
+            label="Task title"
+            fullWidth
+            value={form.title}
+            error={!!validationMessage}
+            helperText={validationMessage ?? ' '}
+            onChange={(event) => {
+              const nextTitle = event.target.value;
+              setForm((current) => ({ ...current, title: nextTitle }));
+              if (!validationMessage) return;
+              if (!hasDuplicateTodayTaskTitle(state.tasks, todayKey, nextTitle, editingTaskId ?? undefined)) {
+                setValidationMessage(null);
+              }
+            }}
+          />
           <TextField
             margin="dense"
             label="Description"

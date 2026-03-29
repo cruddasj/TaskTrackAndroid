@@ -2,10 +2,11 @@ import AddRounded from '@mui/icons-material/AddRounded';
 import DeleteOutlineRounded from '@mui/icons-material/DeleteOutlineRounded';
 import EditOutlined from '@mui/icons-material/EditOutlined';
 import PlaylistAddRounded from '@mui/icons-material/PlaylistAddRounded';
-import { Box, Button, Card, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, Card, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
+import { hasDuplicateTodayTaskTitle } from '../state/tasks';
 import { TaskBankItem } from '../types';
 
 interface TaskFormState {
@@ -29,6 +30,8 @@ export const TaskBankScreen = () => {
   const [open, setOpen] = useState(false);
   const [editingTaskBankId, setEditingTaskBankId] = useState<string | null>(null);
   const [form, setForm] = useState<TaskFormState>(emptyForm);
+  const [validationMessage, setValidationMessage] = useState<string | null>(null);
+  const todayKey = new Date().toISOString().slice(0, 10);
 
   useEffect(() => {
     if (!form.category && state.categories.length > 0) {
@@ -103,6 +106,7 @@ export const TaskBankScreen = () => {
               <Button variant="contained" onClick={openCreateBankDialog}>New bank task</Button>
             </Stack>
           </Stack>
+          {validationMessage && <Alert severity="warning" sx={{ mt: 2 }}>{validationMessage}</Alert>}
         </CardContent>
       </Card>
 
@@ -134,7 +138,12 @@ export const TaskBankScreen = () => {
               <Button
                 size="small"
                 onClick={() => {
+                  if (hasDuplicateTodayTaskTitle(state.tasks, todayKey, task.title)) {
+                    setValidationMessage(`"${task.title}" is already in Today's Tasks.`);
+                    return;
+                  }
                   addTaskFromBank(task.id);
+                  setValidationMessage(null);
                   showSuccessMessage('Task added to today\'s tasks.');
                 }}
                 startIcon={<PlaylistAddRounded />}
