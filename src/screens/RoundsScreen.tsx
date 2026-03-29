@@ -58,6 +58,10 @@ export const RoundsScreen = () => {
   const availableTasks = useMemo(() => {
     return todaysTasks.filter((task) => !task.roundId || task.roundId === editingRound?.id);
   }, [todaysTasks, editingRound]);
+  const unassignedTasks = useMemo(
+    () => todaysTasks.filter((task) => !task.roundId || !state.rounds.some((round) => round.id === task.roundId)),
+    [todaysTasks, state.rounds],
+  );
 
   return (
     <Stack spacing={2}>
@@ -76,6 +80,22 @@ export const RoundsScreen = () => {
           Suggest groupings by category
         </Button>
       </Box>
+      <Card sx={{ bgcolor: '#1a1a1a' }}>
+        <CardContent>
+          <Typography variant="h6" mb={1}>Unassigned today tasks</Typography>
+          <Stack spacing={1}>
+            {unassignedTasks.map((task) => (
+              <Stack direction="row" spacing={1} alignItems="center" key={task.id}>
+                <CircleOutlined fontSize="small" color="disabled" />
+                <Typography>{task.title}</Typography>
+              </Stack>
+            ))}
+            {unassignedTasks.length === 0 && (
+              <Typography color="text.secondary">All today tasks are assigned to a round.</Typography>
+            )}
+          </Stack>
+        </CardContent>
+      </Card>
       {state.rounds.map((round) => (
         <Card key={round.id} sx={{ bgcolor: round.status === 'active' ? '#20201f' : '#1a1a1a' }}>
           <CardContent>
