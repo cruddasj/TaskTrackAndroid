@@ -1,6 +1,6 @@
 import PlayArrowRounded from '@mui/icons-material/PlayArrowRounded';
 import CheckCircleRounded from '@mui/icons-material/CheckCircleRounded';
-import { Box, Button, Card, CardContent, LinearProgress, Stack, Typography } from '@mui/material';
+import { Box, Button, Card, CardContent, Divider, LinearProgress, Stack, Typography } from '@mui/material';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
@@ -14,17 +14,37 @@ const getGreeting = (hour: number): string => {
 export const DashboardScreen = () => {
   const navigate = useNavigate();
   const { state } = useAppState();
-  const completed = state.tasks.filter((task) => task.status === 'done').length;
-  const progress = state.tasks.length ? Math.round((completed / state.tasks.length) * 100) : 0;
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const recentDayKeys = Array.from({ length: 7 }, (_, index) => {
+    const date = new Date();
+    date.setDate(date.getDate() - index);
+    return date.toISOString().slice(0, 10);
+  });
+  const todaysTasks = state.tasks.filter((task) => task.plannedDate === todayKey);
+  const completed = todaysTasks.filter((task) => task.status === 'done').length;
+  const progress = todaysTasks.length ? Math.round((completed / todaysTasks.length) * 100) : 0;
   const totalFocusMinutes = state.pomodoro.completedWorkSessions * state.settings.pomodoroMinutes;
-  const activeRound = state.rounds.find((round) => round.id === state.pomodoro.activeRoundId)
+  const upcomingRound = state.rounds.find((round) => round.id === state.pomodoro.activeRoundId)
     ?? state.rounds.find((round) => round.status === 'active');
-  const plannedSessionTasks = activeRound
-    ? activeRound.taskIds
-      .map((taskId) => state.tasks.find((task) => task.id === taskId))
+  const plannedRoundTasks = upcomingRound
+    ? upcomingRound.taskIds
+      .map((taskId) => todaysTasks.find((task) => task.id === taskId))
       .filter((task): task is NonNullable<typeof task> => !!task)
     : [];
-  const hasTodayTasks = state.tasks.length > 0;
+  const hasTodayTasks = todaysTasks.length > 0;
+  const categoryTotals = recentDayKeys.reduce<Record<string, number>>((acc, dayKey) => {
+    state.tasks
+      .filter((task) => task.completedAt?.startsWith(dayKey))
+      .forEach((task) => {
+        acc[task.category] = (acc[task.category] ?? 0) + task.estimateMinutes;
+      });
+    return acc;
+  }, {});
+  const historyByDay = recentDayKeys.map((dayKey) => {
+    const planned = state.tasks.filter((task) => task.plannedDate === dayKey);
+    const completedForDay = state.tasks.filter((task) => task.completedAt?.startsWith(dayKey));
+    return { dayKey, planned, completedForDay };
+  });
 
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
@@ -45,14 +65,14 @@ export const DashboardScreen = () => {
           </Typography>
           <Typography variant="h4" mt={1} mb={2}>
             {state.pomodoro.phase === 'work'
-              ? (plannedSessionTasks.length > 0 ? 'Your next planned tasks' : 'Ready to plan your next focus round?')
-              : 'Take your break, then return for the next session'}
+              ? (plannedRoundTasks.length > 0 ? 'Your upcoming round tasks' : 'Ready to plan your next round?')
+              : 'Break in progress'}
           </Typography>
-          {plannedSessionTasks.length > 0 ? (
+          {plannedRoundTasks.length > 0 ? (
             <>
-              <Typography color="text.secondary" mb={2}>These tasks are queued for your current session.</Typography>
+              <Typography color="text.secondary" mb={2}>These tasks are queued for your upcoming round.</Typography>
               <Stack spacing={1.25} mb={2.5}>
-                {plannedSessionTasks.map((task) => (
+                {plannedRoundTasks.map((task) => (
                   <Stack key={task.id} direction="row" spacing={1} alignItems="center">
                     <CheckCircleRounded color="primary" fontSize="small" />
                     <Typography>{task.title}</Typography>
@@ -66,18 +86,22 @@ export const DashboardScreen = () => {
           ) : (
             <>
               <Typography color="text.secondary" mb={2}>
-                {hasTodayTasks
+                {state.pomodoro.phase !== 'work'
+                  ? 'You are currently on a break. Round planning resumes after your break ends.'
+                  : hasTodayTasks
                   ? 'Assign tasks to this round before starting your next active session.'
                   : 'Add tasks to Today\'s Tasks first, then assign them into a round.'}
               </Typography>
-              <Button
-                size="large"
-                variant="contained"
-                startIcon={<PlayArrowRounded />}
-                onClick={() => navigate(hasTodayTasks ? '/rounds' : '/tasks-today')}
-              >
-                {hasTodayTasks ? 'Assign tasks' : 'Add today\'s tasks'}
-              </Button>
+              {state.pomodoro.phase === 'work' && (
+                <Button
+                  size="large"
+                  variant="contained"
+                  startIcon={<PlayArrowRounded />}
+                  onClick={() => navigate(hasTodayTasks ? '/rounds' : '/tasks-today')}
+                >
+                  {hasTodayTasks ? 'Assign tasks' : 'Add today\'s tasks'}
+                </Button>
+              )}
             </>
           )}
         </CardContent>
@@ -100,7 +124,7 @@ export const DashboardScreen = () => {
             >
               Tasks done
             </Typography>
-            <Typography variant="h4" sx={{ fontSize: { xs: '1.55rem', sm: '2.125rem' } }}>{completed} / {state.tasks.length}</Typography>
+            <Typography variant="h4" sx={{ fontSize: { xs: '1.55rem', sm: '2.125rem' } }}>{completed} / {todaysTasks.length}</Typography>
           </CardContent>
         </Card>
         <Card sx={{ flex: 1, minWidth: { xs: 'calc(50% - 8px)', sm: 0 } }}>
@@ -126,6 +150,47 @@ export const DashboardScreen = () => {
           </CardContent>
         </Card>
       </Stack>
+
+      <Card>
+        <CardContent>
+          <Typography variant="h6" mb={1}>Completed focus by category (last 7 days)</Typography>
+          <Stack spacing={0.75}>
+            {Object.entries(categoryTotals)
+              .sort((a, b) => b[1] - a[1])
+              .map(([category, minutes]) => (
+                <Stack key={category} direction="row" justifyContent="space-between">
+                  <Typography color="text.secondary">{category}</Typography>
+                  <Typography>{minutes} min</Typography>
+                </Stack>
+              ))}
+            {Object.keys(categoryTotals).length === 0 && (
+              <Typography color="text.secondary">No completed tasks in the last 7 days yet.</Typography>
+            )}
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent>
+          <Typography variant="h6" mb={1}>Last 7 days activity</Typography>
+          <Stack spacing={1.25}>
+            {historyByDay.map(({ dayKey, planned, completedForDay }, index) => (
+              <Box key={dayKey}>
+                <Typography fontWeight={700}>{dayKey}</Typography>
+                <Typography color="text.secondary" variant="body2">
+                  Planned: {planned.length} · Completed: {completedForDay.length}
+                </Typography>
+                {(planned.length > 0 || completedForDay.length > 0) && (
+                  <Typography variant="body2" color="text.secondary">
+                    {planned.map((task) => task.title).join(', ') || 'No planned tasks'}
+                  </Typography>
+                )}
+                {index < historyByDay.length - 1 && <Divider sx={{ mt: 1 }} />}
+              </Box>
+            ))}
+          </Stack>
+        </CardContent>
+      </Card>
     </Stack>
   );
 };
