@@ -4,7 +4,6 @@ import { AppShell } from './components/AppShell';
 import { useAppState } from './state/AppStateContext';
 import { DashboardScreen } from './screens/DashboardScreen';
 import { FocusScreen } from './screens/FocusScreen';
-import { InsightsScreen } from './screens/InsightsScreen';
 import { RoundsScreen } from './screens/RoundsScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import { TaskBankScreen } from './screens/TaskBankScreen';
@@ -34,7 +33,6 @@ export default function App() {
             <Route path="tasks-today" element={<TodaysTasksScreen />} />
             <Route path="task-bank" element={<TaskBankScreen />} />
             <Route path="rounds" element={<RoundsScreen />} />
-            <Route path="insights" element={<InsightsScreen />} />
             <Route path="settings" element={<SettingsScreen />} />
           </Route>
           <Route path="/focus" element={<FocusScreen />} />

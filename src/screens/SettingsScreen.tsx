@@ -1,14 +1,27 @@
 import DeleteOutlineRounded from '@mui/icons-material/DeleteOutlineRounded';
 import InfoOutlined from '@mui/icons-material/InfoOutlined';
-import { Alert, Box, Button, Card, CardContent, IconButton, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, Card, CardContent, IconButton, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { useMemo, useState } from 'react';
 import { useAppState } from '../state/AppStateContext';
 
 export const SettingsScreen = () => {
-  const { state, setUserName, addCategory, deleteCategory, setPomodoroMinutes } = useAppState();
+  const {
+    state,
+    setUserName,
+    addCategory,
+    deleteCategory,
+    setPomodoroMinutes,
+    setShortBreakMinutes,
+    setLongBreakMinutes,
+    setSessionsBeforeLongBreak,
+    setAlarmTone,
+  } = useAppState();
   const [name, setName] = useState(state.userName);
   const [newCategory, setNewCategory] = useState('');
   const [pomodoroMinutes, setPomodoroMinutesInput] = useState(String(state.settings.pomodoroMinutes));
+  const [shortBreakMinutes, setShortBreakMinutesInput] = useState(String(state.settings.shortBreakMinutes));
+  const [longBreakMinutes, setLongBreakMinutesInput] = useState(String(state.settings.longBreakMinutes));
+  const [sessionsBeforeLongBreak, setSessionsBeforeLongBreakInput] = useState(String(state.settings.sessionsBeforeLongBreak));
 
   const needsName = !state.userName.trim();
   const categoryExists = useMemo(
@@ -61,7 +74,7 @@ export const SettingsScreen = () => {
       <Card>
         <CardContent>
           <Stack spacing={2}>
-            <Typography variant="h5">Pomodoro duration</Typography>
+            <Typography variant="h5">Pomodoro timing</Typography>
             <TextField
               label="Recommended minutes per round"
               type="number"
@@ -70,17 +83,69 @@ export const SettingsScreen = () => {
               onChange={(event) => setPomodoroMinutesInput(event.target.value)}
               helperText="Default is 25 minutes."
             />
+            <TextField
+              label="Short break minutes"
+              type="number"
+              inputProps={{ min: 1 }}
+              value={shortBreakMinutes}
+              onChange={(event) => setShortBreakMinutesInput(event.target.value)}
+              helperText="Break after each focus session."
+            />
+            <TextField
+              label="Long break minutes"
+              type="number"
+              inputProps={{ min: 1 }}
+              value={longBreakMinutes}
+              onChange={(event) => setLongBreakMinutesInput(event.target.value)}
+              helperText="Long reset break after several sessions."
+            />
+            <TextField
+              label="Sessions before long break"
+              type="number"
+              inputProps={{ min: 2 }}
+              value={sessionsBeforeLongBreak}
+              onChange={(event) => setSessionsBeforeLongBreakInput(event.target.value)}
+            />
+            <TextField
+              select
+              label="Alarm tone"
+              value={state.settings.alarmTone}
+              onChange={(event) => setAlarmTone(event.target.value as 'bell' | 'chime' | 'digital')}
+            >
+              <MenuItem value="bell">Bell</MenuItem>
+              <MenuItem value="chime">Chime</MenuItem>
+              <MenuItem value="digital">Digital</MenuItem>
+            </TextField>
             <Button
               variant="contained"
               onClick={() => {
                 const minutes = Number(pomodoroMinutes);
-                if (!Number.isFinite(minutes) || minutes <= 0) return;
+                const shortBreak = Number(shortBreakMinutes);
+                const longBreak = Number(longBreakMinutes);
+                const sessions = Number(sessionsBeforeLongBreak);
+                if (!Number.isFinite(minutes) || !Number.isFinite(shortBreak) || !Number.isFinite(longBreak) || !Number.isFinite(sessions)) return;
+                if (minutes <= 0 || shortBreak <= 0 || longBreak <= 0 || sessions <= 1) return;
                 setPomodoroMinutes(minutes);
+                setShortBreakMinutes(shortBreak);
+                setLongBreakMinutes(longBreak);
+                setSessionsBeforeLongBreak(sessions);
                 setPomodoroMinutesInput(String(Math.round(minutes)));
+                setShortBreakMinutesInput(String(Math.round(shortBreak)));
+                setLongBreakMinutesInput(String(Math.round(longBreak)));
+                setSessionsBeforeLongBreakInput(String(Math.round(sessions)));
               }}
-              disabled={!pomodoroMinutes.trim() || Number(pomodoroMinutes) <= 0}
+              disabled={
+                !pomodoroMinutes.trim() ||
+                !shortBreakMinutes.trim() ||
+                !longBreakMinutes.trim() ||
+                !sessionsBeforeLongBreak.trim() ||
+                Number(pomodoroMinutes) <= 0 ||
+                Number(shortBreakMinutes) <= 0 ||
+                Number(longBreakMinutes) <= 0 ||
+                Number(sessionsBeforeLongBreak) <= 1
+              }
             >
-              Save pomodoro length
+              Save timer settings
             </Button>
           </Stack>
         </CardContent>

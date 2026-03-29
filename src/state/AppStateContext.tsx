@@ -1,7 +1,7 @@
-import { createContext, useContext, useEffect, useMemo, useReducer } from 'react';
+import { createContext, useContext, useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { AlarmTone, dismissNativeAlarmNotifications, notifyPomodoroComplete, requestNotificationPermissions, startRepeatingAlarm } from '../services/notifications';
 import { AppState, PomodoroState, Task, TaskBankItem } from '../types';
 import { loadState, saveState } from './storage';
-import { notifyPomodoroComplete, playAlarmBell, requestNotificationPermissions } from '../services/notifications';
 
 type NewTask = Omit<Task, 'id' | 'status'>;
 type EditableTask = Omit<Task, 'status'>;
@@ -22,11 +22,22 @@ type Action =
   | { type: 'DELETE_CATEGORY'; payload: { category: string } }
   | { type: 'ASSIGN_TASKS_TO_ROUND'; payload: { roundId: string; taskIds: string[] } }
   | { type: 'SET_POMODORO_MINUTES'; payload: { minutes: number } }
+  | { type: 'SET_SHORT_BREAK_MINUTES'; payload: { minutes: number } }
+  | { type: 'SET_LONG_BREAK_MINUTES'; payload: { minutes: number } }
+  | { type: 'SET_SESSIONS_BEFORE_LONG_BREAK'; payload: { sessions: number } }
+  | { type: 'SET_ALARM_TONE'; payload: { tone: AlarmTone } }
   | { type: 'START_POMODORO'; payload: { taskId: string; roundId?: string; minutes?: number } }
   | { type: 'PAUSE_POMODORO' }
   | { type: 'COMPLETE_POMODORO' }
   | { type: 'TICK' }
-  | { type: 'RESET_POMODORO' };
+  | { type: 'RESET_POMODORO' }
+  | { type: 'ADVANCE_POMODORO_PHASE' };
+
+const getPhaseSeconds = (state: AppState, phase: PomodoroState['phase']): number => {
+  if (phase === 'short_break') return state.settings.shortBreakMinutes * 60;
+  if (phase === 'long_break') return state.settings.longBreakMinutes * 60;
+  return state.settings.pomodoroMinutes * 60;
+};
 
 const reducer = (state: AppState, action: Action): AppState => {
   switch (action.type) {
@@ -47,13 +58,7 @@ const reducer = (state: AppState, action: Action): AppState => {
     case 'UPDATE_TASK':
       return {
         ...state,
-        tasks: state.tasks.map((task) => {
-          if (task.id !== action.payload.id) return task;
-          return {
-            ...task,
-            ...action.payload,
-          };
-        }),
+        tasks: state.tasks.map((task) => (task.id !== action.payload.id ? task : { ...task, ...action.payload })),
       };
     case 'DELETE_TASK': {
       const remainingTasks = state.tasks.filter((task) => task.id !== action.payload.id);
@@ -78,61 +83,32 @@ const reducer = (state: AppState, action: Action): AppState => {
       if (!sourceTask) return state;
       return {
         ...state,
-        tasks: [
-          ...state.tasks,
-          {
-            ...sourceTask,
-            id: crypto.randomUUID(),
-            status: 'todo',
-          },
-        ],
+        tasks: [...state.tasks, { ...sourceTask, id: crypto.randomUUID(), status: 'todo' }],
       };
     }
     case 'ADD_TASK_BANK_ITEM': {
       const id = crypto.randomUUID();
-      return {
-        ...state,
-        taskBank: [...state.taskBank, { ...action.payload, id }],
-      };
+      return { ...state, taskBank: [...state.taskBank, { ...action.payload, id }] };
     }
     case 'UPDATE_TASK_BANK_ITEM':
       return {
         ...state,
-        taskBank: state.taskBank.map((task) => {
-          if (task.id !== action.payload.id) return task;
-          return {
-            ...task,
-            ...action.payload,
-          };
-        }),
+        taskBank: state.taskBank.map((task) => (task.id !== action.payload.id ? task : { ...task, ...action.payload })),
       };
     case 'DELETE_TASK_BANK_ITEM':
-      return {
-        ...state,
-        taskBank: state.taskBank.filter((task) => task.id !== action.payload.id),
-      };
+      return { ...state, taskBank: state.taskBank.filter((task) => task.id !== action.payload.id) };
     case 'TOGGLE_TASK':
       return {
         ...state,
-        tasks: state.tasks.map((task) => {
-          if (task.id !== action.payload.id) return task;
-          return {
-            ...task,
-            status: task.status === 'done' ? 'todo' : 'done',
-          };
-        }),
+        tasks: state.tasks.map((task) =>
+          task.id !== action.payload.id ? task : { ...task, status: task.status === 'done' ? 'todo' : 'done' },
+        ),
       };
     case 'SET_USER_NAME':
-      return {
-        ...state,
-        userName: action.payload.userName,
-      };
+      return { ...state, userName: action.payload.userName };
     case 'ADD_CATEGORY': {
       if (state.categories.includes(action.payload.category)) return state;
-      return {
-        ...state,
-        categories: [...state.categories, action.payload.category],
-      };
+      return { ...state, categories: [...state.categories, action.payload.category] };
     }
     case 'DELETE_CATEGORY': {
       const category = action.payload.category;
@@ -142,14 +118,7 @@ const reducer = (state: AppState, action: Action): AppState => {
       return {
         ...state,
         categories: nextCategories,
-        tasks: state.tasks.map((task) =>
-          task.category === category
-            ? {
-                ...task,
-                category: fallbackCategory,
-              }
-            : task,
-        ),
+        tasks: state.tasks.map((task) => (task.category === category ? { ...task, category: fallbackCategory } : task)),
       };
     }
     case 'ASSIGN_TASKS_TO_ROUND': {
@@ -158,39 +127,25 @@ const reducer = (state: AppState, action: Action): AppState => {
       return {
         ...state,
         rounds: state.rounds.map((round) =>
-          round.id === roundId
-            ? {
-                ...round,
-                taskIds,
-              }
-            : {
-                ...round,
-                taskIds: round.taskIds.filter((taskId) => !taskIdSet.has(taskId)),
-              },
+          round.id === roundId ? { ...round, taskIds } : { ...round, taskIds: round.taskIds.filter((taskId) => !taskIdSet.has(taskId)) },
         ),
         tasks: state.tasks.map((task) => {
-          if (taskIdSet.has(task.id)) {
-            return { ...task, roundId };
-          }
-          if (task.roundId === roundId) {
-            return { ...task, roundId: undefined };
-          }
+          if (taskIdSet.has(task.id)) return { ...task, roundId };
+          if (task.roundId === roundId) return { ...task, roundId: undefined };
           return task;
         }),
       };
     }
     case 'SET_POMODORO_MINUTES': {
       const minutes = Math.max(1, Math.round(action.payload.minutes));
-      return {
+      const nextState = {
         ...state,
-        settings: {
-          ...state.settings,
-          pomodoroMinutes: minutes,
-        },
-        rounds: state.rounds.map((round) => ({
-          ...round,
-          durationMinutes: minutes,
-        })),
+        settings: { ...state.settings, pomodoroMinutes: minutes },
+        rounds: state.rounds.map((round) => ({ ...round, durationMinutes: minutes })),
+      };
+      if (state.pomodoro.phase !== 'work') return nextState;
+      return {
+        ...nextState,
         pomodoro: {
           ...state.pomodoro,
           totalSeconds: minutes * 60,
@@ -198,59 +153,111 @@ const reducer = (state: AppState, action: Action): AppState => {
         },
       };
     }
+    case 'SET_SHORT_BREAK_MINUTES': {
+      const minutes = Math.max(1, Math.round(action.payload.minutes));
+      const nextState = { ...state, settings: { ...state.settings, shortBreakMinutes: minutes } };
+      if (state.pomodoro.phase !== 'short_break') return nextState;
+      return {
+        ...nextState,
+        pomodoro: {
+          ...state.pomodoro,
+          totalSeconds: minutes * 60,
+          remainingSeconds: state.pomodoro.isRunning ? state.pomodoro.remainingSeconds : minutes * 60,
+        },
+      };
+    }
+    case 'SET_LONG_BREAK_MINUTES': {
+      const minutes = Math.max(1, Math.round(action.payload.minutes));
+      const nextState = { ...state, settings: { ...state.settings, longBreakMinutes: minutes } };
+      if (state.pomodoro.phase !== 'long_break') return nextState;
+      return {
+        ...nextState,
+        pomodoro: {
+          ...state.pomodoro,
+          totalSeconds: minutes * 60,
+          remainingSeconds: state.pomodoro.isRunning ? state.pomodoro.remainingSeconds : minutes * 60,
+        },
+      };
+    }
+    case 'SET_SESSIONS_BEFORE_LONG_BREAK':
+      return {
+        ...state,
+        settings: {
+          ...state.settings,
+          sessionsBeforeLongBreak: Math.max(2, Math.round(action.payload.sessions)),
+        },
+      };
+    case 'SET_ALARM_TONE':
+      return {
+        ...state,
+        settings: {
+          ...state.settings,
+          alarmTone: action.payload.tone,
+        },
+      };
     case 'START_POMODORO': {
-      const totalSeconds = (action.payload.minutes ?? state.settings.pomodoroMinutes) * 60;
+      const phase = state.pomodoro.phase;
+      const totalSeconds = action.payload.minutes ? action.payload.minutes * 60 : getPhaseSeconds(state, phase);
       const pomodoro: PomodoroState = {
         ...state.pomodoro,
         isRunning: true,
         startedAt: Date.now(),
         totalSeconds,
         remainingSeconds:
-          state.pomodoro.activeTaskId === action.payload.taskId ? state.pomodoro.remainingSeconds : totalSeconds,
-        activeTaskId: action.payload.taskId,
-        activeRoundId: action.payload.roundId,
+          state.pomodoro.activeTaskId === action.payload.taskId && state.pomodoro.phase === 'work'
+            ? state.pomodoro.remainingSeconds
+            : totalSeconds,
+        activeTaskId: phase === 'work' ? action.payload.taskId : state.pomodoro.activeTaskId,
+        activeRoundId: phase === 'work' ? action.payload.roundId : state.pomodoro.activeRoundId,
       };
       return { ...state, pomodoro };
     }
     case 'PAUSE_POMODORO':
-      return {
-        ...state,
-        pomodoro: {
-          ...state.pomodoro,
-          isRunning: false,
-          startedAt: null,
-        },
-      };
+      return { ...state, pomodoro: { ...state.pomodoro, isRunning: false, startedAt: null } };
     case 'COMPLETE_POMODORO':
       return {
         ...state,
-        pomodoro: {
-          ...state.pomodoro,
-          isRunning: false,
-          startedAt: null,
-          remainingSeconds: 0,
-        },
+        pomodoro: { ...state.pomodoro, isRunning: false, startedAt: null, remainingSeconds: 0 },
       };
     case 'TICK': {
       if (!state.pomodoro.isRunning || state.pomodoro.remainingSeconds <= 0) return state;
       return {
         ...state,
-        pomodoro: {
-          ...state.pomodoro,
-          remainingSeconds: Math.max(0, state.pomodoro.remainingSeconds - 1),
-        },
+        pomodoro: { ...state.pomodoro, remainingSeconds: Math.max(0, state.pomodoro.remainingSeconds - 1) },
       };
     }
-    case 'RESET_POMODORO':
+    case 'RESET_POMODORO': {
+      const totalSeconds = getPhaseSeconds(state, state.pomodoro.phase);
+      return {
+        ...state,
+        pomodoro: { ...state.pomodoro, isRunning: false, startedAt: null, totalSeconds, remainingSeconds: totalSeconds },
+      };
+    }
+    case 'ADVANCE_POMODORO_PHASE': {
+      const completedWorkSessions =
+        state.pomodoro.phase === 'work' ? state.pomodoro.completedWorkSessions + 1 : state.pomodoro.completedWorkSessions;
+
+      const nextPhase: PomodoroState['phase'] =
+        state.pomodoro.phase === 'work'
+          ? completedWorkSessions % state.settings.sessionsBeforeLongBreak === 0
+            ? 'long_break'
+            : 'short_break'
+          : 'work';
+      const totalSeconds = getPhaseSeconds(state, nextPhase);
+
       return {
         ...state,
         pomodoro: {
           ...state.pomodoro,
-          isRunning: false,
-          startedAt: null,
-          remainingSeconds: state.pomodoro.totalSeconds,
+          phase: nextPhase,
+          completedWorkSessions,
+          isRunning: true,
+          startedAt: Date.now(),
+          totalSeconds,
+          remainingSeconds: totalSeconds,
         },
       };
+    }
     default:
       return state;
   }
@@ -258,6 +265,7 @@ const reducer = (state: AppState, action: Action): AppState => {
 
 interface AppStateContextValue {
   state: AppState;
+  alarmActive: boolean;
   addTask: (task: NewTask) => void;
   addTaskFromBank: (taskBankItemId: string) => void;
   updateTask: (task: EditableTask) => void;
@@ -271,16 +279,23 @@ interface AppStateContextValue {
   deleteCategory: (category: string) => void;
   assignTasksToRound: (roundId: string, taskIds: string[]) => void;
   setPomodoroMinutes: (minutes: number) => void;
+  setShortBreakMinutes: (minutes: number) => void;
+  setLongBreakMinutes: (minutes: number) => void;
+  setSessionsBeforeLongBreak: (sessions: number) => void;
+  setAlarmTone: (tone: AlarmTone) => void;
   startPomodoro: (taskId: string, roundId?: string, minutes?: number) => void;
   pausePomodoro: () => void;
   completePomodoro: () => void;
   resetPomodoro: () => void;
+  dismissAlarm: () => void;
 }
 
 const AppStateContext = createContext<AppStateContextValue | undefined>(undefined);
 
 export const AppStateProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, dispatch] = useReducer(reducer, undefined, loadState);
+  const [alarmActive, setAlarmActive] = useState(false);
+  const stopAlarmRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     requestNotificationPermissions().catch(() => undefined);
@@ -301,17 +316,38 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
   useEffect(() => {
     if (state.pomodoro.remainingSeconds !== 0) return;
 
-    const activeTask = state.tasks.find((task) => task.id === state.pomodoro.activeTaskId);
-    const taskTitle = activeTask?.title ?? 'Current task';
+    const titleByPhase: Record<PomodoroState['phase'], string> = {
+      work: 'Focus session complete',
+      short_break: 'Short break complete',
+      long_break: 'Long break complete',
+    };
+    const bodyByPhase: Record<PomodoroState['phase'], string> = {
+      work: 'Time for a break.',
+      short_break: 'Back to focus mode.',
+      long_break: 'Great work. Start your next focus session.',
+    };
 
-    notifyPomodoroComplete(taskTitle).catch(() => undefined);
-    playAlarmBell();
-    dispatch({ type: 'PAUSE_POMODORO' });
-  }, [state.pomodoro.remainingSeconds, state.pomodoro.activeTaskId, state.tasks]);
+    notifyPomodoroComplete(titleByPhase[state.pomodoro.phase], bodyByPhase[state.pomodoro.phase], state.settings.alarmTone).catch(
+      () => undefined,
+    );
+
+    stopAlarmRef.current?.();
+    stopAlarmRef.current = startRepeatingAlarm(state.settings.alarmTone);
+    setAlarmActive(true);
+    dispatch({ type: 'ADVANCE_POMODORO_PHASE' });
+  }, [state.pomodoro.remainingSeconds, state.pomodoro.phase, state.settings.alarmTone]);
+
+  const dismissAlarm = () => {
+    stopAlarmRef.current?.();
+    stopAlarmRef.current = null;
+    setAlarmActive(false);
+    dismissNativeAlarmNotifications().catch(() => undefined);
+  };
 
   const value = useMemo<AppStateContextValue>(
     () => ({
       state,
+      alarmActive,
       addTask: (task) => dispatch({ type: 'ADD_TASK', payload: task }),
       addTaskFromBank: (taskBankItemId) => dispatch({ type: 'ADD_TASK_FROM_BANK', payload: { taskBankItemId } }),
       updateTask: (task) => dispatch({ type: 'UPDATE_TASK', payload: task }),
@@ -325,12 +361,17 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
       deleteCategory: (category) => dispatch({ type: 'DELETE_CATEGORY', payload: { category } }),
       assignTasksToRound: (roundId, taskIds) => dispatch({ type: 'ASSIGN_TASKS_TO_ROUND', payload: { roundId, taskIds } }),
       setPomodoroMinutes: (minutes) => dispatch({ type: 'SET_POMODORO_MINUTES', payload: { minutes } }),
+      setShortBreakMinutes: (minutes) => dispatch({ type: 'SET_SHORT_BREAK_MINUTES', payload: { minutes } }),
+      setLongBreakMinutes: (minutes) => dispatch({ type: 'SET_LONG_BREAK_MINUTES', payload: { minutes } }),
+      setSessionsBeforeLongBreak: (sessions) => dispatch({ type: 'SET_SESSIONS_BEFORE_LONG_BREAK', payload: { sessions } }),
+      setAlarmTone: (tone) => dispatch({ type: 'SET_ALARM_TONE', payload: { tone } }),
       startPomodoro: (taskId, roundId, minutes) => dispatch({ type: 'START_POMODORO', payload: { taskId, roundId, minutes } }),
       pausePomodoro: () => dispatch({ type: 'PAUSE_POMODORO' }),
       completePomodoro: () => dispatch({ type: 'COMPLETE_POMODORO' }),
       resetPomodoro: () => dispatch({ type: 'RESET_POMODORO' }),
+      dismissAlarm,
     }),
-    [state],
+    [state, alarmActive],
   );
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;

@@ -2,6 +2,9 @@ import { AppState } from '../types';
 
 const STORAGE_KEY = 'tasktrack.state.v2';
 const DEFAULT_POMODORO_MINUTES = 25;
+const DEFAULT_SHORT_BREAK_MINUTES = 5;
+const DEFAULT_LONG_BREAK_MINUTES = 15;
+const DEFAULT_SESSIONS_BEFORE_LONG_BREAK = 4;
 
 const defaultCategories = [
   'Household chores',
@@ -78,12 +81,18 @@ const defaultState: AppState = {
   ],
   settings: {
     pomodoroMinutes: DEFAULT_POMODORO_MINUTES,
+    shortBreakMinutes: DEFAULT_SHORT_BREAK_MINUTES,
+    longBreakMinutes: DEFAULT_LONG_BREAK_MINUTES,
+    sessionsBeforeLongBreak: DEFAULT_SESSIONS_BEFORE_LONG_BREAK,
+    alarmTone: 'bell',
   },
   pomodoro: {
     isRunning: false,
     startedAt: null,
     totalSeconds: DEFAULT_POMODORO_MINUTES * 60,
     remainingSeconds: DEFAULT_POMODORO_MINUTES * 60,
+    phase: 'work',
+    completedWorkSessions: 0,
     activeTaskId: 't1',
     activeRoundId: 'r1',
   },
@@ -114,6 +123,19 @@ const normalizeState = (raw: Partial<AppState>): AppState => {
         raw.settings?.pomodoroMinutes && raw.settings.pomodoroMinutes > 0
           ? raw.settings.pomodoroMinutes
           : DEFAULT_POMODORO_MINUTES,
+      shortBreakMinutes:
+        raw.settings?.shortBreakMinutes && raw.settings.shortBreakMinutes > 0
+          ? raw.settings.shortBreakMinutes
+          : DEFAULT_SHORT_BREAK_MINUTES,
+      longBreakMinutes:
+        raw.settings?.longBreakMinutes && raw.settings.longBreakMinutes > 0
+          ? raw.settings.longBreakMinutes
+          : DEFAULT_LONG_BREAK_MINUTES,
+      sessionsBeforeLongBreak:
+        raw.settings?.sessionsBeforeLongBreak && raw.settings.sessionsBeforeLongBreak > 1
+          ? raw.settings.sessionsBeforeLongBreak
+          : DEFAULT_SESSIONS_BEFORE_LONG_BREAK,
+      alarmTone: raw.settings?.alarmTone ?? 'bell',
     },
     pomodoro: {
       ...defaultState.pomodoro,

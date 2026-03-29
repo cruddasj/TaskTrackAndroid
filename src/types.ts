@@ -32,6 +32,8 @@ export interface PomodoroState {
   startedAt: number | null;
   remainingSeconds: number;
   totalSeconds: number;
+  phase: 'work' | 'short_break' | 'long_break';
+  completedWorkSessions: number;
   activeTaskId?: string;
   activeRoundId?: string;
 }
@@ -44,6 +46,10 @@ export interface AppState {
   rounds: Round[];
   settings: {
     pomodoroMinutes: number;
+    shortBreakMinutes: number;
+    longBreakMinutes: number;
+    sessionsBeforeLongBreak: number;
+    alarmTone: 'bell' | 'chime' | 'digital';
   };
   pomodoro: PomodoroState;
 }
