@@ -151,7 +151,7 @@ export const TodaysTasksScreen = () => {
                   }}
                   aria-label={`delete-${task.id}`}
                 >
-                  <DeleteOutlineRounded fontSize="small" />
+                  <DeleteOutlineRounded fontSize="small" color="error" />
                 </IconButton>
               </Stack>
               {task.status === 'done' ? <CheckCircleOutlineRounded color="primary" /> : <RadioButtonUncheckedRounded color="primary" />}

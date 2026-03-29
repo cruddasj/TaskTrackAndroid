@@ -65,6 +65,14 @@ export const RoundsScreen = () => {
   const availableTasks = useMemo(() => {
     return todaysTasks.filter((task) => !task.roundId || task.roundId === editingRound?.id);
   }, [todaysTasks, editingRound]);
+  const plannedRounds = useMemo(
+    () => state.rounds.filter((round) => round.status !== 'done'),
+    [state.rounds],
+  );
+  const completedRounds = useMemo(
+    () => state.rounds.filter((round) => round.status === 'done'),
+    [state.rounds],
+  );
   const unassignedTasks = useMemo(
     () => todaysTasks.filter((task) => !task.roundId || !state.rounds.some((round) => round.id === task.roundId)),
     [todaysTasks, state.rounds],
@@ -124,13 +132,13 @@ export const RoundsScreen = () => {
                   size="small"
                   displayEmpty
                   value=""
-                  disabled={state.rounds.length === 0}
+                  disabled={plannedRounds.length === 0}
                   onChange={(event) => handleQuickAssignToRound(task.id, event)}
                   sx={{ minWidth: 164 }}
                   aria-label={`quick-assign-${task.id}`}
                 >
                   <MenuItem value="" disabled>Assign to round</MenuItem>
-                  {state.rounds.map((round) => (
+                  {plannedRounds.map((round) => (
                     <MenuItem key={round.id} value={round.id}>{round.title}</MenuItem>
                   ))}
                 </Select>
@@ -142,24 +150,34 @@ export const RoundsScreen = () => {
           </Stack>
         </CardContent>
       </Card>
-      {state.rounds.map((round) => (
-        <Card key={round.id} sx={{ bgcolor: round.status === 'active' ? '#20201f' : '#1a1a1a' }}>
+      {[...plannedRounds, ...completedRounds].map((round) => (
+        <Card
+          key={round.id}
+          sx={{
+            bgcolor: round.status === 'active' ? '#20201f' : round.status === 'done' ? '#131313' : '#1a1a1a',
+            opacity: round.status === 'done' ? 0.75 : 1,
+          }}
+        >
           <CardContent>
             <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
               <Typography variant="h5">{round.title} ({state.settings.pomodoroMinutes} min)</Typography>
               <Stack direction="row" spacing={0.25}>
-                <IconButton size="small" onClick={() => {
-                  deleteRound(round.id);
-                  showSuccessMessage(`${round.title} deleted. Tasks moved to Unassigned today tasks.`);
-                }} aria-label={`delete-round-${round.id}`}>
-                  <DeleteOutlineRounded />
-                </IconButton>
-                <IconButton size="small" onClick={() => moveRound(round.id, 'up')} aria-label={`move-round-up-${round.id}`}>
-                  <ArrowDropUpRounded />
-                </IconButton>
-                <IconButton size="small" onClick={() => moveRound(round.id, 'down')} aria-label={`move-round-down-${round.id}`}>
-                  <ArrowDropDownRounded />
-                </IconButton>
+                {round.status !== 'done' && (
+                  <>
+                    <IconButton size="small" onClick={() => {
+                      deleteRound(round.id);
+                      showSuccessMessage(`${round.title} deleted. Tasks moved to Unassigned today tasks.`);
+                    }} aria-label={`delete-round-${round.id}`}>
+                      <DeleteOutlineRounded color="error" />
+                    </IconButton>
+                    <IconButton size="small" onClick={() => moveRound(round.id, 'up')} aria-label={`move-round-up-${round.id}`}>
+                      <ArrowDropUpRounded />
+                    </IconButton>
+                    <IconButton size="small" onClick={() => moveRound(round.id, 'down')} aria-label={`move-round-down-${round.id}`}>
+                      <ArrowDropDownRounded />
+                    </IconButton>
+                  </>
+                )}
               </Stack>
             </Stack>
             <Stack spacing={1} mb={2}>
@@ -175,11 +193,15 @@ export const RoundsScreen = () => {
               })}
               {round.taskIds.length === 0 && <Typography color="text.secondary">No tasks assigned yet.</Typography>}
             </Stack>
-            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-              <Button variant="outlined" onClick={() => openRoundAssignment(round.id)}>
-                {round.taskIds.length > 0 ? 'Edit tasks' : 'Assign tasks'}
-              </Button>
-            </Stack>
+            {round.status === 'done' ? (
+              <Typography color="text.secondary">Completed round (read-only).</Typography>
+            ) : (
+              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                <Button variant="outlined" onClick={() => openRoundAssignment(round.id)}>
+                  {round.taskIds.length > 0 ? 'Edit tasks' : 'Assign tasks'}
+                </Button>
+              </Stack>
+            )}
           </CardContent>
         </Card>
       ))}

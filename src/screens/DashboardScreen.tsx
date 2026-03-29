@@ -1,6 +1,7 @@
 import PlayArrowRounded from '@mui/icons-material/PlayArrowRounded';
 import CheckCircleRounded from '@mui/icons-material/CheckCircleRounded';
-import { Box, Button, Card, CardContent, Divider, LinearProgress, Stack, Typography } from '@mui/material';
+import InsightsOutlined from '@mui/icons-material/InsightsOutlined';
+import { Box, Button, Card, CardContent, LinearProgress, Stack, Typography } from '@mui/material';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
@@ -46,12 +47,6 @@ export const DashboardScreen = () => {
       });
     return acc;
   }, {});
-  const historyByDay = recentDayKeys.map((dayKey) => {
-    const planned = state.tasks.filter((task) => task.plannedDate === dayKey);
-    const completedForDay = state.tasks.filter((task) => task.completedAt?.startsWith(dayKey));
-    return { dayKey, planned, completedForDay };
-  });
-
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
     return getGreeting(hour);
@@ -139,7 +134,10 @@ export const DashboardScreen = () => {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card
+        onClick={() => navigate('/tasks-today')}
+        sx={{ cursor: 'pointer' }}
+      >
         <CardContent>
           <Typography color="text.secondary">Today&apos;s planned tasks completed</Typography>
           <Typography variant="h3" color="primary.main">{progress}%</Typography>
@@ -148,7 +146,10 @@ export const DashboardScreen = () => {
       </Card>
 
       <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
-        <Card sx={{ flex: 1, minWidth: { xs: 'calc(50% - 8px)', sm: 0 } }}>
+        <Card
+          onClick={() => navigate('/tasks-today')}
+          sx={{ flex: 1, minWidth: { xs: 'calc(50% - 8px)', sm: 0 }, cursor: 'pointer' }}
+        >
           <CardContent>
             <Typography
               color="text.secondary"
@@ -159,7 +160,10 @@ export const DashboardScreen = () => {
             <Typography variant="h4" sx={{ fontSize: { xs: '1.55rem', sm: '2.125rem' } }}>{completed} / {todaysTasks.length}</Typography>
           </CardContent>
         </Card>
-        <Card sx={{ flex: 1, minWidth: { xs: 'calc(50% - 8px)', sm: 0 } }}>
+        <Card
+          onClick={() => navigate('/tasks-today')}
+          sx={{ flex: 1, minWidth: { xs: 'calc(50% - 8px)', sm: 0 }, cursor: 'pointer' }}
+        >
           <CardContent>
             <Typography
               color="text.secondary"
@@ -170,7 +174,10 @@ export const DashboardScreen = () => {
             <Typography variant="h4" sx={{ fontSize: { xs: '1.55rem', sm: '2.125rem' } }}>{totalFocusMinutes}m</Typography>
           </CardContent>
         </Card>
-        <Card sx={{ flex: 1, minWidth: { xs: 'calc(50% - 8px)', sm: 0 } }}>
+        <Card
+          onClick={() => navigate('/rounds')}
+          sx={{ flex: 1, minWidth: { xs: 'calc(50% - 8px)', sm: 0 }, cursor: 'pointer' }}
+        >
           <CardContent>
             <Typography
               color="text.secondary"
@@ -178,14 +185,18 @@ export const DashboardScreen = () => {
             >
               Sessions completed today
             </Typography>
-            <Typography variant="h4" sx={{ fontSize: { xs: '1.55rem', sm: '2.125rem' } }}>{String(state.pomodoro.completedWorkSessions).padStart(2, '0')}</Typography>
+            <Typography variant="h4" sx={{ fontSize: { xs: '1.55rem', sm: '2.125rem' } }}>{state.pomodoro.completedWorkSessions}</Typography>
           </CardContent>
         </Card>
       </Stack>
 
+      <Stack direction="row" alignItems="center" spacing={1}>
+        <InsightsOutlined color="primary" />
+        <Typography variant="h5">Insights</Typography>
+      </Stack>
       <Card>
         <CardContent>
-          <Typography variant="h6" mb={1}>Completed focus by category (last 30 days)</Typography>
+          <Typography variant="h6" mb={1}>Completed tasks split by category (last 30 days)</Typography>
           <Stack spacing={0.75}>
             {Object.entries(categoryTotals)
               .sort((a, b) => b[1] - a[1])
@@ -198,46 +209,6 @@ export const DashboardScreen = () => {
             {Object.keys(categoryTotals).length === 0 && (
               <Typography color="text.secondary">No completed tasks in the last 30 days yet.</Typography>
             )}
-          </Stack>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent>
-          <Typography variant="h6" mb={1}>Last 30 days activity</Typography>
-          <Stack spacing={1.25}>
-            {historyByDay.map(({ dayKey, planned, completedForDay }, index) => (
-              <Box key={dayKey}>
-                <Typography fontWeight={700}>{dayKey}</Typography>
-                <Typography color="text.secondary" variant="body2">
-                  Planned: {planned.length}
-                </Typography>
-                <Typography color="text.secondary" variant="body2" mb={1}>
-                  Completed: {completedForDay.length}
-                </Typography>
-                <Stack spacing={0.75}>
-                  {Object.entries(
-                    completedForDay.reduce<Record<string, string[]>>((acc, task) => {
-                      acc[task.category] = [...(acc[task.category] ?? []), task.title];
-                      return acc;
-                    }, {}),
-                  ).map(([category, titles]) => (
-                    <Box key={`${dayKey}-${category}`}>
-                      <Typography variant="body2">
-                        {category}: {titles.length} completed
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {titles.join(', ')}
-                      </Typography>
-                    </Box>
-                  ))}
-                  {completedForDay.length === 0 && (
-                    <Typography variant="body2" color="text.secondary">No completed tasks recorded.</Typography>
-                  )}
-                </Stack>
-                {index < historyByDay.length - 1 && <Divider sx={{ mt: 1 }} />}
-              </Box>
-            ))}
           </Stack>
         </CardContent>
       </Card>
