@@ -109,7 +109,7 @@ export const DashboardScreen = () => {
 
       <Card>
         <CardContent>
-          <Typography color="text.secondary">Daily velocity</Typography>
+          <Typography color="text.secondary">Today&apos;s planned tasks completed</Typography>
           <Typography variant="h3" color="primary.main">{progress}%</Typography>
           <LinearProgress variant="determinate" value={progress} sx={{ mt: 1, height: 8, borderRadius: 99 }} />
         </CardContent>
@@ -122,7 +122,7 @@ export const DashboardScreen = () => {
               color="text.secondary"
               sx={{ fontSize: { xs: '0.82rem', sm: '0.92rem' }, lineHeight: 1.2, whiteSpace: 'nowrap' }}
             >
-              Tasks done
+              Completed today
             </Typography>
             <Typography variant="h4" sx={{ fontSize: { xs: '1.55rem', sm: '2.125rem' } }}>{completed} / {todaysTasks.length}</Typography>
           </CardContent>
@@ -133,7 +133,7 @@ export const DashboardScreen = () => {
               color="text.secondary"
               sx={{ fontSize: { xs: '0.82rem', sm: '0.92rem' }, lineHeight: 1.2, whiteSpace: 'nowrap' }}
             >
-              Total focus
+              Focus minutes today
             </Typography>
             <Typography variant="h4" sx={{ fontSize: { xs: '1.55rem', sm: '2.125rem' } }}>{totalFocusMinutes}m</Typography>
           </CardContent>
@@ -144,7 +144,7 @@ export const DashboardScreen = () => {
               color="text.secondary"
               sx={{ fontSize: { xs: '0.82rem', sm: '0.92rem' }, lineHeight: 1.2, whiteSpace: 'nowrap' }}
             >
-              Rounds done
+              Sessions completed today
             </Typography>
             <Typography variant="h4" sx={{ fontSize: { xs: '1.55rem', sm: '2.125rem' } }}>{String(state.pomodoro.completedWorkSessions).padStart(2, '0')}</Typography>
           </CardContent>
