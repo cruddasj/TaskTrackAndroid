@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TaskTrack - Rounds View</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "inverse-on-surface": "#565555",
+                        "error": "#ff7351",
+                        "tertiary-dim": "#00dbee",
+                        "primary": "#91f78e",
+                        "on-surface-variant": "#adaaaa",
+                        "error-dim": "#d53d18",
+                        "on-primary": "#005e17",
+                        "on-background": "#ffffff",
+                        "on-error": "#450900",
+                        "inverse-surface": "#fcf9f8",
+                        "surface-bright": "#2c2c2c",
+                        "primary-fixed": "#91f78e",
+                        "primary-container": "#52b555",
+                        "on-secondary-container": "#e3ffe6",
+                        "surface-container": "#1a1a1a",
+                        "on-tertiary-fixed-variant": "#005c64",
+                        "on-surface": "#ffffff",
+                        "secondary-dim": "#77eb9f",
+                        "on-secondary": "#005f32",
+                        "surface-variant": "#262626",
+                        "on-secondary-fixed": "#004a26",
+                        "on-tertiary": "#005b64",
+                        "secondary-fixed-dim": "#77eb9f",
+                        "surface-container-lowest": "#000000",
+                        "on-primary-fixed": "#00480f",
+                        "on-primary-container": "#002a06",
+                        "background": "#0e0e0e",
+                        "tertiary-fixed": "#11eaff",
+                        "error-container": "#b92902",
+                        "tertiary": "#90f1ff",
+                        "surface": "#0e0e0e",
+                        "on-error-container": "#ffd2c8",
+                        "outline": "#767575",
+                        "on-tertiary-fixed": "#003d43",
+                        "surface-dim": "#0e0e0e",
+                        "secondary-container": "#006d3a",
+                        "outline-variant": "#484847",
+                        "primary-fixed-dim": "#83e881",
+                        "on-primary-fixed-variant": "#00691a",
+                        "surface-container-low": "#131313",
+                        "tertiary-container": "#11eaff",
+                        "surface-tint": "#91f78e",
+                        "surface-container-highest": "#262626",
+                        "tertiary-fixed-dim": "#00dbee",
+                        "on-tertiary-container": "#005159",
+                        "primary-dim": "#83e881",
+                        "on-secondary-fixed-variant": "#006a38",
+                        "surface-container-high": "#20201f",
+                        "secondary-fixed": "#86faac",
+                        "inverse-primary": "#006f1d",
+                        "secondary": "#86faac"
+                    },
+                    fontFamily: {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Plus Jakarta Sans"],
+                        "label": ["Plus Jakarta Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #0e0e0e;
+            color: #ffffff;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(26, 26, 26, 0.7);
+            backdrop-filter: blur(20px);
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface">
+<!-- SideNavBar Component -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-[#1a1a1a] dark:bg-[#1a1a1a] flex flex-col py-8 px-6 z-50">
+<div class="mb-12">
+<h1 class="text-xl font-bold tracking-tighter text-[#91f78e]">TaskTrack</h1>
+<p class="font-['Plus_Jakarta_Sans'] uppercase tracking-[0.05em] text-[12px] font-bold text-on-surface-variant mt-1">Obsidian Architect</p>
+</div>
+<nav class="flex-1 flex flex-col gap-6">
+<a class="flex items-center gap-4 transition-colors text-[#adaaaa] hover:text-white group" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-['Plus_Jakarta_Sans'] uppercase tracking-[0.05em] text-[12px] font-bold">Dashboard</span>
+</a>
+<a class="flex items-center gap-4 transition-colors text-[#adaaaa] hover:text-white group" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-['Plus_Jakarta_Sans'] uppercase tracking-[0.05em] text-[12px] font-bold">Task Bank</span>
+</a>
+<!-- Active State for Rounds -->
+<a class="flex items-center gap-4 text-[#91f78e] font-bold border-r-2 border-[#91f78e] pr-4 group" href="#">
+<span class="material-symbols-outlined">timer</span>
+<span class="font-['Plus_Jakarta_Sans'] uppercase tracking-[0.05em] text-[12px] font-bold">Rounds</span>
+</a>
+</nav>
+<div class="mt-auto">
+<button class="w-full bg-primary text-on-primary font-bold py-3 rounded-full flex items-center justify-center gap-2 hover:opacity-90 transition-all active:scale-95">
+<span class="material-symbols-outlined">add</span>
+<span class="font-['Plus_Jakarta_Sans'] uppercase tracking-[0.05em] text-[12px] font-bold">New Task</span>
+</button>
+<div class="mt-8 flex items-center gap-3">
+<img alt="User profile" class="w-10 h-10 rounded-full border border-outline-variant/20" data-alt="close-up portrait of a professional woman with a clean minimal aesthetic in a modern architectural space" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfd3AhgTg4Zl-TyTrRWQUcKqNXfffdXG2PIxKeQGMpTnyw21M1q82gy-338B8R5GbqfJ1mgefsqT8Y4EWM1kQqA7YF0vI13XXCWyPF65kK9nQjfPI001Uqh_XqZ3sStwvXdSkZlgNer6ebUCeta2wSk1Jz2qsmRzccA6jMO5Ub981yKweYys2TQbJV2Wke6_X2eyues18weuRGxfuqCJUeDmPjbdfMuMv07YmcDDHdG9WXLctjzJh2U-WSch6HTCqPxyytLjGnTw"/>
+<div>
+<p class="text-sm font-bold">Alex Chen</p>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest">Pro Member</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- TopAppBar Component -->
+<header class="fixed top-0 right-0 w-[calc(100%-16rem)] z-40 bg-[#0e0e0e]/70 backdrop-blur-xl dark:bg-[#0e0e0e]/70 flex justify-between items-center h-16 px-8">
+<div class="flex items-center gap-4">
+<h2 class="text-lg font-bold tracking-tight">Focus Protocol</h2>
+<div class="px-3 py-1 bg-surface-container-highest rounded-full border border-outline-variant/10">
+<span class="text-[10px] font-bold uppercase tracking-widest text-primary">Session Active</span>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-on-surface-variant text-lg">search</span>
+<input class="bg-surface-container-low border-none rounded-full py-2 pl-10 pr-4 text-sm w-64 focus:ring-1 focus:ring-[#91f78e]/30 placeholder:text-on-surface-variant/50" placeholder="Search focus blocks..." type="text"/>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-white transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-white transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-64 pt-24 px-8 pb-12 min-h-screen">
+<div class="grid grid-cols-12 gap-8">
+<!-- Left Column: Rounds Timeline -->
+<div class="col-span-8 space-y-12">
+<header>
+<h1 class="text-4xl font-extrabold tracking-tighter mb-2">Daily Architecture</h1>
+<p class="text-on-surface-variant max-w-lg font-medium leading-relaxed">Systematic execution of priority threads via 25-minute concentrated cycles.</p>
+</header>
+<div class="space-y-6">
+<!-- Round 1 (Active) -->
+<section class="relative pl-12">
+<div class="absolute left-0 top-0 bottom-0 w-px bg-primary/20"></div>
+<div class="absolute left-[-4px] top-0 w-2 h-2 rounded-full bg-primary shadow-[0_0_12px_rgba(145,247,142,0.8)]"></div>
+<div class="mb-4">
+<span class="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">09:00 - 09:25</span>
+<h3 class="text-xl font-bold mt-1">Round 1: Initial Ascent</h3>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="p-6 bg-surface-container-high rounded-xl border-l-4 border-primary transition-all hover:bg-surface-bright group">
+<div class="flex justify-between items-start mb-4">
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Priority 01</span>
+<span class="material-symbols-outlined text-primary" data-weight="fill">check_circle</span>
+</div>
+<h4 class="text-lg font-bold mb-2">System Schema Review</h4>
+<p class="text-sm text-on-surface-variant leading-relaxed mb-4">Validating architecture patterns for the upcoming sprint release.</p>
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 bg-surface-container-highest text-[10px] rounded uppercase font-bold tracking-tighter">Engineering</span>
+</div>
+</div>
+<div class="p-6 bg-surface-container-low rounded-xl border border-outline-variant/10 transition-all hover:bg-surface-container-high">
+<div class="flex justify-between items-start mb-4">
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Priority 02</span>
+<span class="material-symbols-outlined text-on-surface-variant">radio_button_unchecked</span>
+</div>
+<h4 class="text-lg font-bold mb-2">Client Sync Deck</h4>
+<p class="text-sm text-on-surface-variant leading-relaxed mb-4">Drafting visual metaphors for the infrastructure overhaul pitch.</p>
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 bg-surface-container-highest text-[10px] rounded uppercase font-bold tracking-tighter">Design</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Round 2 -->
+<section class="relative pl-12">
+<div class="absolute left-0 top-0 bottom-0 w-px bg-outline-variant/20"></div>
+<div class="absolute left-[-4px] top-0 w-2 h-2 rounded-full bg-outline-variant"></div>
+<div class="mb-4 opacity-60">
+<span class="text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant">09:35 - 10:00</span>
+<h3 class="text-xl font-bold mt-1">Round 2: Structural Integrity</h3>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="p-6 bg-surface-container-low rounded-xl border border-outline-variant/5 transition-all hover:bg-surface-container-high group opacity-60">
+<div class="flex justify-between items-start mb-4">
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Priority 03</span>
+<span class="material-symbols-outlined text-on-surface-variant">lock</span>
+</div>
+<h4 class="text-lg font-bold mb-2">Refactoring Legacy Core</h4>
+<p class="text-sm text-on-surface-variant leading-relaxed">Cleaning the technical debt accumulated during the Q3 push.</p>
+</div>
+</div>
+</section>
+<!-- Round 3 -->
+<section class="relative pl-12">
+<div class="absolute left-0 top-0 bottom-0 w-px bg-outline-variant/20"></div>
+<div class="absolute left-[-4px] top-0 w-2 h-2 rounded-full bg-outline-variant"></div>
+<div class="mb-4 opacity-60">
+<span class="text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant">10:10 - 10:35</span>
+<h3 class="text-xl font-bold mt-1">Round 3: Final Polishing</h3>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="p-6 bg-surface-container-low rounded-xl border border-outline-variant/5 transition-all hover:bg-surface-container-high group opacity-40">
+<div class="flex justify-between items-start mb-4">
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Priority 04</span>
+<span class="material-symbols-outlined text-on-surface-variant">hourglass_empty</span>
+</div>
+<h4 class="text-lg font-bold mb-2">Internal Documentation</h4>
+<p class="text-sm text-on-surface-variant leading-relaxed">Ensuring all protocols are documented for the new onboarding wave.</p>
+</div>
+</div>
+</section>
+</div>
+</div>
+<!-- Right Column: Analytics & Stats -->
+<div class="col-span-4 space-y-6">
+<!-- Round Analytics Card -->
+<div class="bg-surface-container-high rounded-2xl p-8 sticky top-24 overflow-hidden">
+<div class="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-primary/5 rounded-full blur-3xl"></div>
+<h3 class="text-sm font-bold uppercase tracking-[0.1em] text-on-surface-variant mb-8">Round Analytics</h3>
+<div class="space-y-8">
+<div>
+<div class="flex justify-between items-end mb-2">
+<p class="text-[12px] font-bold text-on-surface">Daily Velocity</p>
+<p class="text-2xl font-black text-primary tracking-tighter">78%</p>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full w-[78%]"></div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="p-4 bg-surface-container-low rounded-xl">
+<p class="text-[10px] font-bold text-on-surface-variant uppercase mb-1">Total Focus</p>
+<p class="text-xl font-bold">142m</p>
+</div>
+<div class="p-4 bg-surface-container-low rounded-xl">
+<p class="text-[10px] font-bold text-on-surface-variant uppercase mb-1">Rounds Done</p>
+<p class="text-xl font-bold">06</p>
+</div>
+</div>
+<div class="pt-6 border-t border-outline-variant/10">
+<p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-4">Session Breakdown</p>
+<div class="flex items-center gap-4 mb-3">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<p class="text-sm font-medium flex-1 text-on-surface-variant">Engineering</p>
+<p class="text-sm font-bold">64%</p>
+</div>
+<div class="flex items-center gap-4 mb-3">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+<p class="text-sm font-medium flex-1 text-on-surface-variant">Design Ops</p>
+<p class="text-sm font-bold">22%</p>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-2 h-2 rounded-full bg-tertiary"></div>
+<p class="text-sm font-medium flex-1 text-on-surface-variant">Admin</p>
+<p class="text-sm font-bold">14%</p>
+</div>
+</div>
+<button class="w-full py-4 rounded-xl bg-surface-container-highest font-bold text-xs uppercase tracking-[0.2em] hover:bg-surface-bright transition-colors border border-outline-variant/10">
+                            Download Protocol Report
+                        </button>
+</div>
+</div>
+<!-- Bento Card: Current Active Block -->
+<div class="glass-panel rounded-2xl p-6 border border-primary/10 relative overflow-hidden">
+<div class="relative z-10 flex items-center justify-between">
+<div>
+<p class="text-[10px] font-bold text-primary uppercase tracking-[0.2em] mb-1">Active Cycle</p>
+<p class="text-3xl font-black tracking-tighter">12:44</p>
+</div>
+<button class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined" data-weight="fill">pause</span>
+</button>
+</div>
+<div class="mt-4 flex gap-1">
+<div class="h-1 flex-1 bg-primary rounded-full"></div>
+<div class="h-1 flex-1 bg-primary rounded-full"></div>
+<div class="h-1 flex-1 bg-surface-container-highest rounded-full"></div>
+<div class="h-1 flex-1 bg-surface-container-highest rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Floating Action for Quick Add (Contextual) -->
+<div class="fixed bottom-8 right-8 z-50">
+<button class="group flex items-center gap-2 bg-primary text-on-primary font-bold px-6 py-4 rounded-full shadow-2xl hover:pr-8 transition-all active:scale-95">
+<span class="material-symbols-outlined">bolt</span>
+<span class="font-['Plus_Jakarta_Sans'] uppercase tracking-[0.1em] text-[12px] font-bold">Quick Protocol</span>
+</button>
+</div>
+</body></html>

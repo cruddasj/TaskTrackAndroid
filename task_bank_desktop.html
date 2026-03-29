@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TaskTrack | Task Bank</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "inverse-on-surface": "#565555",
+              "error": "#ff7351",
+              "tertiary-dim": "#00dbee",
+              "primary": "#91f78e",
+              "on-surface-variant": "#adaaaa",
+              "error-dim": "#d53d18",
+              "on-primary": "#005e17",
+              "on-background": "#ffffff",
+              "on-error": "#450900",
+              "inverse-surface": "#fcf9f8",
+              "surface-bright": "#2c2c2c",
+              "primary-fixed": "#91f78e",
+              "primary-container": "#52b555",
+              "on-secondary-container": "#e3ffe6",
+              "surface-container": "#1a1a1a",
+              "on-tertiary-fixed-variant": "#005c64",
+              "on-surface": "#ffffff",
+              "secondary-dim": "#77eb9f",
+              "on-secondary": "#005f32",
+              "surface-variant": "#262626",
+              "on-secondary-fixed": "#004a26",
+              "on-tertiary": "#005b64",
+              "secondary-fixed-dim": "#77eb9f",
+              "surface-container-lowest": "#000000",
+              "on-primary-fixed": "#00480f",
+              "on-primary-container": "#002a06",
+              "background": "#0e0e0e",
+              "tertiary-fixed": "#11eaff",
+              "error-container": "#b92902",
+              "tertiary": "#90f1ff",
+              "surface": "#0e0e0e",
+              "on-error-container": "#ffd2c8",
+              "outline": "#767575",
+              "on-tertiary-fixed": "#003d43",
+              "surface-dim": "#0e0e0e",
+              "secondary-container": "#006d3a",
+              "outline-variant": "#484847",
+              "primary-fixed-dim": "#83e881",
+              "on-primary-fixed-variant": "#00691a",
+              "surface-container-low": "#131313",
+              "tertiary-container": "#11eaff",
+              "surface-tint": "#91f78e",
+              "surface-container-highest": "#262626",
+              "tertiary-fixed-dim": "#00dbee",
+              "on-tertiary-container": "#005159",
+              "primary-dim": "#83e881",
+              "on-secondary-fixed-variant": "#006a38",
+              "surface-container-high": "#20201f",
+              "secondary-fixed": "#86faac",
+              "inverse-primary": "#006f1d",
+              "secondary": "#86faac"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Plus Jakarta Sans"],
+              "label": ["Plus Jakarta Sans"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-fab {
+            background: rgba(145, 247, 142, 0.9);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface antialiased selection:bg-primary selection:text-on-primary">
+<!-- SideNavBar -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-[#1a1a1a] dark:bg-[#1a1a1a] flex flex-col py-8 px-6 z-50">
+<div class="mb-12">
+<h1 class="text-xl font-bold tracking-tighter text-[#91f78e]">TaskTrack</h1>
+<p class="text-[10px] font-['Plus_Jakarta_Sans'] uppercase tracking-[0.1em] text-on-surface-variant mt-1">Obsidian Architect System</p>
+</div>
+<nav class="flex flex-col gap-2 flex-grow">
+<a class="flex items-center gap-3 py-3 px-4 rounded-lg text-[#adaaaa] hover:text-white hover:bg-[#2c2c2c] transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-['Plus_Jakarta_Sans'] uppercase tracking-[0.05em] text-[12px] font-bold">Dashboard</span>
+</a>
+<!-- Active State: Task Bank -->
+<a class="flex items-center gap-3 py-3 px-4 rounded-lg text-[#91f78e] font-bold border-r-2 border-[#91f78e] pr-4 bg-[#2c2c2c]/30" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span class="font-['Plus_Jakarta_Sans'] uppercase tracking-[0.05em] text-[12px] font-bold">Task Bank</span>
+</a>
+<a class="flex items-center gap-3 py-3 px-4 rounded-lg text-[#adaaaa] hover:text-white hover:bg-[#2c2c2c] transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="timer">timer</span>
+<span class="font-['Plus_Jakarta_Sans'] uppercase tracking-[0.05em] text-[12px] font-bold">Rounds</span>
+</a>
+</nav>
+<div class="mt-auto pt-8 flex flex-col gap-4">
+<button class="bg-primary text-on-primary py-3 rounded-full font-bold text-xs uppercase tracking-widest hover:scale-[0.98] transition-all duration-200">
+                New Task
+            </button>
+<div class="flex items-center gap-3 px-2">
+<img alt="User profile" class="w-8 h-8 rounded-full bg-surface-container-highest" data-alt="professional headshot of a minimalist architect in dark clothing, soft studio lighting, monochrome background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDFqwZ-8d8E8F59MTWcGEb408BQN5-y6Kpnv9ZY3m7QO20hMEQb-0wCJUxD44IdhAMcf-B7CX3lr5rAOEhRSr4gTMzMMzNQd7WzHLFhmUlYuytoRLhA17gia6qUUCRgsjinI-7o7gm_7mBGW35UCbNpOKyN3HheWULHrvA6y5s7fGR0oZNjVGqWbzHfKiM0TJtZEPxni_LBhZkcOYrsirFAwMK9JLSMW3oUczzNHonzmZDhKwaup0IjD8yqbRlwp3ngsd5sm8RMVw"/>
+<div class="overflow-hidden">
+<p class="text-xs font-bold text-white truncate">Obsidian Architect</p>
+<p class="text-[10px] text-on-surface-variant truncate">Premium Member</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- TopAppBar -->
+<header class="fixed top-0 right-0 w-[calc(100%-16rem)] z-40 bg-[#0e0e0e]/70 backdrop-blur-xl flex justify-between items-center h-16 px-8 ml-64">
+<div class="flex items-center gap-4 flex-grow max-w-xl">
+<div class="relative w-full group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm" data-icon="search">search</span>
+<input class="w-full bg-surface-container-low border-none rounded-full py-2 pl-10 pr-4 text-sm focus:ring-1 focus:ring-primary/30 text-on-surface placeholder:text-on-surface-variant transition-all" placeholder="Search task archive..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<button class="text-[#adaaaa] hover:text-white transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-[#adaaaa] hover:text-white transition-colors">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<div class="h-6 w-[1px] bg-outline-variant/20"></div>
+<div class="flex items-center gap-2">
+<span class="text-xs font-bold uppercase tracking-tighter text-primary">Live Session</span>
+<div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-64 pt-24 pb-12 px-12 min-h-screen">
+<!-- Header Section -->
+<section class="mb-12 flex justify-between items-end">
+<div>
+<h2 class="text-4xl font-extrabold tracking-tight text-white mb-2">Task Bank</h2>
+<p class="text-on-surface-variant max-w-md">Orchestrate your environment. 32 automated routines waiting for deployment.</p>
+</div>
+<div class="flex gap-4">
+<div class="bg-surface-container-low p-4 rounded-xl flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="auto_awesome">auto_awesome</span>
+</div>
+<div>
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">Health Score</p>
+<p class="text-xl font-bold">94%</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Bento Grid Layout for Categories -->
+<div class="grid grid-cols-12 gap-8 items-start">
+<!-- Kitchen Category (Featured) -->
+<div class="col-span-12 lg:col-span-8 bg-surface-container-low rounded-3xl p-8 overflow-hidden relative">
+<div class="flex justify-between items-start mb-8">
+<div>
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="restaurant">restaurant</span>
+<span class="text-xs font-bold uppercase tracking-[0.1em] text-primary">Kitchen Core</span>
+</div>
+<h3 class="text-2xl font-bold">Sanitization Routine</h3>
+</div>
+<div class="text-right">
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mb-1">Weekly Progress</p>
+<div class="w-32 h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="w-3/4 h-full bg-primary"></div>
+</div>
+</div>
+</div>
+<div class="space-y-4">
+<!-- Task Item -->
+<div class="group flex items-center justify-between p-4 bg-surface-container-high rounded-2xl hover:bg-surface-bright transition-all duration-300">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full border border-outline-variant/20 flex items-center justify-center text-on-surface-variant group-hover:border-primary/50 group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="coffee_maker">coffee_maker</span>
+</div>
+<div>
+<h4 class="font-bold text-sm">Descale Espresso Machine</h4>
+<p class="text-xs text-on-surface-variant">Prevent calcium buildup on internal heating elements.</p>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<span class="material-symbols-outlined text-sm text-error" data-icon="signal_cellular_alt_2_bar" title="Difficulty: Moderate">signal_cellular_alt_2_bar</span>
+<button class="bg-surface-container-highest px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-on-primary transition-all">Assign</button>
+</div>
+</div>
+<!-- Task Item -->
+<div class="group flex items-center justify-between p-4 bg-surface-container-high rounded-2xl hover:bg-surface-bright transition-all duration-300">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full border border-outline-variant/20 flex items-center justify-center text-on-surface-variant group-hover:border-primary/50 group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="inventory">inventory</span>
+</div>
+<div>
+<h4 class="font-bold text-sm">Pantry Audit &amp; Organization</h4>
+<p class="text-xs text-on-surface-variant">Check expiration dates and restock essential grains.</p>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<span class="material-symbols-outlined text-sm text-primary" data-icon="signal_cellular_alt_1_bar" title="Difficulty: Easy">signal_cellular_alt_1_bar</span>
+<button class="bg-surface-container-highest px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-on-primary transition-all">Assign</button>
+</div>
+</div>
+<!-- Task Item -->
+<div class="group flex items-center justify-between p-4 bg-surface-container-high rounded-2xl hover:bg-surface-bright transition-all duration-300">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full border border-outline-variant/20 flex items-center justify-center text-on-surface-variant group-hover:border-primary/50 group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="kitchen">kitchen</span>
+</div>
+<div>
+<h4 class="font-bold text-sm">Condenser Coil Vacuuming</h4>
+<p class="text-xs text-on-surface-variant">Clean refrigerator coils for optimal energy efficiency.</p>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<span class="material-symbols-outlined text-sm text-error-dim" data-icon="signal_cellular_alt" style="font-variation-settings: 'FILL' 1;" title="Difficulty: Hard">signal_cellular_alt</span>
+<button class="bg-surface-container-highest px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-on-primary transition-all">Assign</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Living Room & Garden Column -->
+<div class="col-span-12 lg:col-span-4 flex flex-col gap-8">
+<!-- Living Room -->
+<div class="bg-surface-container-low rounded-3xl p-6 border-b border-primary/10">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-secondary text-sm" data-icon="chair">chair</span>
+<span class="text-[10px] font-bold uppercase tracking-[0.1em] text-secondary">Living Space</span>
+</div>
+<div class="space-y-4">
+<div class="p-3 rounded-xl bg-surface-container-lowest">
+<p class="text-xs font-bold mb-1">Dust Tech Hub</p>
+<p class="text-[10px] text-on-surface-variant">Screens and cable management.</p>
+</div>
+<div class="p-3 rounded-xl bg-surface-container-lowest">
+<p class="text-xs font-bold mb-1">Upholstery Steam</p>
+<p class="text-[10px] text-on-surface-variant">Refresh textile surfaces.</p>
+</div>
+</div>
+<button class="w-full mt-4 py-2 border border-outline-variant/10 rounded-xl text-[10px] font-bold uppercase tracking-widest text-on-surface-variant hover:text-white transition-colors">View All 12 Tasks</button>
+</div>
+<!-- Garden / Exterior -->
+<div class="bg-surface-container-low rounded-3xl p-6 relative group overflow-hidden">
+<div class="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity">
+<div class="w-full h-full bg-cover bg-center" data-alt="close-up of lush dark green tropical leaves with water droplets and dramatic deep shadows" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCnVNdSYkrQgvnneByzLpMhafjU6NtISw5FKlVWPPTycjvRpedWIQ6_0tzzW79O8OwWmcAxtRhugXPN3q9kXOLNtSHUk2S79hPiMTf5vVN4WylvboQ8Gl3lKECGUxvL3Rma_Y-HPWrBydQrJkxNCK6eacFvbil9Mm5tnzV1TMmjh6TTOhIqLaXIFe-P7PasqBXZfkclfHjhy5_xjkigmqimFEhMIOJEnm38VB58ZRwE6aUSvz6T2Hgoo7OYHojS-IxJQ6gvpPf6HQ')"></div>
+</div>
+<div class="relative z-10">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-tertiary text-sm" data-icon="park">park</span>
+<span class="text-[10px] font-bold uppercase tracking-[0.1em] text-tertiary">Garden &amp; Patio</span>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between items-center">
+<span class="text-xs font-bold">Irrigation Check</span>
+<span class="material-symbols-outlined text-xs text-primary" data-icon="check_circle">check_circle</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-xs font-bold">Fertilize Flora</span>
+<span class="text-[10px] text-on-surface-variant">Due Tomorrow</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-xs font-bold">Stone Path Wash</span>
+<span class="text-[10px] text-error font-bold">Overdue</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Stats Widget -->
+<div class="bg-primary text-on-primary rounded-3xl p-6">
+<p class="text-[10px] font-bold uppercase tracking-widest mb-4 opacity-80">Architecture Load</p>
+<div class="flex items-end justify-between">
+<div class="text-3xl font-black">74%</div>
+<div class="text-right">
+<p class="text-[10px] leading-tight">System functioning<br/>within optimal parameters</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Task Distribution Section -->
+<section class="mt-12">
+<h4 class="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-6">Task Density by Category</h4>
+<div class="grid grid-cols-4 gap-6">
+<div class="h-16 bg-surface-container-low rounded-2xl flex items-center px-6 gap-4">
+<span class="text-2xl font-black text-white/20">01</span>
+<span class="text-xs font-bold">Hygiene (14)</span>
+</div>
+<div class="h-16 bg-surface-container-low rounded-2xl flex items-center px-6 gap-4">
+<span class="text-2xl font-black text-white/20">02</span>
+<span class="text-xs font-bold">Mechanical (8)</span>
+</div>
+<div class="h-16 bg-surface-container-low rounded-2xl flex items-center px-6 gap-4">
+<span class="text-2xl font-black text-white/20">03</span>
+<span class="text-xs font-bold">Aesthetic (6)</span>
+</div>
+<div class="h-16 bg-surface-container-low rounded-2xl flex items-center px-6 gap-4">
+<span class="text-2xl font-black text-white/20">04</span>
+<span class="text-xs font-bold">Outdoor (4)</span>
+</div>
+</div>
+</section>
+</main>
+<!-- Floating Action Button -->
+<button class="fixed bottom-10 right-10 w-16 h-16 rounded-full glass-fab flex items-center justify-center text-on-primary-container z-50 hover:scale-110 active:scale-95 transition-all group">
+<span class="material-symbols-outlined text-3xl font-bold" data-icon="add">add</span>
+<span class="absolute right-full mr-4 bg-surface-container px-4 py-2 rounded-xl text-xs font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">Define New Task</span>
+</button>
+</body></html>

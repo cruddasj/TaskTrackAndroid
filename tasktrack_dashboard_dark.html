@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TaskTrack | Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary-fixed-dim": "#00dbee",
+              "on-tertiary-container": "#005159",
+              "surface-container": "#1a1a1a",
+              "tertiary-dim": "#00dbee",
+              "on-tertiary": "#005b64",
+              "inverse-surface": "#fcf9f8",
+              "primary-dim": "#83e881",
+              "surface-container-lowest": "#000000",
+              "inverse-on-surface": "#565555",
+              "secondary-fixed-dim": "#77eb9f",
+              "tertiary-fixed": "#11eaff",
+              "primary-container": "#52b555",
+              "secondary-dim": "#77eb9f",
+              "secondary-fixed": "#86faac",
+              "surface-variant": "#262626",
+              "on-secondary-container": "#e3ffe6",
+              "error-dim": "#d53d18",
+              "tertiary-container": "#11eaff",
+              "on-error-container": "#ffd2c8",
+              "on-background": "#ffffff",
+              "secondary": "#86faac",
+              "surface-tint": "#91f78e",
+              "outline-variant": "#484847",
+              "on-tertiary-fixed-variant": "#005c64",
+              "surface-bright": "#2c2c2c",
+              "primary-fixed-dim": "#83e881",
+              "primary-fixed": "#91f78e",
+              "on-primary-fixed-variant": "#00691a",
+              "on-secondary-fixed-variant": "#006a38",
+              "error": "#ff7351",
+              "surface": "#0e0e0e",
+              "background": "#0e0e0e",
+              "on-surface-variant": "#adaaaa",
+              "on-secondary-fixed": "#004a26",
+              "surface-container-highest": "#262626",
+              "surface-dim": "#0e0e0e",
+              "error-container": "#b92902",
+              "on-secondary": "#005f32",
+              "surface-container-low": "#131313",
+              "tertiary": "#90f1ff",
+              "on-error": "#450900",
+              "on-primary": "#005e17",
+              "outline": "#767575",
+              "secondary-container": "#006d3a",
+              "on-primary-container": "#002a06",
+              "on-primary-fixed": "#00480f",
+              "on-tertiary-fixed": "#003d43",
+              "primary": "#91f78e",
+              "inverse-primary": "#006f1d",
+              "on-surface": "#ffffff",
+              "surface-container-high": "#20201f"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Plus Jakarta Sans"],
+              "label": ["Plus Jakarta Sans"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="w-full top-0 sticky bg-[#0e0e0e] dark:bg-[#0e0e0e] z-50 flex justify-between items-center px-6 py-4">
+<div class="flex items-center gap-3">
+<span class="font-['Plus_Jakarta_Sans'] font-bold tracking-tight text-xl text-[#91f78e] dark:text-[#91f78e]">TaskTrack</span>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#2c2c2c] transition-colors duration-200 active:scale-95 text-[#adaaaa]">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+</header>
+<main class="px-6 max-w-5xl mx-auto space-y-8 mt-6">
+<!-- Welcome Header -->
+<section class="space-y-1">
+<h1 class="text-4xl font-extrabold tracking-tight text-on-surface">Good Morning, Alex</h1>
+<p class="text-on-surface-variant font-medium">Ready for your morning rounds?</p>
+</section>
+<!-- Bento Grid Hero Section -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Active Session Card (2/3 width on desktop) -->
+<div class="md:col-span-2 relative group overflow-hidden bg-surface-container-low rounded-3xl p-8 flex flex-col justify-between min-h-[320px]">
+<div class="absolute inset-0 opacity-20 pointer-events-none">
+<img class="w-full h-full object-cover mix-blend-overlay" data-alt="Abstract dark aesthetic with soft green glowing light trails in a studio environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXV1xu67MoNg5iWld7XkodBku7yGBP9fxa2qdO7kf6ZQMZPJdH9O5mxnjDdXjbP14ujv9ucfzLwNYEXlyAhsw3QPV2v7SySwov3b7SkqvcSQwlo-FDWbaddC8-q93QtidpNKVZ3zY3fiFUvEOcsQISIr5wKL3aAoFpUa0yyAb-k50jbfBVDr_c2Qss0YkRpkxW0cqFUugztVoh_h6z5-pAi0-At0wuOW8NU6v7RiGAlHB5ky3PM7cb2yk09QgZNdyUSlBGeolE5A"/>
+</div>
+<div class="relative z-10">
+<div class="inline-flex items-center gap-2 bg-surface-bright/50 backdrop-blur-md px-4 py-2 rounded-full mb-6">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+<span class="text-xs font-bold tracking-widest uppercase text-primary">Active Session</span>
+</div>
+<h2 class="text-3xl font-bold max-w-xs leading-tight">Focus on your primary morning flow</h2>
+</div>
+<div class="relative z-10 flex items-end justify-between">
+<div>
+<p class="text-on-surface-variant text-sm mb-1">Estimated duration</p>
+<p class="text-xl font-bold">45 mins</p>
+</div>
+<button class="bg-gradient-to-br from-[#91f78e] to-[#52b555] text-[#005e17] px-8 py-4 rounded-full font-bold text-lg active:scale-95 transition-all shadow-lg shadow-primary/20">
+                        Start Round
+                    </button>
+</div>
+</div>
+<!-- Harmony Score Card -->
+<div class="bg-surface-container-high rounded-3xl p-8 flex flex-col items-center justify-center text-center space-y-4">
+<span class="text-xs font-bold tracking-widest uppercase text-on-surface-variant">Harmony Score</span>
+<div class="relative flex items-center justify-center">
+<!-- Progress Ring (SVG) -->
+<svg class="w-32 h-32 transform -rotate-90">
+<circle class="text-surface-variant" cx="64" cy="64" fill="transparent" r="58" stroke="currentColor" stroke-width="8"></circle>
+<circle class="text-primary rounded-full" cx="64" cy="64" fill="transparent" r="58" stroke="currentColor" stroke-dasharray="364.4" stroke-dashoffset="43.7" stroke-width="8"></circle>
+</svg>
+<span class="absolute text-5xl font-black text-white">88</span>
+</div>
+<p class="text-on-surface-variant text-sm px-4">You're 12% more efficient than yesterday.</p>
+</div>
+</div>
+<!-- Today's Progress Section -->
+<section class="space-y-6">
+<div class="flex items-center justify-between">
+<h3 class="text-xl font-bold">Today's Progress</h3>
+<button class="text-primary font-bold text-sm flex items-center gap-1 hover:underline">
+                    View All <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+<div class="space-y-3">
+<!-- Task Item 1 -->
+<div class="flex items-center justify-between bg-surface-container-low p-5 rounded-2xl group hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-5">
+<div class="w-12 h-12 rounded-xl bg-surface-container-highest flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">dishwasher</span>
+</div>
+<div>
+<p class="font-bold text-lg">Empty dishwasher</p>
+<p class="text-sm text-on-surface-variant">Kitchen Core Round</p>
+</div>
+</div>
+<label class="relative flex items-center cursor-pointer">
+<input class="peer h-8 w-8 opacity-0 absolute" type="checkbox"/>
+<div class="h-8 w-8 rounded-lg bg-surface-container-highest border-2 border-outline-variant peer-checked:bg-primary peer-checked:border-primary transition-all flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary scale-0 peer-checked:scale-100 transition-transform font-bold">check</span>
+</div>
+</label>
+</div>
+<!-- Task Item 2 -->
+<div class="flex items-center justify-between bg-surface-container-low p-5 rounded-2xl group hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-5">
+<div class="w-12 h-12 rounded-xl bg-surface-container-highest flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">recycling</span>
+</div>
+<div>
+<p class="font-bold text-lg">Sort recycling</p>
+<p class="text-sm text-on-surface-variant">Utility Round</p>
+</div>
+</div>
+<label class="relative flex items-center cursor-pointer">
+<input class="peer h-8 w-8 opacity-0 absolute" type="checkbox"/>
+<div class="h-8 w-8 rounded-lg bg-surface-container-highest border-2 border-outline-variant peer-checked:bg-primary peer-checked:border-primary transition-all flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary scale-0 peer-checked:scale-100 transition-transform font-bold">check</span>
+</div>
+</label>
+</div>
+<!-- Task Item 3 (Completed) -->
+<div class="flex items-center justify-between bg-surface-container-low/50 p-5 rounded-2xl group transition-colors">
+<div class="flex items-center gap-5 opacity-50">
+<div class="w-12 h-12 rounded-xl bg-surface-container-highest flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">coffee</span>
+</div>
+<div>
+<p class="font-bold text-lg line-through">Morning hydration</p>
+<p class="text-sm text-on-surface-variant">Personal Wellness</p>
+</div>
+</div>
+<label class="relative flex items-center">
+<input checked="" class="peer h-8 w-8 opacity-0 absolute" disabled="" type="checkbox"/>
+<div class="h-8 w-8 rounded-lg bg-primary border-2 border-primary transition-all flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary font-bold">check</span>
+</div>
+</label>
+</div>
+</div>
+</section>
+<!-- Stats Snapshot -->
+<section class="grid grid-cols-2 gap-4">
+<div class="bg-surface-container-low p-6 rounded-3xl space-y-2">
+<span class="material-symbols-outlined text-tertiary">timer</span>
+<p class="text-on-surface-variant text-xs font-bold uppercase tracking-wider">Time Tracked</p>
+<p class="text-2xl font-bold">2.4 hrs</p>
+</div>
+<div class="bg-surface-container-low p-6 rounded-3xl space-y-2">
+<span class="material-symbols-outlined text-primary">task_alt</span>
+<p class="text-on-surface-variant text-xs font-bold uppercase tracking-wider">Tasks Done</p>
+<p class="text-2xl font-bold">14 / 20</p>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-[#1a1a1a]/70 backdrop-blur-xl dark:bg-[#1a1a1a]/70 rounded-t-3xl shadow-[0_-4px_24px_rgba(0,0,0,0.06)]">
+<!-- Dashboard Active -->
+<a class="flex flex-col items-center justify-center bg-gradient-to-br from-[#91f78e] to-[#52b555] text-[#005e17] rounded-full px-5 py-2 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium tracking-wider uppercase">Dashboard</span>
+</a>
+<!-- Tasks Inactive -->
+<a class="flex flex-col items-center justify-center text-[#adaaaa] px-5 py-2 hover:text-white transition-all active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="checklist">checklist</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium tracking-wider uppercase">Tasks</span>
+</a>
+<!-- Rounds Inactive -->
+<a class="flex flex-col items-center justify-center text-[#adaaaa] px-5 py-2 hover:text-white transition-all active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="refresh">refresh</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium tracking-wider uppercase">Rounds</span>
+</a>
+<!-- Insights Inactive -->
+<a class="flex flex-col items-center justify-center text-[#adaaaa] px-5 py-2 hover:text-white transition-all active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="insights">insights</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium tracking-wider uppercase">Insights</span>
+</a>
+</nav>
+</body></html>

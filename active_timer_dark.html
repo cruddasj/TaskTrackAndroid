@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "tertiary-fixed-dim": "#00dbee",
+            "on-tertiary-container": "#005159",
+            "surface-container": "#1a1a1a",
+            "tertiary-dim": "#00dbee",
+            "on-tertiary": "#005b64",
+            "inverse-surface": "#fcf9f8",
+            "primary-dim": "#83e881",
+            "surface-container-lowest": "#000000",
+            "inverse-on-surface": "#565555",
+            "secondary-fixed-dim": "#77eb9f",
+            "tertiary-fixed": "#11eaff",
+            "primary-container": "#52b555",
+            "secondary-dim": "#77eb9f",
+            "secondary-fixed": "#86faac",
+            "surface-variant": "#262626",
+            "on-secondary-container": "#e3ffe6",
+            "error-dim": "#d53d18",
+            "tertiary-container": "#11eaff",
+            "on-error-container": "#ffd2c8",
+            "on-background": "#ffffff",
+            "secondary": "#86faac",
+            "surface-tint": "#91f78e",
+            "outline-variant": "#484847",
+            "on-tertiary-fixed-variant": "#005c64",
+            "surface-bright": "#2c2c2c",
+            "primary-fixed-dim": "#83e881",
+            "primary-fixed": "#91f78e",
+            "on-primary-fixed-variant": "#00691a",
+            "on-secondary-fixed-variant": "#006a38",
+            "error": "#ff7351",
+            "surface": "#0e0e0e",
+            "background": "#0e0e0e",
+            "on-surface-variant": "#adaaaa",
+            "on-secondary-fixed": "#004a26",
+            "surface-container-highest": "#262626",
+            "surface-dim": "#0e0e0e",
+            "error-container": "#b92902",
+            "on-secondary": "#005f32",
+            "surface-container-low": "#131313",
+            "tertiary": "#90f1ff",
+            "on-error": "#450900",
+            "on-primary": "#005e17",
+            "outline": "#767575",
+            "secondary-container": "#006d3a",
+            "on-primary-container": "#002a06",
+            "on-primary-fixed": "#00480f",
+            "on-tertiary-fixed": "#003d43",
+            "primary": "#91f78e",
+            "inverse-primary": "#006f1d",
+            "on-surface": "#ffffff",
+            "surface-container-high": "#20201f"
+          },
+          fontFamily: {
+            "headline": ["Plus Jakarta Sans"],
+            "body": ["Plus Jakarta Sans"],
+            "label": ["Plus Jakarta Sans"]
+          },
+          borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .progress-ring__circle {
+      transition: stroke-dashoffset 0.35s;
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-background font-body min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="bg-[#0e0e0e] dark:bg-[#0e0e0e] w-full top-0 sticky z-50 flex justify-between items-center px-6 py-4 w-full no-border space-y-4">
+<div class="flex items-center gap-3">
+<span class="font-['Plus_Jakarta_Sans'] font-bold tracking-tight text-xl font-extrabold text-[#91f78e] dark:text-[#91f78e]">TaskTrack</span>
+</div>
+<button class="text-[#91f78e] dark:text-[#91f78e] hover:bg-[#2c2c2c] transition-colors duration-200 p-2 rounded-full active:scale-95 duration-150">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 flex flex-col items-center justify-center px-6 pb-32">
+<!-- Deep Focus Mode Pill -->
+<div class="mb-12">
+<div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface-container-highest/50 border border-outline-variant/10 backdrop-blur-md">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+<span class="font-label text-[11px] font-bold tracking-[0.1em] uppercase text-primary">Deep Focus Mode</span>
+</div>
+</div>
+<!-- Timer Visual Section -->
+<div class="relative flex items-center justify-center mb-16">
+<!-- Background Glow -->
+<div class="absolute inset-0 bg-primary/5 blur-[120px] rounded-full"></div>
+<!-- Circular Progress Ring -->
+<svg class="w-72 h-72 md:w-96 md:h-96">
+<circle class="text-surface-container-highest" cx="50%" cy="50%" fill="transparent" r="48%" stroke="currentColor" stroke-width="8"></circle>
+<circle class="progress-ring__circle text-primary" cx="50%" cy="50%" fill="transparent" r="48%" stroke="currentColor" stroke-dasharray="1130" stroke-dashoffset="280" stroke-linecap="round" stroke-width="10"></circle>
+</svg>
+<!-- Countdown Text -->
+<div class="absolute flex flex-col items-center text-center">
+<span class="font-headline text-7xl md:text-8xl font-extrabold tracking-tighter text-white">
+          21:45
+        </span>
+<div class="mt-2 flex flex-col items-center">
+<span class="font-label text-xs uppercase tracking-[0.2em] text-on-surface-variant font-semibold">Remaining</span>
+</div>
+</div>
+</div>
+<!-- Current Objective Section -->
+<div class="text-center mb-16 max-w-sm">
+<h2 class="font-headline text-2xl font-bold text-white mb-2">Clean Kitchen Counters</h2>
+<p class="text-on-surface-variant text-sm font-medium">Part of: <span class="text-secondary">Home Maintenance</span></p>
+</div>
+<!-- Timer Controls -->
+<div class="flex items-center gap-8 md:gap-12">
+<!-- Restart -->
+<button class="flex flex-col items-center gap-2 group active:scale-90 transition-transform">
+<div class="w-12 h-12 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface-variant group-hover:text-white transition-colors">
+<span class="material-symbols-outlined text-2xl">refresh</span>
+</div>
+<span class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">Restart</span>
+</button>
+<!-- Main Play/Pause -->
+<button class="w-24 h-24 rounded-full bg-gradient-to-br from-[#91f78e] to-[#52b555] flex items-center justify-center text-on-primary shadow-[0_0_40px_rgba(145,247,142,0.2)] active:scale-95 transition-all duration-150">
+<span class="material-symbols-outlined text-5xl" style="font-variation-settings: 'FILL' 1;">pause</span>
+</button>
+<!-- Skip -->
+<button class="flex flex-col items-center gap-2 group active:scale-90 transition-transform">
+<div class="w-12 h-12 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface-variant group-hover:text-white transition-colors">
+<span class="material-symbols-outlined text-2xl">skip_next</span>
+</div>
+<span class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">Skip</span>
+</button>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-[#1a1a1a]/70 backdrop-blur-xl dark:bg-[#1a1a1a]/70 rounded-t-3xl shadow-[0_-4px_24px_rgba(0,0,0,0.06)] no-border">
+<!-- Dashboard -->
+<a class="flex flex-col items-center justify-center text-[#adaaaa] px-5 py-2 hover:text-white transition-all active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined mb-1">dashboard</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium tracking-wider uppercase">Dashboard</span>
+</a>
+<!-- Tasks (Active State) -->
+<a class="flex flex-col items-center justify-center bg-gradient-to-br from-[#91f78e] to-[#52b555] text-[#005e17] rounded-full px-5 py-2 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">checklist</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium tracking-wider uppercase">Tasks</span>
+</a>
+<!-- Rounds -->
+<a class="flex flex-col items-center justify-center text-[#adaaaa] px-5 py-2 hover:text-white transition-all active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined mb-1">refresh</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium tracking-wider uppercase">Rounds</span>
+</a>
+<!-- Insights -->
+<a class="flex flex-col items-center justify-center text-[#adaaaa] px-5 py-2 hover:text-white transition-all active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined mb-1">insights</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium tracking-wider uppercase">Insights</span>
+</a>
+</nav>
+</body></html>

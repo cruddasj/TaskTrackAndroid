@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Task Bank - TaskTrack</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Plus Jakarta Sans -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-secondary": "#e4fff3",
+              "surface-dim": "#d5dcd6",
+              "error-container": "#fa746f",
+              "surface-container-highest": "#dde4de",
+              "on-surface": "#2d3430",
+              "surface-container-high": "#e4eae4",
+              "inverse-primary": "#bbffe6",
+              "primary": "#276a57",
+              "on-tertiary-fixed": "#034853",
+              "secondary-container": "#cee9dd",
+              "on-primary-container": "#155c4a",
+              "on-primary-fixed": "#004939",
+              "outline": "#757c77",
+              "on-primary": "#e4fff3",
+              "on-error": "#fff7f6",
+              "tertiary": "#2f6772",
+              "surface-container-low": "#f1f5f0",
+              "error": "#a83836",
+              "on-secondary-fixed-variant": "#486058",
+              "on-primary-fixed-variant": "#236654",
+              "primary-fixed": "#adf0d8",
+              "primary-fixed-dim": "#9fe2ca",
+              "surface-bright": "#f8faf6",
+              "on-tertiary-fixed-variant": "#2d6570",
+              "on-secondary-fixed": "#2d443c",
+              "on-surface-variant": "#59615c",
+              "background": "#f8faf6",
+              "surface": "#f8faf6",
+              "on-error-container": "#6e0a12",
+              "tertiary-container": "#b7eefc",
+              "error-dim": "#67040d",
+              "on-secondary-container": "#3f574e",
+              "surface-variant": "#dde4de",
+              "secondary-fixed": "#cee9dd",
+              "outline-variant": "#acb4ae",
+              "surface-tint": "#276a57",
+              "secondary": "#4c645b",
+              "on-background": "#2d3430",
+              "inverse-surface": "#0c0f0d",
+              "on-tertiary": "#eefbff",
+              "tertiary-dim": "#215a66",
+              "surface-container": "#eaefea",
+              "on-tertiary-container": "#215b66",
+              "tertiary-fixed-dim": "#a9e0ee",
+              "secondary-dim": "#40584f",
+              "primary-container": "#adf0d8",
+              "tertiary-fixed": "#b7eefc",
+              "secondary-fixed-dim": "#c0dacf",
+              "inverse-on-surface": "#9b9e9a",
+              "surface-container-lowest": "#ffffff",
+              "primary-dim": "#175e4c"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Plus Jakarta Sans"],
+              "label": ["Plus Jakarta Sans"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .task-bloom-unchecked {
+            border: 2px solid theme('colors.outline');
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface font-body min-h-screen">
+<!-- TopAppBar Mapping -->
+<header class="w-full top-0 sticky z-50 flex items-center justify-between px-6 h-16 w-full bg-[#f8faf6] dark:bg-slate-950 no-border">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#276a57] dark:text-[#adf0d8] cursor-pointer hover:bg-[#e4eae4] p-2 rounded-full transition-colors active:scale-95 duration-200" data-icon="menu">menu</span>
+<h1 class="font-['Plus_Jakarta_Sans'] font-bold tracking-tight text-2xl font-extrabold text-[#276a57] dark:text-[#adf0d8] tracking-tighter">TaskTrack</h1>
+</div>
+</header>
+<main class="px-6 pt-6 pb-32 max-w-5xl mx-auto">
+<!-- Hero Section / Context -->
+<div class="mb-10">
+<h2 class="text-[3.5rem] font-headline font-extrabold leading-tight tracking-tight text-on-surface mb-2">Task Bank</h2>
+<p class="text-body-lg text-on-surface-variant max-w-xl leading-relaxed">Organize your home with sophisticated efficiency. Review and assign chores from your seasonal archives.</p>
+</div>
+<!-- Bento-style Grid Layout for Categories -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+<!-- Kitchen Section -->
+<section class="md:col-span-7 bg-surface-container-low rounded-lg p-6 flex flex-col gap-6">
+<div class="flex justify-between items-center">
+<h3 class="text-headline-sm font-headline font-bold text-on-surface flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="restaurant">restaurant</span>
+                        Kitchen
+                    </h3>
+<span class="bg-primary-container text-on-primary-container px-3 py-1 rounded-full text-[0.6875rem] font-bold">5 TASKS</span>
+</div>
+<div class="flex flex-col gap-4">
+<!-- Task Item -->
+<div class="bg-surface-container-lowest rounded-lg p-4 flex items-center gap-4 group cursor-pointer hover:bg-surface-container transition-colors">
+<div class="task-bloom-unchecked group-hover:border-primary transition-colors"></div>
+<div class="flex-1">
+<p class="text-on-surface font-medium">Deep Clean Oven</p>
+<p class="text-[0.6875rem] text-on-surface-variant">MONTHLY • 45 MIN</p>
+</div>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors" data-icon="chevron_right">chevron_right</span>
+</div>
+<div class="bg-surface-container-lowest rounded-lg p-4 flex items-center gap-4 group cursor-pointer hover:bg-surface-container transition-colors">
+<div class="task-bloom-unchecked group-hover:border-primary transition-colors"></div>
+<div class="flex-1">
+<p class="text-on-surface font-medium">Organize Pantry Shelves</p>
+<p class="text-[0.6875rem] text-on-surface-variant">QUARTERLY • 60 MIN</p>
+</div>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors" data-icon="chevron_right">chevron_right</span>
+</div>
+<div class="bg-surface-container-lowest rounded-lg p-4 flex items-center gap-4 group cursor-pointer hover:bg-surface-container transition-colors">
+<div class="task-bloom-unchecked group-hover:border-primary transition-colors"></div>
+<div class="flex-1">
+<p class="text-on-surface font-medium">Sanitize Refrigerator</p>
+<p class="text-[0.6875rem] text-on-surface-variant">WEEKLY • 20 MIN</p>
+</div>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors" data-icon="chevron_right">chevron_right</span>
+</div>
+</div>
+</section>
+<!-- Living Room Section -->
+<section class="md:col-span-5 bg-surface-container-high rounded-lg p-6 flex flex-col gap-6">
+<div class="flex justify-between items-center">
+<h3 class="text-headline-sm font-headline font-bold text-on-surface flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="chair">chair</span>
+                        Living Room
+                    </h3>
+</div>
+<div class="flex flex-col gap-4">
+<div class="bg-surface-container-lowest rounded-lg p-4 flex items-center gap-4 group cursor-pointer hover:bg-surface-container transition-colors">
+<div class="task-bloom-unchecked group-hover:border-primary transition-colors"></div>
+<div class="flex-1">
+<p class="text-on-surface font-medium">Dust Bookcases</p>
+<p class="text-[0.6875rem] text-on-surface-variant">BI-WEEKLY</p>
+</div>
+</div>
+<div class="bg-surface-container-lowest rounded-lg p-4 flex items-center gap-4 group cursor-pointer hover:bg-surface-container transition-colors">
+<div class="task-bloom-unchecked group-hover:border-primary transition-colors"></div>
+<div class="flex-1">
+<p class="text-on-surface font-medium">Vacuum Area Rug</p>
+<p class="text-[0.6875rem] text-on-surface-variant">DAILY</p>
+</div>
+</div>
+</div>
+<div class="mt-auto pt-4">
+<div class="relative rounded-xl overflow-hidden h-32 bg-secondary-container">
+<img alt="Interior design" class="w-full h-full object-cover opacity-60 mix-blend-overlay" data-alt="A clean, minimalist living room with sage green accents, a plush armchair, and sunlight streaming through a large window" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAzOcwQFHki3kiuI2Ro7FgxQCe0uWZTOZlWgqfE4ivz-SSXuMTA01hV6lvkP63lQwfooLPXb_EWA65OCgcpqu22q0mVX6L1MeoymzSUPcd20VFMOPI-vFWywxvY3liXxzCz-d5kg5rZff3VxJkLAx-zjzBd627Vf-pjnKJOkYiZ3wBw0rjl3GkEHlE2SqE2X0RzqLyw5RI592yYf29nct4dx4TG0Cz0dNAHOz--rO0ozBDOMYJGnh0x4h3Fa37jdrbLSAxUly7AQg"/>
+<div class="absolute inset-0 p-4 flex flex-col justify-end">
+<p class="text-on-secondary-container font-bold">Curate Your Space</p>
+<p class="text-on-secondary-container text-xs">Keep things breathing.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Garden Section -->
+<section class="md:col-span-6 bg-surface-container-low rounded-lg p-6 flex flex-col gap-6">
+<div class="flex justify-between items-center">
+<h3 class="text-headline-sm font-headline font-bold text-on-surface flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="yard">yard</span>
+                        Garden
+                    </h3>
+</div>
+<div class="grid grid-cols-1 gap-4">
+<div class="bg-surface-container-lowest rounded-lg p-4 flex items-center gap-4 group cursor-pointer hover:bg-surface-container transition-colors">
+<div class="task-bloom-unchecked group-hover:border-primary transition-colors"></div>
+<div class="flex-1">
+<p class="text-on-surface font-medium">Water Indoor Ferns</p>
+<p class="text-[0.6875rem] text-tertiary font-bold uppercase tracking-wider">CRITICAL</p>
+</div>
+<div class="w-2 h-2 rounded-full bg-error animate-pulse"></div>
+</div>
+<div class="bg-surface-container-lowest rounded-lg p-4 flex items-center gap-4 group cursor-pointer hover:bg-surface-container transition-colors">
+<div class="task-bloom-unchecked group-hover:border-primary transition-colors"></div>
+<div class="flex-1">
+<p class="text-on-surface font-medium">Prune Roses</p>
+<p class="text-[0.6875rem] text-on-surface-variant">SEASONAL</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Errands Section -->
+<section class="md:col-span-6 bg-[#f1f5f0] rounded-lg p-6 flex flex-col gap-6">
+<div class="flex justify-between items-center">
+<h3 class="text-headline-sm font-headline font-bold text-on-surface flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="shopping_basket">shopping_basket</span>
+                        Errands
+                    </h3>
+</div>
+<div class="flex flex-wrap gap-3">
+<div class="bg-white px-4 py-3 rounded-2xl flex items-center gap-3 shadow-sm flex-1 min-w-[150px]">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="local_pharmacy">local_pharmacy</span>
+<span class="text-sm font-medium">Refill Meds</span>
+</div>
+<div class="bg-white px-4 py-3 rounded-2xl flex items-center gap-3 shadow-sm flex-1 min-w-[150px]">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="local_laundry_service">local_laundry_service</span>
+<span class="text-sm font-medium">Dry Cleaning</span>
+</div>
+<div class="bg-white px-4 py-3 rounded-2xl flex items-center gap-3 shadow-sm flex-1 min-w-[150px]">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="mail">mail</span>
+<span class="text-sm font-medium">Post Office</span>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- FAB -->
+<button class="fixed bottom-28 right-6 w-14 h-14 rounded-2xl flex items-center justify-center bg-gradient-to-br from-[#276a57] to-[#adf0d8] text-white shadow-[0_4px_32px_rgba(45,52,48,0.15)] hover:scale-105 transition-transform active:scale-95 z-[60]">
+<span class="material-symbols-outlined" data-icon="add" style="font-variation-settings: 'wght' 600;">add</span>
+</button>
+<!-- BottomNavBar Mapping -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-[0_-4px_32px_rgba(45,52,48,0.06)] rounded-t-[32px]">
+<a class="flex flex-col items-center justify-center text-[#2d3430] dark:text-slate-400 px-5 py-1.5 hover:text-[#276a57] dark:hover:text-[#adf0d8] active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium">Dashboard</span>
+</a>
+<!-- Active Tab: Tasks -->
+<a class="flex flex-col items-center justify-center bg-[#adf0d8] dark:bg-[#276a57] text-[#276a57] dark:text-[#adf0d8] rounded-full px-5 py-1.5 transition-all active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium">Tasks</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#2d3430] dark:text-slate-400 px-5 py-1.5 hover:text-[#276a57] dark:hover:text-[#adf0d8] active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="bolt">bolt</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium">Rounds</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#2d3430] dark:text-slate-400 px-5 py-1.5 hover:text-[#276a57] dark:hover:text-[#adf0d8] active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="insights">insights</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium">Insights</span>
+</a>
+</nav>
+</body></html>

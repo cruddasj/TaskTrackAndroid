@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TaskTrack - Today's Rounds</title>
+<!-- Google Fonts: Plus Jakarta Sans & Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-container-highest": "#dde4de",
+              "on-secondary": "#e4fff3",
+              "surface-dim": "#d5dcd6",
+              "error-container": "#fa746f",
+              "secondary-container": "#cee9dd",
+              "on-primary-fixed": "#004939",
+              "on-primary-container": "#155c4a",
+              "on-primary": "#e4fff3",
+              "outline": "#757c77",
+              "tertiary": "#2f6772",
+              "on-error": "#fff7f6",
+              "surface-container-low": "#f1f5f0",
+              "inverse-primary": "#bbffe6",
+              "surface-container-high": "#e4eae4",
+              "on-surface": "#2d3430",
+              "primary": "#276a57",
+              "on-tertiary-fixed": "#034853",
+              "on-secondary-fixed-variant": "#486058",
+              "on-primary-fixed-variant": "#236654",
+              "primary-fixed": "#adf0d8",
+              "surface-bright": "#f8faf6",
+              "primary-fixed-dim": "#9fe2ca",
+              "on-tertiary-fixed-variant": "#2d6570",
+              "error": "#a83836",
+              "background": "#f8faf6",
+              "surface": "#f8faf6",
+              "on-secondary-fixed": "#2d443c",
+              "on-surface-variant": "#59615c",
+              "on-secondary-container": "#3f574e",
+              "surface-variant": "#dde4de",
+              "secondary-fixed": "#cee9dd",
+              "on-error-container": "#6e0a12",
+              "tertiary-container": "#b7eefc",
+              "error-dim": "#67040d",
+              "surface-tint": "#276a57",
+              "secondary": "#4c645b",
+              "on-background": "#2d3430",
+              "outline-variant": "#acb4ae",
+              "on-tertiary-container": "#215b66",
+              "surface-container": "#eaefea",
+              "tertiary-fixed-dim": "#a9e0ee",
+              "tertiary-dim": "#215a66",
+              "on-tertiary": "#eefbff",
+              "inverse-surface": "#0c0f0d",
+              "surface-container-lowest": "#ffffff",
+              "secondary-fixed-dim": "#c0dacf",
+              "inverse-on-surface": "#9b9e9a",
+              "primary-dim": "#175e4c",
+              "secondary-dim": "#40584f",
+              "primary-container": "#adf0d8",
+              "tertiary-fixed": "#b7eefc"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Plus Jakarta Sans"],
+              "label": ["Plus Jakarta Sans"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .task-bloom-check {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-background min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="w-full top-0 sticky z-50 no-border bg-[#f8faf6] dark:bg-slate-950 px-6 py-4 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="text-2xl font-extrabold text-[#276a57] dark:text-[#adf0d8] font-['Plus_Jakarta_Sans'] tracking-tight">TaskTrack</span>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#e4eae4] dark:hover:bg-slate-800 transition-colors active:scale-95 duration-200 text-[#276a57] dark:text-[#adf0d8]">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+</header>
+<main class="max-w-2xl mx-auto px-6 pt-8">
+<!-- Hero Header Section -->
+<section class="mb-10">
+<h1 class="text-[3.5rem] font-extrabold leading-none tracking-tighter text-on-surface mb-2">Today's Rounds</h1>
+<p class="text-on-surface-variant text-lg font-medium opacity-80">Manage your focus sessions for the day.</p>
+</section>
+<!-- Rounds List -->
+<div class="space-y-8">
+<!-- Round Card 1 -->
+<article class="bg-surface-container-low rounded-lg p-6 relative overflow-hidden group">
+<div class="flex justify-between items-start mb-6">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="text-primary font-bold text-sm tracking-widest uppercase">Active Session</span>
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+</div>
+<h2 class="text-2xl font-bold text-on-surface">Round 1 (25 min)</h2>
+</div>
+<div class="bg-primary-container text-on-primary-container px-4 py-2 rounded-full font-bold text-sm">
+                        08:30 AM
+                    </div>
+</div>
+<!-- Tasks in Round -->
+<div class="space-y-4 mb-6">
+<!-- Task Item -->
+<div class="flex items-center gap-4 bg-surface-container-lowest p-4 rounded-xl shadow-sm">
+<button class="w-6 h-6 rounded-full border-2 border-primary flex items-center justify-center task-bloom-check group/check hover:bg-primary-container">
+<span class="material-symbols-outlined text-primary text-sm opacity-0 group-hover/check:opacity-100" data-icon="check">check</span>
+</button>
+<span class="text-on-surface font-medium">Clean kitchen counters</span>
+</div>
+<!-- Task Item -->
+<div class="flex items-center gap-4 bg-surface-container-lowest p-4 rounded-xl shadow-sm">
+<button class="w-6 h-6 rounded-full border-2 border-primary flex items-center justify-center task-bloom-check group/check hover:bg-primary-container">
+<span class="material-symbols-outlined text-primary text-sm opacity-0 group-hover/check:opacity-100" data-icon="check">check</span>
+</button>
+<span class="text-on-surface font-medium">Water indoor ferns</span>
+</div>
+</div>
+<!-- Action Bar -->
+<button class="w-full py-4 border-2 border-dashed border-outline-variant/30 rounded-xl flex items-center justify-center gap-2 text-on-surface-variant font-semibold hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+<span>Add Task</span>
+</button>
+</article>
+<!-- Round Card 2 -->
+<article class="bg-surface-container-low rounded-lg p-6">
+<div class="flex justify-between items-start mb-6">
+<h2 class="text-2xl font-bold text-on-surface">Round 2 (25 min)</h2>
+<div class="bg-surface-container-highest text-on-surface-variant px-4 py-2 rounded-full font-bold text-sm">
+                        09:05 AM
+                    </div>
+</div>
+<!-- Tasks in Round -->
+<div class="space-y-4 mb-6">
+<div class="flex items-center gap-4 bg-surface-container-lowest p-4 rounded-xl shadow-sm">
+<button class="w-6 h-6 rounded-full border-2 border-outline-variant flex items-center justify-center task-bloom-check">
+</button>
+<span class="text-on-surface font-medium">Sort incoming mail</span>
+</div>
+<div class="flex items-center gap-4 bg-surface-container-lowest p-4 rounded-xl shadow-sm">
+<button class="w-6 h-6 rounded-full border-2 border-outline-variant flex items-center justify-center task-bloom-check">
+</button>
+<span class="text-on-surface font-medium">Reset coffee station</span>
+</div>
+</div>
+<button class="w-full py-4 border-2 border-dashed border-outline-variant/30 rounded-xl flex items-center justify-center gap-2 text-on-surface-variant font-semibold hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+<span>Add Task</span>
+</button>
+</article>
+<!-- Round Card 3 -->
+<article class="bg-surface-container-low rounded-lg p-6 opacity-60">
+<div class="flex justify-between items-start mb-6">
+<h2 class="text-2xl font-bold text-on-surface">Round 3 (25 min)</h2>
+<div class="bg-surface-container-highest text-on-surface-variant px-4 py-2 rounded-full font-bold text-sm">
+                        09:40 AM
+                    </div>
+</div>
+<div class="flex flex-col items-center justify-center py-8 text-center bg-surface-container-lowest/50 border border-dashed border-outline-variant rounded-xl">
+<span class="material-symbols-outlined text-4xl text-outline-variant mb-2" data-icon="inbox">inbox</span>
+<p class="text-on-surface-variant text-sm">No tasks assigned yet</p>
+</div>
+<button class="w-full mt-6 py-4 border-2 border-dashed border-outline-variant/30 rounded-xl flex items-center justify-center gap-2 text-on-surface-variant font-semibold hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+<span>Add Task</span>
+</button>
+</article>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3 bg-[#ffffff]/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-t-[24px] z-50 shadow-[0_-4px_24px_rgba(0,0,0,0.04)]">
+<!-- Dashboard Tab -->
+<a class="flex flex-col items-center justify-center text-[#2d3430] dark:text-slate-400 px-5 py-1.5 hover:bg-[#f1f5f0] dark:hover:bg-slate-800 rounded-full transition-transform duration-150 active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium mt-1">Dashboard</span>
+</a>
+<!-- Tasks Tab -->
+<a class="flex flex-col items-center justify-center text-[#2d3430] dark:text-slate-400 px-5 py-1.5 hover:bg-[#f1f5f0] dark:hover:bg-slate-800 rounded-full transition-transform duration-150 active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="assignment">assignment</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium mt-1">Tasks</span>
+</a>
+<!-- Rounds Tab (ACTIVE) -->
+<a class="flex flex-col items-center justify-center bg-[#adf0d8] dark:bg-[#276a57] text-[#276a57] dark:text-[#adf0d8] rounded-full px-5 py-1.5 transition-transform duration-150 active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="timer" style="font-variation-settings: 'FILL' 1;">timer</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium mt-1">Rounds</span>
+</a>
+<!-- Insights Tab -->
+<a class="flex flex-col items-center justify-center text-[#2d3430] dark:text-slate-400 px-5 py-1.5 hover:bg-[#f1f5f0] dark:hover:bg-slate-800 rounded-full transition-transform duration-150 active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="insights">insights</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium mt-1">Insights</span>
+</a>
+</nav>
+</body></html>
