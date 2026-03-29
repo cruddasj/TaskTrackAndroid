@@ -1,6 +1,6 @@
 import { AppState } from '../types';
 
-const STORAGE_KEY = 'tasktrack.state.v1';
+const STORAGE_KEY = 'tasktrack.state.v2';
 
 const defaultCategories = [
   'Household chores',
@@ -43,6 +43,36 @@ const defaultState: AppState = {
       roundId: 'r2',
     },
   ],
+  taskPacks: [
+    {
+      id: 'p1',
+      name: 'Daily Home Reset',
+      cadence: 'daily',
+      tasks: [
+        {
+          id: 'p1-t1',
+          title: 'Clean kitchen',
+          description: 'Wipe counters, spot clean surfaces and tidy the sink area.',
+          category: 'Household chores',
+          estimateMinutes: 20,
+        },
+        {
+          id: 'p1-t2',
+          title: 'Walk dog',
+          description: 'Take a brisk neighborhood walk and refill water bowl after.',
+          category: 'Health and wellbeing',
+          estimateMinutes: 25,
+        },
+        {
+          id: 'p1-t3',
+          title: 'Load dishwasher',
+          description: 'Gather dishes and run a full cycle before bedtime.',
+          category: 'Household chores',
+          estimateMinutes: 15,
+        },
+      ],
+    },
+  ],
   rounds: [
     {
       id: 'r1',
@@ -79,6 +109,7 @@ const normalizeState = (raw: Partial<AppState>): AppState => {
     userName: raw.userName ?? '',
     categories,
     tasks: raw.tasks ?? defaultState.tasks,
+    taskPacks: raw.taskPacks ?? defaultState.taskPacks,
     rounds: raw.rounds ?? defaultState.rounds,
     pomodoro: {
       ...defaultState.pomodoro,

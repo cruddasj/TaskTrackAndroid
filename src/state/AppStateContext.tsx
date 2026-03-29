@@ -1,10 +1,11 @@
 import { createContext, useContext, useEffect, useMemo, useReducer } from 'react';
-import { AppState, PomodoroState, Task } from '../types';
+import { AppState, PomodoroState, Task, TaskPack } from '../types';
 import { loadState, saveState } from './storage';
 import { notifyPomodoroComplete, playAlarmBell, requestNotificationPermissions } from '../services/notifications';
 
 type NewTask = Omit<Task, 'id' | 'status'>;
 type EditableTask = Omit<Task, 'status'>;
+type NewTaskPack = Omit<TaskPack, 'id'>;
 
 type Action =
   | { type: 'ADD_TASK'; payload: NewTask }
@@ -14,6 +15,8 @@ type Action =
   | { type: 'SET_USER_NAME'; payload: { userName: string } }
   | { type: 'ADD_CATEGORY'; payload: { category: string } }
   | { type: 'DELETE_CATEGORY'; payload: { category: string } }
+  | { type: 'ADD_TASK_PACK'; payload: NewTaskPack }
+  | { type: 'DELETE_TASK_PACK'; payload: { id: string } }
   | { type: 'START_POMODORO'; payload: { taskId: string; roundId?: string; minutes?: number } }
   | { type: 'PAUSE_POMODORO' }
   | { type: 'TICK' }
@@ -105,6 +108,18 @@ const reducer = (state: AppState, action: Action): AppState => {
         ),
       };
     }
+    case 'ADD_TASK_PACK': {
+      const id = crypto.randomUUID();
+      return {
+        ...state,
+        taskPacks: [...state.taskPacks, { ...action.payload, id }],
+      };
+    }
+    case 'DELETE_TASK_PACK':
+      return {
+        ...state,
+        taskPacks: state.taskPacks.filter((pack) => pack.id !== action.payload.id),
+      };
     case 'START_POMODORO': {
       const totalSeconds = (action.payload.minutes ?? 25) * 60;
       const pomodoro: PomodoroState = {
@@ -162,6 +177,8 @@ interface AppStateContextValue {
   setUserName: (userName: string) => void;
   addCategory: (category: string) => void;
   deleteCategory: (category: string) => void;
+  addTaskPack: (taskPack: NewTaskPack) => void;
+  deleteTaskPack: (id: string) => void;
   startPomodoro: (taskId: string, roundId?: string, minutes?: number) => void;
   pausePomodoro: () => void;
   resetPomodoro: () => void;
@@ -209,6 +226,8 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
       setUserName: (userName) => dispatch({ type: 'SET_USER_NAME', payload: { userName } }),
       addCategory: (category) => dispatch({ type: 'ADD_CATEGORY', payload: { category } }),
       deleteCategory: (category) => dispatch({ type: 'DELETE_CATEGORY', payload: { category } }),
+      addTaskPack: (taskPack) => dispatch({ type: 'ADD_TASK_PACK', payload: taskPack }),
+      deleteTaskPack: (id) => dispatch({ type: 'DELETE_TASK_PACK', payload: { id } }),
       startPomodoro: (taskId, roundId, minutes) => dispatch({ type: 'START_POMODORO', payload: { taskId, roundId, minutes } }),
       pausePomodoro: () => dispatch({ type: 'PAUSE_POMODORO' }),
       resetPomodoro: () => dispatch({ type: 'RESET_POMODORO' }),

@@ -1,5 +1,6 @@
 import DeleteOutlineRounded from '@mui/icons-material/DeleteOutlineRounded';
-import { Box, Button, Card, CardContent, IconButton, Stack, TextField, Typography } from '@mui/material';
+import InfoOutlined from '@mui/icons-material/InfoOutlined';
+import { Alert, Box, Button, Card, CardContent, IconButton, Stack, TextField, Typography } from '@mui/material';
 import { useMemo, useState } from 'react';
 import { useAppState } from '../state/AppStateContext';
 
@@ -20,10 +21,16 @@ export const SettingsScreen = () => {
         <Typography variant="h3">Settings</Typography>
         <Typography color="text.secondary">
           {needsName
-            ? 'Welcome! Please set your name to continue using the app.'
+            ? 'Welcome! Add your name for personalization. This data stays on your device and is never shared.'
             : 'Manage your profile and task categories.'}
         </Typography>
       </Box>
+
+      {needsName && (
+        <Alert icon={<InfoOutlined fontSize="inherit" />} severity="info">
+          This is your setup page. You can also manage your own task categories here any time.
+        </Alert>
+      )}
 
       <Card>
         <CardContent>
