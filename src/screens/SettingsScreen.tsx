@@ -1,5 +1,6 @@
 import DeleteOutlineRounded from '@mui/icons-material/DeleteOutlineRounded';
 import InfoOutlined from '@mui/icons-material/InfoOutlined';
+import DownloadRounded from '@mui/icons-material/DownloadRounded';
 import VolumeUpRounded from '@mui/icons-material/VolumeUpRounded';
 import { Alert, Box, Button, Card, CardContent, FormControlLabel, IconButton, MenuItem, Stack, Switch, TextField, Typography } from '@mui/material';
 import { useMemo, useState } from 'react';
@@ -19,6 +20,7 @@ export const SettingsScreen = () => {
     setAlarmTone,
     setAlarmRepeatCount,
     setShowFirstTimeGuidance,
+    loadDemoData,
     showSuccessMessage,
   } = useAppState();
   const [name, setName] = useState(state.userName);
@@ -96,6 +98,28 @@ export const SettingsScreen = () => {
               }
               label="Show first-time guidance across the app"
             />
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent>
+          <Stack spacing={2}>
+            <Typography variant="h5">Demo data</Typography>
+            <Alert severity="success" icon={<InfoOutlined fontSize="inherit" />} sx={guidanceAlertSx}>
+              Load sample tasks, rounds, and recent completions so dashboard insights show realistic examples.
+            </Alert>
+            <Button
+              variant="outlined"
+              color="secondary"
+              startIcon={<DownloadRounded />}
+              onClick={() => {
+                loadDemoData();
+                showSuccessMessage('Demo data loaded.');
+              }}
+            >
+              Load demo data
+            </Button>
           </Stack>
         </CardContent>
       </Card>

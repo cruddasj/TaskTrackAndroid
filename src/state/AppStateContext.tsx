@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useReducer, useRef, useS
 import { AlarmTone, dismissNativeAlarmNotifications, notifyPomodoroComplete, requestNotificationPermissions, startRepeatingAlarm } from '../services/notifications';
 import { AppState, PomodoroState, Round, Task, TaskBankItem } from '../types';
 import { buildNewRound, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
-import { loadState, saveState } from './storage';
+import { createDemoState, loadState, saveState } from './storage';
 
 type NewTask = Omit<Task, 'id' | 'status' | 'plannedDate' | 'completedAt'>;
 type EditableTask = Omit<Task, 'status'>;
@@ -34,6 +34,7 @@ type Action =
   | { type: 'SET_ALARM_TONE'; payload: { tone: AlarmTone } }
   | { type: 'SET_ALARM_REPEAT_COUNT'; payload: { count: number } }
   | { type: 'SET_SHOW_FIRST_TIME_GUIDANCE'; payload: { enabled: boolean } }
+  | { type: 'LOAD_DEMO_DATA' }
   | { type: 'START_POMODORO'; payload: { taskId: string; roundId?: string; minutes?: number } }
   | { type: 'PAUSE_POMODORO' }
   | { type: 'COMPLETE_POMODORO' }
@@ -329,6 +330,8 @@ const reducer = (state: AppState, action: Action): AppState => {
           showFirstTimeGuidance: action.payload.enabled,
         },
       };
+    case 'LOAD_DEMO_DATA':
+      return createDemoState(state);
     case 'START_POMODORO': {
       const phase = state.pomodoro.phase;
       const totalSeconds = action.payload.minutes ? action.payload.minutes * 60 : getPhaseSeconds(state, phase);
@@ -424,6 +427,7 @@ interface AppStateContextValue {
   setAlarmTone: (tone: AlarmTone) => void;
   setAlarmRepeatCount: (count: number) => void;
   setShowFirstTimeGuidance: (enabled: boolean) => void;
+  loadDemoData: () => void;
   startPomodoro: (taskId: string, roundId?: string, minutes?: number) => void;
   pausePomodoro: () => void;
   completePomodoro: () => void;
@@ -537,6 +541,7 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
       setAlarmTone: (tone) => dispatch({ type: 'SET_ALARM_TONE', payload: { tone } }),
       setAlarmRepeatCount: (count) => dispatch({ type: 'SET_ALARM_REPEAT_COUNT', payload: { count } }),
       setShowFirstTimeGuidance: (enabled) => dispatch({ type: 'SET_SHOW_FIRST_TIME_GUIDANCE', payload: { enabled } }),
+      loadDemoData: () => dispatch({ type: 'LOAD_DEMO_DATA' }),
       startPomodoro: (taskId, roundId, minutes) => dispatch({ type: 'START_POMODORO', payload: { taskId, roundId, minutes } }),
       pausePomodoro: () => dispatch({ type: 'PAUSE_POMODORO' }),
       completePomodoro: () => dispatch({ type: 'COMPLETE_POMODORO' }),
