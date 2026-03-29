@@ -129,7 +129,7 @@ export const TodaysTasksScreen = () => {
               <Typography variant="h5">Recurring task suggestions</Typography>
               <Typography color="text.secondary">Review templates from Task Bank that are due based on your repeat settings before adding them.</Typography>
             </Box>
-            <Button variant="outlined" onClick={openRecurringSuggestions}>Suggest recurring tasks</Button>
+            <Button variant="outlined" onClick={openRecurringSuggestions}>Suggest overdue recurring tasks</Button>
           </Stack>
         </CardContent>
       </Card>
@@ -255,7 +255,9 @@ export const TodaysTasksScreen = () => {
         <DialogTitle>Suggested recurring tasks</DialogTitle>
         <DialogContent>
           {recurringSuggestions.length === 0 ? (
-            <Alert severity="info">No recurring tasks are due right now.</Alert>
+            <Alert severity="success" sx={{ bgcolor: 'rgba(145,247,142,0.12)', color: 'primary.main', '& .MuiAlert-icon': { color: 'primary.main' } }}>
+              No recurring tasks are due right now.
+            </Alert>
           ) : (
             <Stack spacing={1.5} mt={0.5}>
               <Typography color="text.secondary">Add these due recurring tasks to Today&apos;s Tasks?</Typography>

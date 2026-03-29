@@ -33,6 +33,7 @@ export const SettingsScreen = () => {
     () => state.categories.some((category) => category.toLowerCase() === newCategory.trim().toLowerCase()),
     [newCategory, state.categories],
   );
+  const guidanceAlertSx = { bgcolor: 'rgba(145,247,142,0.12)', color: 'primary.main', '& .MuiAlert-icon': { color: 'primary.main' } };
 
   return (
     <Stack spacing={3} pb={2}>
@@ -49,7 +50,7 @@ export const SettingsScreen = () => {
         <Alert
           icon={<InfoOutlined fontSize="inherit" />}
           severity="success"
-          sx={{ bgcolor: 'rgba(145,247,142,0.12)', color: 'primary.main', '& .MuiAlert-icon': { color: 'primary.main' } }}
+          sx={guidanceAlertSx}
         >
           Finish this setup once, then revisit anytime to adjust your timer and alarm preferences.
         </Alert>
@@ -82,7 +83,7 @@ export const SettingsScreen = () => {
       <Card>
         <CardContent>
           <Stack spacing={2}>
-            <Alert severity="info" icon={<InfoOutlined fontSize="inherit" />}>
+            <Alert severity="success" icon={<InfoOutlined fontSize="inherit" />} sx={guidanceAlertSx}>
               <Typography variant="body2" fontWeight={700} mb={0.5}>New to Pomodoro?</Typography>
               <Typography variant="body2">
                 The Pomodoro technique breaks work into short focus rounds followed by breaks. Start with a 25-minute
