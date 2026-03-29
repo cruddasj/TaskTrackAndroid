@@ -89,7 +89,7 @@ export const RoundsScreen = () => {
                     const firstTaskId = round.taskIds[0] ?? state.tasks[0]?.id;
                     if (!firstTaskId) return;
                     startPomodoro(firstTaskId, round.id, state.settings.pomodoroMinutes);
-                    navigate('/focus');
+                    navigate(`/focus?roundId=${round.id}`);
                   }}
                 >
                   Enter Focus Mode

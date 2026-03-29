@@ -6,7 +6,7 @@ import ReplayRounded from '@mui/icons-material/ReplayRounded';
 import SkipNextRounded from '@mui/icons-material/SkipNextRounded';
 import { Box, Button, Card, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, Typography } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
 
 const formatTime = (seconds: number): string => {
@@ -19,13 +19,17 @@ const formatTime = (seconds: number): string => {
 
 export const FocusScreen = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { state, startPomodoro, pausePomodoro, resetPomodoro, toggleTask, assignTasksToRound } = useAppState();
   const [sessionReviewOpen, setSessionReviewOpen] = useState(false);
   const [confirmedDoneIds, setConfirmedDoneIds] = useState<string[]>([]);
+  const requestedRoundId = searchParams.get('roundId') ?? undefined;
+  const fallbackRoundId = state.rounds.find((round) => round.status === 'active')?.id;
+  const visibleRoundId = requestedRoundId ?? state.pomodoro.activeRoundId ?? fallbackRoundId;
 
   const activeRound = useMemo(
-    () => state.rounds.find((round) => round.id === state.pomodoro.activeRoundId),
-    [state.rounds, state.pomodoro.activeRoundId],
+    () => state.rounds.find((round) => round.id === visibleRoundId),
+    [state.rounds, visibleRoundId],
   );
 
   const roundTasks = useMemo(() => {
@@ -35,7 +39,7 @@ export const FocusScreen = () => {
         .filter((task): task is NonNullable<typeof task> => !!task);
     }
 
-    return state.tasks;
+    return [];
   }, [activeRound, state.tasks]);
 
   const activeTask = useMemo(
@@ -127,7 +131,9 @@ export const FocusScreen = () => {
 
         <Stack spacing={1} alignItems="center" px={1}>
           <Typography variant="h4" textAlign="center">{activeTask?.title ?? 'No task selected'}</Typography>
-          <Typography color="text.secondary">Part of: {activeTask?.category ?? 'General'}</Typography>
+          <Typography color="text.secondary">
+            {activeRound ? `${activeRound.title} · ${activeTask?.category ?? 'General'}` : activeTask?.category ?? 'General'}
+          </Typography>
         </Stack>
 
         <Card sx={{ width: '100%', maxWidth: 780 }}>
@@ -159,7 +165,7 @@ export const FocusScreen = () => {
                 ? pausePomodoro()
                 : startPomodoro(
                     activeTask?.id ?? state.tasks[0]?.id ?? '',
-                    activeTask?.roundId,
+                    activeRound?.id ?? activeTask?.roundId,
                     state.settings.pomodoroMinutes,
                   )
             }
