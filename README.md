@@ -7,7 +7,12 @@ TaskTrack is a Pomodoro-driven task planner designed for daily execution. You ca
 - Guides users through setup (name + categories) before normal app navigation.
 - Lets users maintain a reusable **Task Bank** and a daily **Today's Tasks** list.
 - Organizes daily tasks into **Rounds** (focus sessions).
+- Lets users auto-suggest round groupings by task category and splits suggested groups so they stay within the configured Pomodoro duration.
+- Lets users reorder rounds directly from the Rounds page using up/down controls.
 - Shows a session-aware dashboard card that lists planned round tasks and guides users to assign or add tasks when a round is empty.
+- Uses **upcoming round** language on the dashboard and prevents assignment prompts while a break is active.
+- Shows a 7-day dashboard summary of completed focus minutes grouped by category.
+- Shows a 7-day activity history with planned/completed counts by day.
 - Uses dashboard guidance language that emphasizes focused attention periods across small, manageable tasks.
 - Uses consistent **Active Session** terminology across the dashboard and focus timer screens.
 - Provides a quick-add floating action button in both **Task Bank** and **Today's Tasks** screens.
@@ -17,6 +22,7 @@ TaskTrack is a Pomodoro-driven task planner designed for daily execution. You ca
 - Sends completion notifications and plays a configurable alarm tone.
 - Supports configurable alarm repeat count (how many times the alarm rings at session end).
 - Persists all app state to local storage on device.
+- Stores task planning/completion timestamps so recent (last 7 days) activity can be reviewed from the dashboard.
 
 ## Tech stack
 

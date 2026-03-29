@@ -52,4 +52,24 @@ describe('storage', () => {
 
     expect(loadState()).toEqual(seedState);
   });
+
+  it('adds plannedDate when loading older persisted tasks', () => {
+    localStorage.setItem(
+      'tasktrack.state.v2',
+      JSON.stringify({
+        tasks: [
+          {
+            id: 'legacy-1',
+            title: 'Legacy task',
+            description: 'Migrated',
+            category: 'Uncategorized',
+            estimateMinutes: 25,
+            status: 'todo',
+          },
+        ],
+      }),
+    );
+
+    expect(loadState().tasks[0].plannedDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
 });

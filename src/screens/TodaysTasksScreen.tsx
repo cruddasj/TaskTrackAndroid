@@ -24,6 +24,8 @@ const emptyForm: TaskFormState = {
 
 export const TodaysTasksScreen = () => {
   const { state, addTask, updateTask, deleteTask, toggleTask, showSuccessMessage } = useAppState();
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const todaysTasks = state.tasks.filter((task) => task.plannedDate === todayKey);
   const [open, setOpen] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [form, setForm] = useState<TaskFormState>(emptyForm);
@@ -91,7 +93,7 @@ export const TodaysTasksScreen = () => {
         <Typography color="text.secondary">Capture only what you plan to complete today, then assign tasks into rounds.</Typography>
       </Box>
 
-      {state.tasks.map((task) => (
+      {todaysTasks.map((task) => (
         <Card key={task.id}>
           <CardContent>
             <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
@@ -132,7 +134,7 @@ export const TodaysTasksScreen = () => {
         </Card>
       ))}
 
-      {state.tasks.length === 0 && (
+      {todaysTasks.length === 0 && (
         <Card>
           <CardContent>
             <Typography color="text.secondary">No tasks added for today yet. Create one or copy from Task Bank.</Typography>

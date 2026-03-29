@@ -7,6 +7,8 @@ export interface Task {
   category: string;
   estimateMinutes: number;
   status: TaskStatus;
+  plannedDate: string;
+  completedAt?: string;
   roundId?: string;
 }
 

@@ -3,7 +3,7 @@ import { AlarmTone, dismissNativeAlarmNotifications, notifyPomodoroComplete, req
 import { AppState, PomodoroState, Task, TaskBankItem } from '../types';
 import { loadState, saveState } from './storage';
 
-type NewTask = Omit<Task, 'id' | 'status'>;
+type NewTask = Omit<Task, 'id' | 'status' | 'plannedDate' | 'completedAt'>;
 type EditableTask = Omit<Task, 'status'>;
 type NewTaskBankItem = Omit<TaskBankItem, 'id'>;
 type EditableTaskBankItem = TaskBankItem;
@@ -21,6 +21,8 @@ type Action =
   | { type: 'ADD_CATEGORY'; payload: { category: string } }
   | { type: 'DELETE_CATEGORY'; payload: { category: string } }
   | { type: 'ASSIGN_TASKS_TO_ROUND'; payload: { roundId: string; taskIds: string[] } }
+  | { type: 'AUTO_GROUP_TODAY_TASKS' }
+  | { type: 'MOVE_ROUND'; payload: { roundId: string; direction: 'up' | 'down' } }
   | { type: 'SET_POMODORO_MINUTES'; payload: { minutes: number } }
   | { type: 'SET_SHORT_BREAK_MINUTES'; payload: { minutes: number } }
   | { type: 'SET_LONG_BREAK_MINUTES'; payload: { minutes: number } }
@@ -40,6 +42,8 @@ const getPhaseSeconds = (state: AppState, phase: PomodoroState['phase']): number
   return state.settings.pomodoroMinutes * 60;
 };
 
+const getTodayKey = (): string => new Date().toISOString().slice(0, 10);
+
 const reducer = (state: AppState, action: Action): AppState => {
   switch (action.type) {
     case 'ADD_TASK': {
@@ -52,6 +56,7 @@ const reducer = (state: AppState, action: Action): AppState => {
             id,
             status: 'todo',
             ...action.payload,
+            plannedDate: getTodayKey(),
           },
         ],
       };
@@ -84,7 +89,7 @@ const reducer = (state: AppState, action: Action): AppState => {
       if (!sourceTask) return state;
       return {
         ...state,
-        tasks: [...state.tasks, { ...sourceTask, id: crypto.randomUUID(), status: 'todo' }],
+        tasks: [...state.tasks, { ...sourceTask, id: crypto.randomUUID(), status: 'todo', plannedDate: getTodayKey() }],
       };
     }
     case 'ADD_TASK_BANK_ITEM': {
@@ -102,7 +107,13 @@ const reducer = (state: AppState, action: Action): AppState => {
       return {
         ...state,
         tasks: state.tasks.map((task) =>
-          task.id !== action.payload.id ? task : { ...task, status: task.status === 'done' ? 'todo' : 'done' },
+          task.id !== action.payload.id
+            ? task
+            : {
+              ...task,
+              status: task.status === 'done' ? 'todo' : 'done',
+              completedAt: task.status === 'done' ? undefined : new Date().toISOString(),
+            },
         ),
       };
     case 'SET_USER_NAME':
@@ -135,6 +146,80 @@ const reducer = (state: AppState, action: Action): AppState => {
           if (task.roundId === roundId) return { ...task, roundId: undefined };
           return task;
         }),
+      };
+    }
+    case 'AUTO_GROUP_TODAY_TASKS': {
+      const todayKey = getTodayKey();
+      const tasksByCategory = state.tasks
+        .filter((task) => task.plannedDate === todayKey)
+        .reduce<Record<string, Task[]>>((acc, task) => {
+          acc[task.category] = [...(acc[task.category] ?? []), task];
+          return acc;
+        }, {});
+      const pomodoroLimit = state.settings.pomodoroMinutes;
+      const groupedTaskIds: string[][] = [];
+
+      Object.keys(tasksByCategory).forEach((category) => {
+        let currentGroup: string[] = [];
+        let currentMinutes = 0;
+        tasksByCategory[category].forEach((task) => {
+          const wouldExceed = currentMinutes + task.estimateMinutes > pomodoroLimit && currentGroup.length > 0;
+          if (wouldExceed) {
+            groupedTaskIds.push(currentGroup);
+            currentGroup = [];
+            currentMinutes = 0;
+          }
+          currentGroup.push(task.id);
+          currentMinutes += task.estimateMinutes;
+        });
+        if (currentGroup.length > 0) groupedTaskIds.push(currentGroup);
+      });
+
+      if (groupedTaskIds.length === 0) return state;
+
+      const reusedRounds = state.rounds.slice(0, groupedTaskIds.length).map((round, index) => ({
+        ...round,
+        title: `Round ${index + 1}`,
+        status: (index === 0 ? 'active' : 'upcoming') as 'active' | 'upcoming',
+        durationMinutes: pomodoroLimit,
+        taskIds: groupedTaskIds[index],
+      }));
+      const extraRounds = groupedTaskIds.slice(reusedRounds.length).map((taskIds, index) => ({
+        id: crypto.randomUUID(),
+        title: `Round ${reusedRounds.length + index + 1}`,
+        scheduledTime: '',
+        durationMinutes: pomodoroLimit,
+        taskIds,
+        status: (reusedRounds.length + index === 0 ? 'active' : 'upcoming') as 'active' | 'upcoming',
+      }));
+      const roundIdsInUse = new Set([...reusedRounds, ...extraRounds].map((round) => round.id));
+
+      return {
+        ...state,
+        rounds: [...reusedRounds, ...extraRounds],
+        tasks: state.tasks.map((task) => {
+          if (task.plannedDate !== todayKey) return task;
+          const assignedRound = [...reusedRounds, ...extraRounds].find((round) => round.taskIds.includes(task.id));
+          return { ...task, roundId: assignedRound?.id };
+        }).map((task) => (task.roundId && !roundIdsInUse.has(task.roundId) ? { ...task, roundId: undefined } : task)),
+      };
+    }
+    case 'MOVE_ROUND': {
+      const index = state.rounds.findIndex((round) => round.id === action.payload.roundId);
+      if (index < 0) return state;
+      const targetIndex = action.payload.direction === 'up' ? index - 1 : index + 1;
+      if (targetIndex < 0 || targetIndex >= state.rounds.length) return state;
+      const rounds = [...state.rounds];
+      const [moving] = rounds.splice(index, 1);
+      rounds.splice(targetIndex, 0, moving);
+      const firstOpenRoundId = rounds.find((round) => round.status !== 'done')?.id;
+      return {
+        ...state,
+        rounds: rounds.map((round) =>
+          round.status === 'done'
+            ? round
+            : { ...round, status: round.id === firstOpenRoundId ? 'active' : 'upcoming' },
+        ),
       };
     }
     case 'SET_POMODORO_MINUTES': {
@@ -288,6 +373,8 @@ interface AppStateContextValue {
   addCategory: (category: string) => void;
   deleteCategory: (category: string) => void;
   assignTasksToRound: (roundId: string, taskIds: string[]) => void;
+  autoGroupTodayTasks: () => void;
+  moveRound: (roundId: string, direction: 'up' | 'down') => void;
   setPomodoroMinutes: (minutes: number) => void;
   setShortBreakMinutes: (minutes: number) => void;
   setLongBreakMinutes: (minutes: number) => void;
@@ -389,6 +476,8 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
       addCategory: (category) => dispatch({ type: 'ADD_CATEGORY', payload: { category } }),
       deleteCategory: (category) => dispatch({ type: 'DELETE_CATEGORY', payload: { category } }),
       assignTasksToRound: (roundId, taskIds) => dispatch({ type: 'ASSIGN_TASKS_TO_ROUND', payload: { roundId, taskIds } }),
+      autoGroupTodayTasks: () => dispatch({ type: 'AUTO_GROUP_TODAY_TASKS' }),
+      moveRound: (roundId, direction) => dispatch({ type: 'MOVE_ROUND', payload: { roundId, direction } }),
       setPomodoroMinutes: (minutes) => dispatch({ type: 'SET_POMODORO_MINUTES', payload: { minutes } }),
       setShortBreakMinutes: (minutes) => dispatch({ type: 'SET_SHORT_BREAK_MINUTES', payload: { minutes } }),
       setLongBreakMinutes: (minutes) => dispatch({ type: 'SET_LONG_BREAK_MINUTES', payload: { minutes } }),

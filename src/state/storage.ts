@@ -6,6 +6,7 @@ const DEFAULT_SHORT_BREAK_MINUTES = 5;
 const DEFAULT_LONG_BREAK_MINUTES = 15;
 const DEFAULT_SESSIONS_BEFORE_LONG_BREAK = 4;
 const DEFAULT_ALARM_REPEAT_COUNT = 3;
+const todayKey = new Date().toISOString().slice(0, 10);
 
 const defaultCategories = [
   'Household chores',
@@ -27,6 +28,7 @@ const defaultState: AppState = {
       category: 'Household chores',
       estimateMinutes: 25,
       status: 'in_progress',
+      plannedDate: todayKey,
       roundId: 'r1',
     },
     {
@@ -36,6 +38,7 @@ const defaultState: AppState = {
       category: 'Health and wellbeing',
       estimateMinutes: 25,
       status: 'todo',
+      plannedDate: todayKey,
       roundId: 'r1',
     },
   ],
@@ -117,7 +120,11 @@ const normalizeState = (raw: Partial<AppState>): AppState => {
     ...raw,
     userName: raw.userName ?? '',
     categories,
-    tasks: raw.tasks ?? defaultState.tasks,
+    tasks:
+      raw.tasks?.map((task) => ({
+        ...task,
+        plannedDate: task.plannedDate ?? todayKey,
+      })) ?? defaultState.tasks,
     taskBank,
     rounds: raw.rounds ?? defaultState.rounds,
     settings: {
