@@ -1,6 +1,7 @@
 import DashboardOutlined from '@mui/icons-material/DashboardOutlined';
 import InsightsOutlined from '@mui/icons-material/InsightsOutlined';
 import ListAltOutlined from '@mui/icons-material/ListAltOutlined';
+import SettingsOutlined from '@mui/icons-material/SettingsOutlined';
 import TimerOutlined from '@mui/icons-material/TimerOutlined';
 import { BottomNavigation, BottomNavigationAction, Box, Paper, Typography } from '@mui/material';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
@@ -10,6 +11,7 @@ const tabs = [
   { label: 'Tasks', path: '/tasks', icon: <ListAltOutlined /> },
   { label: 'Rounds', path: '/rounds', icon: <TimerOutlined /> },
   { label: 'Insights', path: '/insights', icon: <InsightsOutlined /> },
+  { label: 'Settings', path: '/settings', icon: <SettingsOutlined /> },
 ];
 
 export const AppShell = () => {
