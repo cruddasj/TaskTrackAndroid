@@ -18,6 +18,8 @@ TaskTrack is a Pomodoro-driven task planner designed for daily execution. You ca
 - Shows a 7-day activity history with planned/completed counts by day.
 - Shows a richer 7-day activity history layout with planned/completed counts on separate lines, plus completed task categories with per-category task counts and task names.
 - Shows a dedicated **Unassigned today tasks** section on the Rounds page so tasks missing a round are always visible.
+- Adds a quick **Assign to round** picker for each item in **Unassigned today tasks** so users can place tasks into existing rounds without opening the round editor.
+- Shows **Good evening** on the dashboard only from 7:00 PM onward (earlier daytime hours use morning/afternoon greetings).
 - Adds a floating **plus** button on the Rounds page so users can create a new round and immediately assign tasks.
 - Validates round creation by warning users when an existing round is still empty (no tasks assigned), so they can reuse it instead of creating duplicates.
 - Uses dashboard guidance language that emphasizes focused attention periods across small, manageable tasks.
