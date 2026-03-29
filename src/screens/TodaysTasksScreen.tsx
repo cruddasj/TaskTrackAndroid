@@ -4,8 +4,7 @@ import DeleteOutlineRounded from '@mui/icons-material/DeleteOutlineRounded';
 import EditOutlined from '@mui/icons-material/EditOutlined';
 import RadioButtonUncheckedRounded from '@mui/icons-material/RadioButtonUncheckedRounded';
 import { Box, Button, Card, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Stack, TextField, Typography } from '@mui/material';
-import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { useAppState } from '../state/AppStateContext';
 import { Task } from '../types';
 
@@ -24,15 +23,12 @@ const emptyForm: TaskFormState = {
 };
 
 export const TodaysTasksScreen = () => {
-  const navigate = useNavigate();
   const { state, addTask, updateTask, deleteTask, toggleTask, showSuccessMessage } = useAppState();
   const [open, setOpen] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [form, setForm] = useState<TaskFormState>(emptyForm);
 
-  const remainingTodayTasks = useMemo(() => state.tasks.filter((task) => task.status !== 'done').length, [state.tasks]);
-
-  useEffect(() => {
+    useEffect(() => {
     if (!form.category && state.categories.length > 0) {
       setForm((current) => ({ ...current, category: state.categories[0] }));
     }
@@ -94,21 +90,6 @@ export const TodaysTasksScreen = () => {
         <Typography variant="h3">Today&apos;s Tasks</Typography>
         <Typography color="text.secondary">Capture only what you plan to complete today, then assign tasks into rounds.</Typography>
       </Box>
-
-      <Card>
-        <CardContent>
-          <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={1.5}>
-            <Box>
-              <Typography variant="h5">Today&apos;s task list</Typography>
-              <Typography color="text.secondary">{remainingTodayTasks} remaining · Use “Assign tasks” in Rounds to place them into sessions.</Typography>
-            </Box>
-            <Stack direction="row" spacing={1}>
-              <Button variant="outlined" onClick={() => navigate('/task-bank')}>Open task bank</Button>
-              <Button variant="contained" onClick={openCreateDialog}>Add today task</Button>
-            </Stack>
-          </Stack>
-        </CardContent>
-      </Card>
 
       {state.tasks.map((task) => (
         <Card key={task.id}>
