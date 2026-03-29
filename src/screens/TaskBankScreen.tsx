@@ -1,7 +1,7 @@
 import DeleteOutlineRounded from '@mui/icons-material/DeleteOutlineRounded';
 import EditOutlined from '@mui/icons-material/EditOutlined';
 import PlaylistAddRounded from '@mui/icons-material/PlaylistAddRounded';
-import { Box, Button, Card, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Stack, TextField, Typography } from '@mui/material';
+import { Box, Button, Card, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
@@ -103,30 +103,37 @@ export const TaskBankScreen = () => {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardContent>
-          <Stack spacing={2}>
-            {state.taskBank.map((task) => (
-              <Stack key={task.id} direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
-                <Box>
-                  <Typography fontWeight={600}>{task.title}</Typography>
-                  <Typography variant="body2" color="text.secondary">{task.category} · {task.estimateMinutes} min</Typography>
-                </Box>
-                <Stack direction="row" spacing={1}>
-                  <Button size="small" onClick={() => addTaskFromBank(task.id)} startIcon={<PlaylistAddRounded />}>Copy to today</Button>
-                  <IconButton size="small" onClick={() => openEditBankDialog(task)} aria-label={`edit-bank-${task.id}`}>
-                    <EditOutlined fontSize="small" />
-                  </IconButton>
-                  <IconButton size="small" onClick={() => deleteTaskBankItem(task.id)} aria-label={`delete-bank-${task.id}`}>
-                    <DeleteOutlineRounded fontSize="small" />
-                  </IconButton>
-                </Stack>
+      {state.taskBank.map((task) => (
+        <Card key={task.id}>
+          <CardContent>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Typography variant="h5">{task.title}</Typography>
+                <IconButton size="small" onClick={() => openEditBankDialog(task)} aria-label={`edit-bank-${task.id}`}>
+                  <EditOutlined fontSize="small" />
+                </IconButton>
+                <IconButton size="small" onClick={() => deleteTaskBankItem(task.id)} aria-label={`delete-bank-${task.id}`}>
+                  <DeleteOutlineRounded fontSize="small" />
+                </IconButton>
               </Stack>
-            ))}
-            {state.taskBank.length === 0 && <Typography color="text.secondary">No task bank items yet.</Typography>}
-          </Stack>
-        </CardContent>
-      </Card>
+            </Stack>
+            <Typography color="text.secondary" mb={2}>{task.description}</Typography>
+            <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+              <Chip label={task.category} />
+              <Chip label={`${task.estimateMinutes} min`} variant="outlined" />
+              <Button size="small" onClick={() => addTaskFromBank(task.id)} startIcon={<PlaylistAddRounded />}>Copy to today</Button>
+            </Stack>
+          </CardContent>
+        </Card>
+      ))}
+
+      {state.taskBank.length === 0 && (
+        <Card>
+          <CardContent>
+            <Typography color="text.secondary">No task bank items yet.</Typography>
+          </CardContent>
+        </Card>
+      )}
 
       <Dialog open={open} onClose={closeDialog} fullWidth>
         <DialogTitle>{editingTaskBankId ? 'Edit task bank item' : 'Add task bank item'}</DialogTitle>
