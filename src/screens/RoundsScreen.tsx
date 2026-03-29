@@ -57,7 +57,7 @@ export const RoundsScreen = () => {
     <Stack spacing={2}>
       <Box>
         <Typography variant="h3">Today's Rounds</Typography>
-        <Typography color="text.secondary">Manage your focus sessions for the day.</Typography>
+        <Typography color="text.secondary">Plan focused sessions, assign tasks, then launch Focus Mode when you're ready.</Typography>
       </Box>
       {state.rounds.map((round) => (
         <Card key={round.id} sx={{ bgcolor: round.status === 'active' ? '#20201f' : '#1a1a1a' }}>

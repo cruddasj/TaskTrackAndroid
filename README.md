@@ -1,39 +1,56 @@
-# TaskTrack (Web SPA + Capacitor Android)
+# TaskTrack Android (Web + Capacitor)
 
-TaskTrack is a Material-based Pomodoro task tracker that runs as a single-page web app and can be packaged as an Android app via Capacitor.
+TaskTrack is a Pomodoro-driven task planner designed for daily execution. You can run it as a web app during development and package it as an Android app with Capacitor.
 
-## Features
+## What the app does
 
-- SPA navigation: Dashboard, Tasks, Rounds, Insights, and Focus Mode
-- Local storage persistence for tasks, rounds, and current pomodoro state
-- Focus timer with circular progress
-- Completion notifications:
-  - Browser Notification API on web
-  - Capacitor Local Notifications on Android
-- Alarm bell audio cue generated in-app (Web Audio API)
+- Guides users through setup (name + categories) before normal app navigation.
+- Lets users maintain a reusable **Task Bank** and a daily **Today's Tasks** list.
+- Organizes daily tasks into **Rounds** (focus sessions).
+- Runs a full Pomodoro flow with **work**, **short break**, and **long break** phases.
+- Sends completion notifications and plays a configurable alarm tone.
+- Supports configurable alarm repeat count (how many times the alarm rings at session end).
+- Persists all app state to local storage on device.
 
-## Development
+## Tech stack
+
+- React 19 + TypeScript
+- MUI 7
+- React Router 7
+- Vite 7
+- Capacitor 7 (Android)
+- Jest + ts-jest for automated tests
+
+## Getting started
 
 ```bash
 npm install
 npm run dev
 ```
 
-## Build
+## Scripts
 
 ```bash
-npm run build
-npm run preview
+npm run dev           # Start local web development server
+npm run build         # Type-check and build production assets
+npm run preview       # Serve production build locally
+npm run lint          # Run ESLint
+npm run test:jest     # Run Jest tests
+npm run test:coverage # Run Jest with coverage report
+npm run cap:sync      # Build and sync web assets to Android project
+npm run cap:open      # Open Android project in Android Studio
 ```
 
-## Android (Capacitor)
+## Testing and coverage target
 
-```bash
-npm run cap:sync
-npm run cap:open
-```
+The repo includes Jest coverage thresholds of 80% for lines, statements, branches, and functions.
 
-### Android alarm sound file (optional native enhancement)
+## Android notification sound notes
 
-For a custom native notification sound, add `alarm_bell.mp3` as `android/app/src/main/res/raw/alarm_bell.mp3`.
-The app already references `res://raw/alarm_bell` in local notification scheduling.
+The app schedules native local notifications with sound references in the format:
+
+- `res://raw/alarm_bell`
+- `res://raw/alarm_chime`
+- `res://raw/alarm_digital`
+
+If you want custom sounds, add corresponding files under `android/app/src/main/res/raw/`.

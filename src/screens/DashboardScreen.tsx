@@ -26,7 +26,7 @@ export const DashboardScreen = () => {
     <Stack spacing={3}>
       <Box>
         <Typography variant="h3">{greeting}, {state.userName}</Typography>
-        <Typography color="text.secondary">Ready to move your tasks forward?</Typography>
+        <Typography color="text.secondary">Pick a round, focus on one task, and track your completion progress.</Typography>
       </Box>
 
       <Card sx={{ background: 'radial-gradient(circle at 65% 40%, rgba(145,247,142,0.28), rgba(14,14,14,1) 60%)' }}>
@@ -35,7 +35,7 @@ export const DashboardScreen = () => {
             {state.pomodoro.phase === 'work' ? 'Active focus session' : 'Break in progress'}
           </Typography>
           <Typography variant="h4" mt={1} mb={2}>
-            {state.pomodoro.phase === 'work' ? 'Focus on your top priority' : 'Take a breather, then jump back in'}
+            {state.pomodoro.phase === 'work' ? 'Work on one high-impact task now' : 'Take your break, then return for the next session'}
           </Typography>
           <Button size="large" variant="contained" startIcon={<PlayArrowRounded />} onClick={() => navigate('/focus')}>
             Open Timer
