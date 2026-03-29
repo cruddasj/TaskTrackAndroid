@@ -7,7 +7,17 @@ const DEFAULT_LONG_BREAK_MINUTES = 15;
 const DEFAULT_SESSIONS_BEFORE_LONG_BREAK = 4;
 const DEFAULT_ALARM_REPEAT_COUNT = 3;
 const DEFAULT_SHOW_FIRST_TIME_GUIDANCE = true;
-const todayKey = new Date().toISOString().slice(0, 10);
+const getDateKey = (daysAgo = 0): string => {
+  const date = new Date();
+  date.setDate(date.getDate() - daysAgo);
+  return date.toISOString().slice(0, 10);
+};
+const getCompletedAtIso = (daysAgo: number, hour: number): string => {
+  const date = new Date();
+  date.setDate(date.getDate() - daysAgo);
+  date.setHours(hour, 0, 0, 0);
+  return date.toISOString();
+};
 
 const defaultCategories = [
   'Household chores',
@@ -21,74 +31,9 @@ const defaultCategories = [
 const defaultState: AppState = {
   userName: '',
   categories: defaultCategories,
-  tasks: [
-    {
-      id: 't1',
-      title: 'Clean kitchen counters',
-      description: 'Wipe, disinfect and dry all prep surfaces.',
-      category: 'Household chores',
-      estimateMinutes: 25,
-      status: 'in_progress',
-      plannedDate: todayKey,
-      roundId: 'r1',
-    },
-    {
-      id: 't2',
-      title: 'Water indoor ferns',
-      description: 'Check moisture and mist leaves.',
-      category: 'Health and wellbeing',
-      estimateMinutes: 25,
-      status: 'todo',
-      plannedDate: todayKey,
-      roundId: 'r1',
-    },
-  ],
-  taskBank: [
-    {
-      id: 'tb1',
-      title: 'Clean kitchen counters',
-      description: 'Wipe, disinfect and dry all prep surfaces.',
-      category: 'Household chores',
-      estimateMinutes: 25,
-      recurrenceDays: 7,
-      recurrenceWeekdays: undefined,
-    },
-    {
-      id: 'tb2',
-      title: 'Water indoor ferns',
-      description: 'Check moisture and mist leaves.',
-      category: 'Health and wellbeing',
-      estimateMinutes: 25,
-      recurrenceDays: 3,
-      recurrenceWeekdays: undefined,
-    },
-    {
-      id: 'tb3',
-      title: 'Sort incoming mail',
-      description: 'Separate bills, recycle spam, archive records.',
-      category: 'Errands',
-      estimateMinutes: 25,
-      recurrenceWeekdays: [0],
-    },
-  ],
-  rounds: [
-    {
-      id: 'r1',
-      title: 'Round 1',
-      scheduledTime: '08:30 AM',
-      durationMinutes: 25,
-      taskIds: ['t1', 't2'],
-      status: 'active',
-    },
-    {
-      id: 'r2',
-      title: 'Round 2',
-      scheduledTime: '09:05 AM',
-      durationMinutes: 25,
-      taskIds: [],
-      status: 'upcoming',
-    },
-  ],
+  tasks: [],
+  taskBank: [],
+  rounds: [],
   settings: {
     pomodoroMinutes: DEFAULT_POMODORO_MINUTES,
     shortBreakMinutes: DEFAULT_SHORT_BREAK_MINUTES,
@@ -105,9 +50,133 @@ const defaultState: AppState = {
     remainingSeconds: DEFAULT_POMODORO_MINUTES * 60,
     phase: 'work',
     completedWorkSessions: 0,
-    activeTaskId: 't1',
-    activeRoundId: 'r1',
+    activeTaskId: undefined,
+    activeRoundId: undefined,
   },
+};
+
+export const createDemoState = (state: AppState): AppState => {
+  const todayKey = getDateKey();
+  const yesterdayKey = getDateKey(1);
+  const twoDaysAgoKey = getDateKey(2);
+  const sixDaysAgoKey = getDateKey(6);
+
+  const todayRound1Id = crypto.randomUUID();
+  const todayRound2Id = crypto.randomUUID();
+
+  const tasks = [
+    {
+      id: crypto.randomUUID(),
+      title: 'Review sprint priorities',
+      description: 'Confirm top 3 tasks for today.',
+      category: 'Work and study',
+      estimateMinutes: 25,
+      status: 'in_progress' as const,
+      plannedDate: todayKey,
+      roundId: todayRound1Id,
+    },
+    {
+      id: crypto.randomUUID(),
+      title: 'Plan grocery list',
+      description: 'List meals and missing ingredients.',
+      category: 'Errands',
+      estimateMinutes: 20,
+      status: 'todo' as const,
+      plannedDate: todayKey,
+      roundId: todayRound2Id,
+    },
+    {
+      id: crypto.randomUUID(),
+      title: 'Morning mobility routine',
+      description: '10-minute stretch and breathing exercises.',
+      category: 'Health and wellbeing',
+      estimateMinutes: 15,
+      status: 'done' as const,
+      plannedDate: yesterdayKey,
+      completedAt: getCompletedAtIso(1, 9),
+    },
+    {
+      id: crypto.randomUUID(),
+      title: 'Desk reset',
+      description: 'Clear clutter and prepare tomorrow notes.',
+      category: 'Household chores',
+      estimateMinutes: 15,
+      status: 'done' as const,
+      plannedDate: twoDaysAgoKey,
+      completedAt: getCompletedAtIso(2, 18),
+    },
+    {
+      id: crypto.randomUUID(),
+      title: 'Prototype app icon ideas',
+      description: 'Sketch and compare three icon options.',
+      category: 'Personal projects',
+      estimateMinutes: 30,
+      status: 'done' as const,
+      plannedDate: sixDaysAgoKey,
+      completedAt: getCompletedAtIso(6, 20),
+    },
+  ];
+
+  return {
+    ...state,
+    categories: [...defaultCategories],
+    tasks,
+    taskBank: [
+      {
+        id: crypto.randomUUID(),
+        title: 'Weekly budget check',
+        description: 'Review expenses and upcoming bills.',
+        category: 'Errands',
+        estimateMinutes: 25,
+        recurrenceDays: 7,
+      },
+      {
+        id: crypto.randomUUID(),
+        title: 'Read for skill growth',
+        description: 'Read one chapter and capture notes.',
+        category: 'Work and study',
+        estimateMinutes: 30,
+        recurrenceDays: 2,
+      },
+      {
+        id: crypto.randomUUID(),
+        title: 'Deep clean kitchen',
+        description: 'Counters, sink, and stove top.',
+        category: 'Household chores',
+        estimateMinutes: 30,
+        recurrenceWeekdays: [6],
+      },
+    ],
+    rounds: [
+      {
+        id: todayRound1Id,
+        title: 'Round 1',
+        scheduledTime: '09:00 AM',
+        durationMinutes: state.settings.pomodoroMinutes,
+        taskIds: tasks.filter((task) => task.roundId === todayRound1Id).map((task) => task.id),
+        status: 'active',
+      },
+      {
+        id: todayRound2Id,
+        title: 'Round 2',
+        scheduledTime: '10:00 AM',
+        durationMinutes: state.settings.pomodoroMinutes,
+        taskIds: tasks.filter((task) => task.roundId === todayRound2Id).map((task) => task.id),
+        status: 'upcoming',
+      },
+    ],
+    pomodoro: {
+      ...state.pomodoro,
+      isRunning: false,
+      startedAt: null,
+      totalSeconds: state.settings.pomodoroMinutes * 60,
+      remainingSeconds: state.settings.pomodoroMinutes * 60,
+      phase: 'work',
+      completedWorkSessions: 2,
+      activeTaskId: tasks.find((task) => task.roundId === todayRound1Id)?.id,
+      activeRoundId: todayRound1Id,
+    },
+  };
 };
 
 const normalizeState = (raw: Partial<AppState>): AppState => {
@@ -132,7 +201,7 @@ const normalizeState = (raw: Partial<AppState>): AppState => {
     tasks:
       raw.tasks?.map((task) => ({
         ...task,
-        plannedDate: task.plannedDate ?? todayKey,
+        plannedDate: task.plannedDate ?? getDateKey(),
       })) ?? defaultState.tasks,
     taskBank: taskBank.map((item) => ({
       ...item,

@@ -1,12 +1,17 @@
-import { loadState, saveState, seedState } from './storage';
+import { createDemoState, loadState, saveState, seedState } from './storage';
 
 describe('storage', () => {
   beforeEach(() => {
     localStorage.clear();
   });
 
-  it('returns seed state when local storage is empty', () => {
-    expect(loadState()).toEqual(seedState);
+  it('returns empty seed state when local storage is empty', () => {
+    const loaded = loadState();
+
+    expect(loaded).toEqual(seedState);
+    expect(loaded.tasks).toEqual([]);
+    expect(loaded.rounds).toEqual([]);
+    expect(loaded.taskBank).toEqual([]);
   });
 
   it('saves and loads state with alarm repeat count', () => {
@@ -118,5 +123,16 @@ describe('storage', () => {
     expect(loaded.taskBank[0].recurrenceDays).toBeUndefined();
     expect(loaded.taskBank[1].recurrenceDays).toBe(3);
     expect(loaded.taskBank[1].recurrenceWeekdays).toEqual([2]);
+  });
+
+  it('creates demo data with historical completed tasks', () => {
+    const demoState = createDemoState(seedState);
+    const todayKey = new Date().toISOString().slice(0, 10);
+
+    expect(demoState.tasks.length).toBeGreaterThan(3);
+    expect(demoState.rounds.length).toBeGreaterThan(0);
+    expect(demoState.taskBank.length).toBeGreaterThan(0);
+    expect(demoState.tasks.some((task) => task.status === 'done' && task.completedAt && task.plannedDate < todayKey)).toBe(true);
+    expect(demoState.tasks.some((task) => task.plannedDate === todayKey)).toBe(true);
   });
 });
