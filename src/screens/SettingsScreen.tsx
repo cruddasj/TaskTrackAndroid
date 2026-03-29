@@ -82,6 +82,17 @@ export const SettingsScreen = () => {
       <Card>
         <CardContent>
           <Stack spacing={2}>
+            <Alert severity="info" icon={<InfoOutlined fontSize="inherit" />}>
+              <Typography variant="body2" fontWeight={700} mb={0.5}>New to Pomodoro?</Typography>
+              <Typography variant="body2">
+                The Pomodoro technique breaks work into short focus rounds followed by breaks. Start with a 25-minute
+                round, take a short break, and use a longer break after a few rounds.
+              </Typography>
+              <Typography variant="body2" mt={1}>
+                Adjust the values below to match your energy and workload. Your timer and alarm preferences apply to
+                all new rounds.
+              </Typography>
+            </Alert>
             <Typography variant="h5">Pomodoro timing</Typography>
             <TextField
               label="Recommended minutes per round"

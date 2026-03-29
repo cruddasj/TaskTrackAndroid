@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { AlarmTone, dismissNativeAlarmNotifications, notifyPomodoroComplete, requestNotificationPermissions, startRepeatingAlarm } from '../services/notifications';
 import { AppState, PomodoroState, Round, Task, TaskBankItem } from '../types';
-import { buildNewRound } from './rounds';
+import { buildNewRound, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
 import { loadState, saveState } from './storage';
 
 type NewTask = Omit<Task, 'id' | 'status' | 'plannedDate' | 'completedAt'>;
@@ -23,6 +23,7 @@ type Action =
   | { type: 'ADD_CATEGORY'; payload: { category: string } }
   | { type: 'DELETE_CATEGORY'; payload: { category: string } }
   | { type: 'ADD_ROUND'; payload: NewRound }
+  | { type: 'DELETE_ROUND'; payload: { roundId: string } }
   | { type: 'ASSIGN_TASKS_TO_ROUND'; payload: { roundId: string; taskIds: string[] } }
   | { type: 'AUTO_GROUP_TODAY_TASKS' }
   | { type: 'MOVE_ROUND'; payload: { roundId: string; direction: 'up' | 'down' } }
@@ -147,6 +148,20 @@ const reducer = (state: AppState, action: Action): AppState => {
             status: hasOpenRound ? 'upcoming' : 'active',
           },
         ],
+      };
+    }
+    case 'DELETE_ROUND': {
+      const roundId = action.payload.roundId;
+      const rounds = removeRoundAndNormalizeStatuses(state.rounds, roundId);
+      const activeRoundId = state.pomodoro.activeRoundId === roundId ? undefined : state.pomodoro.activeRoundId;
+      return {
+        ...state,
+        rounds,
+        tasks: unassignTasksFromRound(state.tasks, roundId),
+        pomodoro: {
+          ...state.pomodoro,
+          activeRoundId,
+        },
       };
     }
     case 'ASSIGN_TASKS_TO_ROUND': {
@@ -389,6 +404,7 @@ interface AppStateContextValue {
   addCategory: (category: string) => void;
   deleteCategory: (category: string) => void;
   createRound: () => string;
+  deleteRound: (roundId: string) => void;
   assignTasksToRound: (roundId: string, taskIds: string[]) => void;
   autoGroupTodayTasks: () => void;
   moveRound: (roundId: string, direction: 'up' | 'down') => void;
@@ -500,6 +516,7 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
         });
         return newRound.id;
       },
+      deleteRound: (roundId) => dispatch({ type: 'DELETE_ROUND', payload: { roundId } }),
       assignTasksToRound: (roundId, taskIds) => dispatch({ type: 'ASSIGN_TASKS_TO_ROUND', payload: { roundId, taskIds } }),
       autoGroupTodayTasks: () => dispatch({ type: 'AUTO_GROUP_TODAY_TASKS' }),
       moveRound: (roundId, direction) => dispatch({ type: 'MOVE_ROUND', payload: { roundId, direction } }),
