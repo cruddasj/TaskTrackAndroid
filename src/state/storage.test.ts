@@ -15,12 +15,14 @@ describe('storage', () => {
       settings: {
         ...seedState.settings,
         alarmRepeatCount: 5,
+        showFirstTimeGuidance: false,
       },
     };
 
     saveState(updated);
 
     expect(loadState().settings.alarmRepeatCount).toBe(5);
+    expect(loadState().settings.showFirstTimeGuidance).toBe(false);
   });
 
   it('normalizes invalid alarm repeat counts to defaults and caps oversized values', () => {
@@ -45,6 +47,19 @@ describe('storage', () => {
     );
 
     expect(loadState().settings.alarmRepeatCount).toBe(10);
+  });
+
+  it('defaults first-time guidance setting to true when missing from persisted state', () => {
+    localStorage.setItem(
+      'tasktrack.state.v2',
+      JSON.stringify({
+        settings: {
+          pomodoroMinutes: 30,
+        },
+      }),
+    );
+
+    expect(loadState().settings.showFirstTimeGuidance).toBe(true);
   });
 
   it('falls back to defaults if persisted JSON is invalid', () => {

@@ -28,13 +28,14 @@ TaskTrack is a Pomodoro-driven task planner designed for daily execution. You ca
 - Adds a floating **plus** button on the Rounds page so users can create a new round quickly.
 - Validates round creation by warning users when an existing round is still empty (no tasks assigned), so they can reuse it instead of creating duplicates.
 - Adds first-time-friendly guidance in **Settings** explaining the Pomodoro technique and how timer/alarm values affect new rounds.
+- Adds a **Show first-time guidance across the app** toggle in **Settings** so onboarding guidance callouts can be turned on or off anytime.
 - Uses consistent green styling for guidance callouts (for example, setup and Pomodoro guidance) to match the app theme.
 - Replaces the **Task templates** summary card on **Task Bank** with direct, beginner-friendly **Task Bank guidance** copy.
 - Prevents duplicate entries in **Today's Tasks** by warning when the same task name is added again (including quick-adds from Task Bank).
 - Uses dashboard guidance language that emphasizes focused attention periods across small, manageable tasks.
 - Uses consistent **Active Session** terminology across the dashboard and focus timer screens.
 - Provides a quick-add floating action button in both **Task Bank** and **Today's Tasks** screens.
-- Uses mobile-optimized layouts for dashboard stat cards, larger floating add buttons, an opaque safe-area-aware app shell, and a scrollable Focus session task list on smaller screens.
+- Uses mobile-optimized layouts for dashboard stat cards, larger floating add buttons, an opaque safe-area-aware app shell, and a scrollable Focus session task list on smaller screens (including Android).
 - Adds extra inset around the Focus timer clock text on smaller screens so the time stays comfortably inside the circular timer boundary.
 - Runs a full Pomodoro flow with **work**, **short break**, and **long break** phases.
 - Sends completion notifications and plays a configurable alarm tone.
