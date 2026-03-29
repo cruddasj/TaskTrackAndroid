@@ -25,7 +25,7 @@ const emptyForm: TaskFormState = {
 
 export const TodaysTasksScreen = () => {
   const navigate = useNavigate();
-  const { state, addTask, updateTask, deleteTask, toggleTask } = useAppState();
+  const { state, addTask, updateTask, deleteTask, toggleTask, showSuccessMessage } = useAppState();
   const [open, setOpen] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [form, setForm] = useState<TaskFormState>(emptyForm);
@@ -79,8 +79,10 @@ export const TodaysTasksScreen = () => {
         category,
         estimateMinutes,
       });
+      showSuccessMessage('Today task updated.');
     } else {
       addTask({ title, description, category, estimateMinutes });
+      showSuccessMessage('Today task created.');
     }
 
     closeDialog();
@@ -117,7 +119,14 @@ export const TodaysTasksScreen = () => {
                 <IconButton size="small" onClick={() => openEditDialog(task)} aria-label={`edit-${task.id}`}>
                   <EditOutlined fontSize="small" />
                 </IconButton>
-                <IconButton size="small" onClick={() => deleteTask(task.id)} aria-label={`delete-${task.id}`}>
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    deleteTask(task.id);
+                    showSuccessMessage('Today task deleted.');
+                  }}
+                  aria-label={`delete-${task.id}`}
+                >
                   <DeleteOutlineRounded fontSize="small" />
                 </IconButton>
               </Stack>
@@ -128,7 +137,15 @@ export const TodaysTasksScreen = () => {
               <Chip label={task.category} />
               <Chip label={`${task.estimateMinutes} min`} variant="outlined" />
               {task.roundId && <Chip label="Assigned to round" color="secondary" variant="outlined" />}
-              <Button size="small" onClick={() => toggleTask(task.id)}>{task.status === 'done' ? 'Mark Todo' : 'Mark Done'}</Button>
+              <Button
+                size="small"
+                onClick={() => {
+                  toggleTask(task.id);
+                  showSuccessMessage(task.status === 'done' ? 'Task marked as todo.' : 'Task marked as done.');
+                }}
+              >
+                {task.status === 'done' ? 'Mark Todo' : 'Mark Done'}
+              </Button>
             </Stack>
           </CardContent>
         </Card>

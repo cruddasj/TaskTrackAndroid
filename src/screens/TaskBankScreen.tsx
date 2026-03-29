@@ -23,7 +23,7 @@ const emptyForm: TaskFormState = {
 
 export const TaskBankScreen = () => {
   const navigate = useNavigate();
-  const { state, addTaskFromBank, addTaskBankItem, updateTaskBankItem, deleteTaskBankItem } = useAppState();
+  const { state, addTaskFromBank, addTaskBankItem, updateTaskBankItem, deleteTaskBankItem, showSuccessMessage } = useAppState();
 
   const [open, setOpen] = useState(false);
   const [editingTaskBankId, setEditingTaskBankId] = useState<string | null>(null);
@@ -74,8 +74,10 @@ export const TaskBankScreen = () => {
         category,
         estimateMinutes,
       });
+      showSuccessMessage('Task Bank item updated.');
     } else {
       addTaskBankItem({ title, description, category, estimateMinutes });
+      showSuccessMessage('Task Bank item created.');
     }
 
     closeDialog();
@@ -112,7 +114,14 @@ export const TaskBankScreen = () => {
                 <IconButton size="small" onClick={() => openEditBankDialog(task)} aria-label={`edit-bank-${task.id}`}>
                   <EditOutlined fontSize="small" />
                 </IconButton>
-                <IconButton size="small" onClick={() => deleteTaskBankItem(task.id)} aria-label={`delete-bank-${task.id}`}>
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    deleteTaskBankItem(task.id);
+                    showSuccessMessage('Task Bank item deleted.');
+                  }}
+                  aria-label={`delete-bank-${task.id}`}
+                >
                   <DeleteOutlineRounded fontSize="small" />
                 </IconButton>
               </Stack>
@@ -121,7 +130,16 @@ export const TaskBankScreen = () => {
             <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
               <Chip label={task.category} />
               <Chip label={`${task.estimateMinutes} min`} variant="outlined" />
-              <Button size="small" onClick={() => addTaskFromBank(task.id)} startIcon={<PlaylistAddRounded />}>Copy to today</Button>
+              <Button
+                size="small"
+                onClick={() => {
+                  addTaskFromBank(task.id);
+                  showSuccessMessage('Task copied to today.');
+                }}
+                startIcon={<PlaylistAddRounded />}
+              >
+                Copy to today
+              </Button>
             </Stack>
           </CardContent>
         </Card>

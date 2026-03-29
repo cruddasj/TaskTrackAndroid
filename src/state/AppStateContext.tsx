@@ -266,6 +266,7 @@ const reducer = (state: AppState, action: Action): AppState => {
 interface AppStateContextValue {
   state: AppState;
   alarmActive: boolean;
+  successMessage: string | null;
   addTask: (task: NewTask) => void;
   addTaskFromBank: (taskBankItemId: string) => void;
   updateTask: (task: EditableTask) => void;
@@ -288,6 +289,8 @@ interface AppStateContextValue {
   completePomodoro: () => void;
   resetPomodoro: () => void;
   dismissAlarm: () => void;
+  showSuccessMessage: (message: string) => void;
+  clearSuccessMessage: () => void;
 }
 
 const AppStateContext = createContext<AppStateContextValue | undefined>(undefined);
@@ -295,6 +298,7 @@ const AppStateContext = createContext<AppStateContextValue | undefined>(undefine
 export const AppStateProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, dispatch] = useReducer(reducer, undefined, loadState);
   const [alarmActive, setAlarmActive] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const stopAlarmRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
@@ -344,10 +348,19 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
     dismissNativeAlarmNotifications().catch(() => undefined);
   };
 
+  const showSuccessMessage = (message: string) => {
+    setSuccessMessage(message);
+  };
+
+  const clearSuccessMessage = () => {
+    setSuccessMessage(null);
+  };
+
   const value = useMemo<AppStateContextValue>(
     () => ({
       state,
       alarmActive,
+      successMessage,
       addTask: (task) => dispatch({ type: 'ADD_TASK', payload: task }),
       addTaskFromBank: (taskBankItemId) => dispatch({ type: 'ADD_TASK_FROM_BANK', payload: { taskBankItemId } }),
       updateTask: (task) => dispatch({ type: 'UPDATE_TASK', payload: task }),
@@ -370,8 +383,10 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
       completePomodoro: () => dispatch({ type: 'COMPLETE_POMODORO' }),
       resetPomodoro: () => dispatch({ type: 'RESET_POMODORO' }),
       dismissAlarm,
+      showSuccessMessage,
+      clearSuccessMessage,
     }),
-    [state, alarmActive],
+    [state, alarmActive, successMessage],
   );
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;

@@ -17,6 +17,7 @@ export const SettingsScreen = () => {
     setLongBreakMinutes,
     setSessionsBeforeLongBreak,
     setAlarmTone,
+    showSuccessMessage,
   } = useAppState();
   const [name, setName] = useState(state.userName);
   const [newCategory, setNewCategory] = useState('');
@@ -64,7 +65,10 @@ export const SettingsScreen = () => {
             />
             <Button
               variant="contained"
-              onClick={() => setUserName(name.trim())}
+              onClick={() => {
+                setUserName(name.trim());
+                showSuccessMessage('Name saved.');
+              }}
               disabled={!name.trim()}
             >
               Save name
@@ -112,7 +116,10 @@ export const SettingsScreen = () => {
               select
               label="Alarm tone"
               value={state.settings.alarmTone}
-              onChange={(event) => setAlarmTone(event.target.value as 'bell' | 'chime' | 'digital')}
+              onChange={(event) => {
+                setAlarmTone(event.target.value as 'bell' | 'chime' | 'digital');
+                showSuccessMessage('Alarm tone updated.');
+              }}
             >
               <MenuItem value="bell">Bell</MenuItem>
               <MenuItem value="chime">Chime</MenuItem>
@@ -143,6 +150,7 @@ export const SettingsScreen = () => {
                 setShortBreakMinutesInput(String(Math.round(shortBreak)));
                 setLongBreakMinutesInput(String(Math.round(longBreak)));
                 setSessionsBeforeLongBreakInput(String(Math.round(sessions)));
+                showSuccessMessage('Timer settings saved.');
               }}
               disabled={
                 !pomodoroMinutes.trim() ||
@@ -170,7 +178,10 @@ export const SettingsScreen = () => {
                 <Typography>{category}</Typography>
                 <IconButton
                   aria-label={`delete-${category}`}
-                  onClick={() => deleteCategory(category)}
+                  onClick={() => {
+                    deleteCategory(category);
+                    showSuccessMessage('Category deleted.');
+                  }}
                   disabled={state.categories.length <= 1}
                 >
                   <DeleteOutlineRounded />
@@ -193,6 +204,7 @@ export const SettingsScreen = () => {
                   if (!category || categoryExists) return;
                   addCategory(category);
                   setNewCategory('');
+                  showSuccessMessage('Category added.');
                 }}
                 disabled={!newCategory.trim() || categoryExists}
               >

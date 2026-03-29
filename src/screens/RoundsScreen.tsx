@@ -20,7 +20,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
 
 export const RoundsScreen = () => {
-  const { state, assignTasksToRound, startPomodoro } = useAppState();
+  const { state, assignTasksToRound, startPomodoro, showSuccessMessage } = useAppState();
   const navigate = useNavigate();
   const [editingRoundId, setEditingRoundId] = useState<string | null>(null);
   const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
@@ -48,6 +48,7 @@ export const RoundsScreen = () => {
   const saveAssignment = () => {
     if (!editingRoundId) return;
     assignTasksToRound(editingRoundId, selectedTaskIds);
+    showSuccessMessage('Round assignment saved.');
     setEditingRoundId(null);
     setSelectedTaskIds([]);
   };
