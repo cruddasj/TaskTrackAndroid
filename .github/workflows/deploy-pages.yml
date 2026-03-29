@@ -35,6 +35,8 @@ jobs:
         run: npm ci
 
       - name: Build web app
+        env:
+          BUILD_TARGET: github-pages
         run: npm run build
 
       - name: Upload artifact
