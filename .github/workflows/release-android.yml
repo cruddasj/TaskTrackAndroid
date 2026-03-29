@@ -47,6 +47,22 @@ jobs:
       - name: Sync Capacitor Android project
         run: npx cap sync android
 
+      - name: Set monotonically increasing Android versionCode
+        env:
+          VERSION_CODE: ${{ github.run_number }}
+        run: |
+          APP_GRADLE="android/app/build.gradle"
+          if [ ! -f "$APP_GRADLE" ]; then
+            echo "Expected $APP_GRADLE to exist after Capacitor sync."
+            exit 1
+          fi
+
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          perl -0pi -e "s/versionCode\\s+\\d+/versionCode $VERSION_CODE/g; s/versionName\\s+\"[^\"]+\"/versionName \"$PKG_VERSION\"/g" "$APP_GRADLE"
+
+          echo "Applied Android versionCode=$VERSION_CODE and versionName=$PKG_VERSION"
+          grep -nE "versionCode|versionName" "$APP_GRADLE"
+
       - name: Configure stable debug signing key
         run: |
           mkdir -p "$HOME/.android"
