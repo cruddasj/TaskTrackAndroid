@@ -13,6 +13,7 @@ This repository contains TaskTrack Android (React + Capacitor). Keep changes foc
 - Use plain, direct UX copy.
 - Prefer explicit instructions over ambiguous labels.
 - Keep setup and settings language beginner-friendly.
+- Use green-styled guidance callouts/alerts consistently across the app (avoid blue guidance styling).
 
 ## Alarm and timer behavior
 - Any change to Pomodoro alarms should consider both web and native behavior.

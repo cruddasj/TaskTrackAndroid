@@ -2,6 +2,7 @@ import AddRounded from '@mui/icons-material/AddRounded';
 import DeleteOutlineRounded from '@mui/icons-material/DeleteOutlineRounded';
 import EditOutlined from '@mui/icons-material/EditOutlined';
 import PlaylistAddRounded from '@mui/icons-material/PlaylistAddRounded';
+import InfoOutlined from '@mui/icons-material/InfoOutlined';
 import { Alert, Box, Button, Card, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -105,14 +106,21 @@ export const TaskBankScreen = () => {
         <CardContent>
           <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between" spacing={1.5}>
             <Box>
-              <Typography variant="h5">Task templates</Typography>
-              <Typography color="text.secondary">Edit and curate your most common tasks, then add them into Today&apos;s Tasks when needed.</Typography>
+              <Typography variant="h5">Task Bank guidance</Typography>
+              <Typography color="text.secondary">Save common tasks here, then add only what is needed to Today&apos;s Tasks.</Typography>
             </Box>
             <Stack direction="row" spacing={1}>
               <Button variant="outlined" onClick={() => navigate('/tasks-today')}>Open today&apos;s tasks</Button>
               <Button variant="contained" onClick={openCreateBankDialog}>New bank task</Button>
             </Stack>
           </Stack>
+          <Alert
+            icon={<InfoOutlined fontSize="inherit" />}
+            severity="success"
+            sx={{ mt: 2, bgcolor: 'rgba(145,247,142,0.12)', color: 'primary.main', '& .MuiAlert-icon': { color: 'primary.main' } }}
+          >
+            Use clear task names, set an estimate, and add a repeat interval only for truly recurring tasks.
+          </Alert>
           {validationMessage && <Alert severity="warning" sx={{ mt: 2 }}>{validationMessage}</Alert>}
         </CardContent>
       </Card>
