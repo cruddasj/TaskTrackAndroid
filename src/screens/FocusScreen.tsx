@@ -104,8 +104,8 @@ export const FocusScreen = () => {
         sx={{ width: '100%', maxWidth: 980, height: '100%', maxHeight: 'calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 36px)' }}
       >
         <Box width="100%" display="flex" justifyContent="space-between" alignItems="center" px={{ xs: 0.5, md: 1 }}>
-          <Typography variant="h5" color="primary.main" fontWeight={800}>Deep Focus Mode</Typography>
-          <Chip label="Exit Focus" onClick={() => navigate('/rounds')} sx={{ px: 0.5 }} />
+          <Typography variant="h5" color="primary.main" fontWeight={800}>Active Session</Typography>
+          <Chip label="Close" onClick={() => navigate('/rounds')} sx={{ px: 0.5 }} />
         </Box>
 
         <Box position="relative" width={{ xs: 300, md: 340 }} height={{ xs: 300, md: 340 }}>
@@ -135,9 +135,7 @@ export const FocusScreen = () => {
             {state.pomodoro.phase === 'work' ? 'FOCUS' : state.pomodoro.phase === 'short_break' ? 'SHORT BREAK' : 'LONG BREAK'}
           </Typography>
           <Typography variant="h4" textAlign="center">{state.pomodoro.phase === 'work' ? activeTask?.title ?? 'No task selected' : 'Break time'}</Typography>
-          <Typography color="text.secondary">
-            {activeRound ? `${activeRound.title} · ${activeTask?.category ?? 'General'}` : activeTask?.category ?? 'General'}
-          </Typography>
+          <Typography color="text.secondary">{activeRound?.title ?? 'No round selected'}</Typography>
         </Stack>
 
         <Card sx={{ width: '100%', maxWidth: 780 }}>

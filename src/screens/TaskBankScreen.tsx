@@ -1,3 +1,4 @@
+import AddRounded from '@mui/icons-material/AddRounded';
 import DeleteOutlineRounded from '@mui/icons-material/DeleteOutlineRounded';
 import EditOutlined from '@mui/icons-material/EditOutlined';
 import PlaylistAddRounded from '@mui/icons-material/PlaylistAddRounded';
@@ -152,6 +153,21 @@ export const TaskBankScreen = () => {
           </CardContent>
         </Card>
       )}
+
+      <IconButton
+        color="primary"
+        onClick={openCreateBankDialog}
+        sx={{
+          position: 'fixed',
+          right: 24,
+          bottom: 'calc(92px + env(safe-area-inset-bottom, 0px))',
+          bgcolor: 'primary.main',
+          color: 'primary.contrastText',
+          '&:hover': { bgcolor: 'primary.main' },
+        }}
+      >
+        <AddRounded />
+      </IconButton>
 
       <Dialog open={open} onClose={closeDialog} fullWidth>
         <DialogTitle>{editingTaskBankId ? 'Edit task bank item' : 'Add task bank item'}</DialogTitle>
