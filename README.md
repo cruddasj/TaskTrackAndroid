@@ -10,6 +10,7 @@ TaskTrack is a Pomodoro-driven task planner designed for daily execution. You ca
 - Shows a session-aware dashboard card that lists planned round tasks and guides users to assign or add tasks when a round is empty.
 - Uses consistent **Active Session** terminology across the dashboard and focus timer screens.
 - Provides a quick-add floating action button in both **Task Bank** and **Today's Tasks** screens.
+- Uses mobile-optimized layouts for dashboard stat cards, larger floating add buttons, a fully opaque bottom navigation bar, and a scrollable Focus session task list on smaller screens.
 - Runs a full Pomodoro flow with **work**, **short break**, and **long break** phases.
 - Sends completion notifications and plays a configurable alarm tone.
 - Supports configurable alarm repeat count (how many times the alarm rings at session end).
@@ -57,3 +58,8 @@ The app schedules native local notifications with sound references in the format
 - `res://raw/alarm_digital`
 
 If you want custom sounds, add corresponding files under `android/app/src/main/res/raw/`.
+
+## Android release workflow notes
+
+- Release APK builds now use app id `com.tasktrack.android` to avoid install conflicts with older package signatures.
+- The Android release workflow automatically keeps only the latest 3 generated GitHub releases/tags and deletes older auto-generated release tags.

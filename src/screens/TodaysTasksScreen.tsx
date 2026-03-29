@@ -162,12 +162,16 @@ export const TodaysTasksScreen = () => {
       <IconButton
         color="primary"
         onClick={openCreateDialog}
+        size="large"
         sx={{
           position: 'fixed',
-          right: 24,
+          right: { xs: 16, sm: 24 },
           bottom: 'calc(92px + env(safe-area-inset-bottom, 0px))',
           bgcolor: 'primary.main',
           color: 'primary.contrastText',
+          width: 64,
+          height: 64,
+          boxShadow: '0 12px 24px rgba(0,0,0,0.35)',
           '&:hover': { bgcolor: 'primary.main' },
         }}
       >

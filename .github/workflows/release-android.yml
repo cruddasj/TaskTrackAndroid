@@ -83,6 +83,40 @@ jobs:
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "name=TaskTrack $TAG" >> "$GITHUB_OUTPUT"
 
+      - name: Keep only latest 3 generated Android releases
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prefix = 'v';
+            const buildMarker = '-build-';
+            const releases = await github.paginate(github.rest.repos.listReleases, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100,
+            });
+
+            const autoAndroidReleases = releases
+              .filter((release) => release.tag_name?.startsWith(prefix) && release.tag_name.includes(buildMarker))
+              .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+            const toDelete = autoAndroidReleases.slice(3);
+
+            for (const release of toDelete) {
+              core.info(`Deleting release ${release.tag_name} (#${release.id})`);
+              await github.rest.repos.deleteRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                release_id: release.id,
+              });
+
+              core.info(`Deleting tag ref tags/${release.tag_name}`);
+              await github.rest.git.deleteRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: `tags/${release.tag_name}`,
+              });
+            }
+
       - name: Create GitHub release and upload APK
         uses: softprops/action-gh-release@v2
         with:

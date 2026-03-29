@@ -93,7 +93,7 @@ export const FocusScreen = () => {
         pt: 'calc(env(safe-area-inset-top, 0px) + 16px)',
         pb: 'calc(env(safe-area-inset-bottom, 0px) + 20px)',
         display: 'flex',
-        alignItems: 'center',
+        alignItems: { xs: 'flex-start', md: 'center' },
         justifyContent: 'center',
       }}
     >
@@ -101,7 +101,14 @@ export const FocusScreen = () => {
         spacing={{ xs: 2, md: 3 }}
         alignItems="center"
         justifyContent="space-between"
-        sx={{ width: '100%', maxWidth: 980, height: '100%', maxHeight: 'calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 36px)' }}
+        sx={{
+          width: '100%',
+          maxWidth: 980,
+          height: '100%',
+          maxHeight: 'calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 36px)',
+          overflowY: { xs: 'auto', md: 'visible' },
+          pb: { xs: 1, md: 0 },
+        }}
       >
         <Box width="100%" display="flex" justifyContent="space-between" alignItems="center" px={{ xs: 0.5, md: 1 }}>
           <Typography variant="h5" color="primary.main" fontWeight={800}>Active Session</Typography>
@@ -138,9 +145,9 @@ export const FocusScreen = () => {
           <Typography color="text.secondary">{activeRound?.title ?? 'No round selected'}</Typography>
         </Stack>
 
-        <Card sx={{ width: '100%', maxWidth: 780 }}>
+        <Card sx={{ width: '100%', maxWidth: 780, maxHeight: { xs: 220, md: 280 }, overflow: 'hidden' }}>
           <CardContent>
-            <Stack spacing={1}>
+            <Stack spacing={1} sx={{ maxHeight: '100%', overflowY: 'auto', pr: 0.5 }}>
               <Typography variant="h6">Tasks in this session</Typography>
               {roundTasks.map((task) => (
                 <Stack key={task.id} direction="row" justifyContent="space-between" alignItems="center" spacing={1}>

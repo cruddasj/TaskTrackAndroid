@@ -96,7 +96,7 @@ export const TaskBankScreen = () => {
           <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between" spacing={1.5}>
             <Box>
               <Typography variant="h5">Task templates</Typography>
-              <Typography color="text.secondary">Edit and curate your most common tasks, then copy them into Today&apos;s Tasks when needed.</Typography>
+              <Typography color="text.secondary">Edit and curate your most common tasks, then add them into Today&apos;s Tasks when needed.</Typography>
             </Box>
             <Stack direction="row" spacing={1}>
               <Button variant="outlined" onClick={() => navigate('/tasks-today')}>Open today&apos;s tasks</Button>
@@ -135,11 +135,11 @@ export const TaskBankScreen = () => {
                 size="small"
                 onClick={() => {
                   addTaskFromBank(task.id);
-                  showSuccessMessage('Task copied to today.');
+                  showSuccessMessage('Task added to today\'s tasks.');
                 }}
                 startIcon={<PlaylistAddRounded />}
               >
-                Copy to today
+                Add to today&apos;s tasks
               </Button>
             </Stack>
           </CardContent>
@@ -157,12 +157,16 @@ export const TaskBankScreen = () => {
       <IconButton
         color="primary"
         onClick={openCreateBankDialog}
+        size="large"
         sx={{
           position: 'fixed',
-          right: 24,
+          right: { xs: 16, sm: 24 },
           bottom: 'calc(92px + env(safe-area-inset-bottom, 0px))',
           bgcolor: 'primary.main',
           color: 'primary.contrastText',
+          width: 64,
+          height: 64,
+          boxShadow: '0 12px 24px rgba(0,0,0,0.35)',
           '&:hover': { bgcolor: 'primary.main' },
         }}
       >
