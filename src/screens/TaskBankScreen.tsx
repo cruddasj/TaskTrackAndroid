@@ -101,20 +101,18 @@ export const TaskBankScreen = () => {
         <Typography variant="h3">Task Bank</Typography>
         <Typography color="text.secondary">Create and manage your reusable task templates for quick reuse.</Typography>
       </Box>
+      <Stack direction="row" spacing={1}>
+        <Button variant="outlined" onClick={() => navigate('/tasks-today')}>Open today&apos;s tasks</Button>
+        <Button variant="contained" onClick={openCreateBankDialog}>New bank task</Button>
+      </Stack>
 
-      <Card>
-        <CardContent>
-          <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between" spacing={1.5}>
+      {state.settings.showFirstTimeGuidance && (
+        <Card>
+          <CardContent>
             <Box>
               <Typography variant="h5">Task Bank guidance</Typography>
               <Typography color="text.secondary">Save common tasks here, then add only what is needed to Today&apos;s Tasks.</Typography>
             </Box>
-            <Stack direction="row" spacing={1}>
-              <Button variant="outlined" onClick={() => navigate('/tasks-today')}>Open today&apos;s tasks</Button>
-              <Button variant="contained" onClick={openCreateBankDialog}>New bank task</Button>
-            </Stack>
-          </Stack>
-          {state.settings.showFirstTimeGuidance && (
             <Alert
               icon={<InfoOutlined fontSize="inherit" />}
               severity="success"
@@ -122,10 +120,10 @@ export const TaskBankScreen = () => {
             >
               Use clear task names, set an estimate, and add a repeat interval only for truly recurring tasks.
             </Alert>
-          )}
-          {validationMessage && <Alert severity="warning" sx={{ mt: 2 }}>{validationMessage}</Alert>}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
+      {validationMessage && <Alert severity="warning">{validationMessage}</Alert>}
 
       {state.taskBank.map((task) => (
         <Card key={task.id}>
@@ -144,7 +142,7 @@ export const TaskBankScreen = () => {
                   }}
                   aria-label={`delete-bank-${task.id}`}
                 >
-                  <DeleteOutlineRounded fontSize="small" />
+                  <DeleteOutlineRounded fontSize="small" color="error" />
                 </IconButton>
               </Stack>
             </Stack>

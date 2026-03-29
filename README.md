@@ -17,20 +17,24 @@ TaskTrack is a Pomodoro-driven task planner designed for daily execution. You ca
 - Splits dashboard round planning into separate gradient cards for **current round** tasks (green Active Session styling) and **next round** tasks (blue styling) so users can quickly distinguish now vs next.
 - Uses **upcoming round** language on the dashboard and prevents assignment prompts while a break is active.
 - Uses a today-focused completion metric on the dashboard (`Today's planned tasks completed`) instead of `Daily velocity`, with supporting stat labels that explicitly refer to the current day.
-- Shows a 30-day dashboard summary of completed focus minutes grouped by category.
-- Shows a 30-day activity history with planned/completed counts by day.
-- Shows a richer 30-day activity history layout with planned/completed counts on separate lines, plus completed task categories with per-category task counts and task names.
+- Makes the dashboard metric cards clickable: task-completion cards open **Today's Tasks** and **Sessions completed today** opens **Rounds**.
+- Shows dashboard stat cards without forced leading-zero formatting for session counts.
+- Shows an **Insights** dashboard section with **Completed tasks split by category (last 30 days)**.
+- Hides the visual **Last 30 days activity** dashboard section while still retaining timestamped task history in local storage.
 - Shows a dedicated **Unassigned today tasks** section on the Rounds page so tasks missing a round are always visible.
 - Adds a quick **Assign to round** picker for each item in **Unassigned today tasks** so users can place tasks into existing rounds without opening the round editor.
+- Shows both planned and completed rounds on the **Rounds** page, with completed rounds visually distinct and read-only.
 - Shows a confirmation popup when a new round is created.
 - Lets users delete rounds directly from the Rounds page; tasks from deleted rounds are returned to **Unassigned today tasks**.
 - Shows **Good evening** on the dashboard only from 7:00 PM onward (earlier daytime hours use morning/afternoon greetings).
 - Adds a floating **plus** button on the Rounds page so users can create a new round quickly.
 - Validates round creation by warning users when an existing round is still empty (no tasks assigned), so they can reuse it instead of creating duplicates.
 - Adds first-time-friendly guidance in **Settings** explaining the Pomodoro technique and how timer/alarm values affect new rounds.
-- Adds a **Show first-time guidance across the app** toggle in **Settings** so onboarding guidance callouts can be turned on or off anytime.
+- Places the **Show first-time guidance across the app** toggle in its own **Settings** card so it is easier to find.
+- Keeps **Task Bank guidance** hidden when first-time guidance is turned off.
 - Uses consistent green styling for guidance callouts (for example, setup and Pomodoro guidance) to match the app theme.
 - Replaces the **Task templates** summary card on **Task Bank** with direct, beginner-friendly **Task Bank guidance** copy.
+- Uses red delete icons across task, round, category, and task-bank delete actions.
 - Prevents duplicate entries in **Today's Tasks** by warning when the same task name is added again (including quick-adds from Task Bank).
 - Uses dashboard guidance language that emphasizes focused attention periods across small, manageable tasks.
 - Uses consistent **Active Session** terminology across the dashboard and focus timer screens.

@@ -96,7 +96,15 @@ export const SettingsScreen = () => {
               }
               label="Show first-time guidance across the app"
             />
-            {state.settings.showFirstTimeGuidance && (
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent>
+          <Stack spacing={2}>
+            <Typography variant="h5">Pomodoro timing</Typography>
+            {state.settings.showFirstTimeGuidance ? (
               <Alert severity="success" icon={<InfoOutlined fontSize="inherit" />} sx={guidanceAlertSx}>
                 <Typography variant="body2" fontWeight={700} mb={0.5}>New to Pomodoro?</Typography>
                 <Typography variant="body2">
@@ -108,8 +116,9 @@ export const SettingsScreen = () => {
                   all new rounds.
                 </Typography>
               </Alert>
+            ) : (
+              <Typography color="text.secondary">First-time guidance is currently hidden.</Typography>
             )}
-            <Typography variant="h5">Pomodoro timing</Typography>
             <TextField
               label="Recommended minutes per round"
               type="number"
@@ -227,7 +236,7 @@ export const SettingsScreen = () => {
                   }}
                   disabled={state.categories.length <= 1}
                 >
-                  <DeleteOutlineRounded />
+                  <DeleteOutlineRounded color="error" />
                 </IconButton>
               </Stack>
             ))}
