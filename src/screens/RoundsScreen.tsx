@@ -1,4 +1,5 @@
 import CircleOutlined from '@mui/icons-material/CircleOutlined';
+import AddRounded from '@mui/icons-material/AddRounded';
 import ArrowDropDownRounded from '@mui/icons-material/ArrowDropDownRounded';
 import ArrowDropUpRounded from '@mui/icons-material/ArrowDropUpRounded';
 import {
@@ -19,11 +20,13 @@ import {
 } from '@mui/material';
 import { useMemo, useState } from 'react';
 import { useAppState } from '../state/AppStateContext';
+import { hasEmptyRoundWithoutTasks } from '../state/rounds';
 
 export const RoundsScreen = () => {
-  const { state, assignTasksToRound, autoGroupTodayTasks, moveRound, showSuccessMessage } = useAppState();
+  const { state, assignTasksToRound, autoGroupTodayTasks, moveRound, createRound, showSuccessMessage } = useAppState();
   const [editingRoundId, setEditingRoundId] = useState<string | null>(null);
   const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
+  const [roundCreationValidationMessage, setRoundCreationValidationMessage] = useState<string | null>(null);
   const todayKey = new Date().toISOString().slice(0, 10);
   const todaysTasks = useMemo(() => state.tasks.filter((task) => task.plannedDate === todayKey), [state.tasks, todayKey]);
 
@@ -62,6 +65,20 @@ export const RoundsScreen = () => {
     () => todaysTasks.filter((task) => !task.roundId || !state.rounds.some((round) => round.id === task.roundId)),
     [todaysTasks, state.rounds],
   );
+  const handleCreateRound = () => {
+    const hasEmptyRound = hasEmptyRoundWithoutTasks(state.rounds);
+    if (hasEmptyRound) {
+      setRoundCreationValidationMessage(
+        'You already have a round without tasks. Assign tasks to that round before creating another one.',
+      );
+      return;
+    }
+
+    const newRoundId = createRound();
+    setRoundCreationValidationMessage(null);
+    showSuccessMessage('New round created.');
+    openRoundAssignment(newRoundId);
+  };
 
   return (
     <Stack spacing={2}>
@@ -69,6 +86,7 @@ export const RoundsScreen = () => {
         <Typography variant="h3">Today's Rounds</Typography>
         <Typography color="text.secondary">Group today&apos;s tasks into rounds, then reorder rounds with the arrows.</Typography>
       </Box>
+      {roundCreationValidationMessage && <Alert severity="warning">{roundCreationValidationMessage}</Alert>}
       <Box>
         <Button
           variant="outlined"
@@ -175,6 +193,25 @@ export const RoundsScreen = () => {
           <Button variant="contained" onClick={saveAssignment}>Save assignment</Button>
         </DialogActions>
       </Dialog>
+      <IconButton
+        color="primary"
+        onClick={handleCreateRound}
+        size="large"
+        sx={{
+          position: 'fixed',
+          right: { xs: 16, sm: 24 },
+          bottom: 'calc(92px + env(safe-area-inset-bottom, 0px))',
+          bgcolor: 'primary.main',
+          color: 'primary.contrastText',
+          width: 64,
+          height: 64,
+          boxShadow: '0 12px 24px rgba(0,0,0,0.35)',
+          '&:hover': { bgcolor: 'primary.main' },
+        }}
+        aria-label="create-round"
+      >
+        <AddRounded />
+      </IconButton>
     </Stack>
   );
 };

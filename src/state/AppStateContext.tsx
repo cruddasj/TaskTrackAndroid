@@ -1,12 +1,14 @@
 import { createContext, useContext, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { AlarmTone, dismissNativeAlarmNotifications, notifyPomodoroComplete, requestNotificationPermissions, startRepeatingAlarm } from '../services/notifications';
-import { AppState, PomodoroState, Task, TaskBankItem } from '../types';
+import { AppState, PomodoroState, Round, Task, TaskBankItem } from '../types';
+import { buildNewRound } from './rounds';
 import { loadState, saveState } from './storage';
 
 type NewTask = Omit<Task, 'id' | 'status' | 'plannedDate' | 'completedAt'>;
 type EditableTask = Omit<Task, 'status'>;
 type NewTaskBankItem = Omit<TaskBankItem, 'id'>;
 type EditableTaskBankItem = TaskBankItem;
+type NewRound = Round;
 
 type Action =
   | { type: 'ADD_TASK'; payload: NewTask }
@@ -20,6 +22,7 @@ type Action =
   | { type: 'SET_USER_NAME'; payload: { userName: string } }
   | { type: 'ADD_CATEGORY'; payload: { category: string } }
   | { type: 'DELETE_CATEGORY'; payload: { category: string } }
+  | { type: 'ADD_ROUND'; payload: NewRound }
   | { type: 'ASSIGN_TASKS_TO_ROUND'; payload: { roundId: string; taskIds: string[] } }
   | { type: 'AUTO_GROUP_TODAY_TASKS' }
   | { type: 'MOVE_ROUND'; payload: { roundId: string; direction: 'up' | 'down' } }
@@ -131,6 +134,19 @@ const reducer = (state: AppState, action: Action): AppState => {
         ...state,
         categories: nextCategories,
         tasks: state.tasks.map((task) => (task.category === category ? { ...task, category: fallbackCategory } : task)),
+      };
+    }
+    case 'ADD_ROUND': {
+      const hasOpenRound = state.rounds.some((round) => round.status !== 'done');
+      return {
+        ...state,
+        rounds: [
+          ...state.rounds,
+          {
+            ...action.payload,
+            status: hasOpenRound ? 'upcoming' : 'active',
+          },
+        ],
       };
     }
     case 'ASSIGN_TASKS_TO_ROUND': {
@@ -372,6 +388,7 @@ interface AppStateContextValue {
   setUserName: (userName: string) => void;
   addCategory: (category: string) => void;
   deleteCategory: (category: string) => void;
+  createRound: () => string;
   assignTasksToRound: (roundId: string, taskIds: string[]) => void;
   autoGroupTodayTasks: () => void;
   moveRound: (roundId: string, direction: 'up' | 'down') => void;
@@ -475,6 +492,14 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
       setUserName: (userName) => dispatch({ type: 'SET_USER_NAME', payload: { userName } }),
       addCategory: (category) => dispatch({ type: 'ADD_CATEGORY', payload: { category } }),
       deleteCategory: (category) => dispatch({ type: 'DELETE_CATEGORY', payload: { category } }),
+      createRound: () => {
+        const newRound = buildNewRound(state.rounds, state.settings.pomodoroMinutes);
+        dispatch({
+          type: 'ADD_ROUND',
+          payload: newRound,
+        });
+        return newRound.id;
+      },
       assignTasksToRound: (roundId, taskIds) => dispatch({ type: 'ASSIGN_TASKS_TO_ROUND', payload: { roundId, taskIds } }),
       autoGroupTodayTasks: () => dispatch({ type: 'AUTO_GROUP_TODAY_TASKS' }),
       moveRound: (roundId, direction) => dispatch({ type: 'MOVE_ROUND', payload: { roundId, direction } }),
