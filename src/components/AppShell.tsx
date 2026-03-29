@@ -3,7 +3,7 @@ import InsightsOutlined from '@mui/icons-material/InsightsOutlined';
 import ListAltOutlined from '@mui/icons-material/ListAltOutlined';
 import SettingsOutlined from '@mui/icons-material/SettingsOutlined';
 import TimerOutlined from '@mui/icons-material/TimerOutlined';
-import { BottomNavigation, BottomNavigationAction, Box, Paper, Typography } from '@mui/material';
+import { BottomNavigation, BottomNavigationAction, Box, Button, Paper, Stack, Typography } from '@mui/material';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
 
@@ -22,13 +22,26 @@ export const AppShell = () => {
   const isFirstTimeUser = !state.userName.trim();
   const visibleTabs = isFirstTimeUser ? tabs.filter((tab) => tab.path === '/settings') : tabs;
   const current = visibleTabs.find((tab) => tab.path === location.pathname)?.path ?? false;
+  const minutes = Math.floor(state.pomodoro.remainingSeconds / 60)
+    .toString()
+    .padStart(2, '0');
+  const seconds = (state.pomodoro.remainingSeconds % 60).toString().padStart(2, '0');
 
   return (
     <Box minHeight="100dvh" bgcolor="background.default" pb={10}>
       <Box px={{ xs: 2, md: 4 }} py={3}>
-        <Typography variant="h5" color="primary.main" fontWeight={800}>
-          TaskTrack
-        </Typography>
+        <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
+          <Typography variant="h5" color="primary.main" fontWeight={800}>
+            TaskTrack
+          </Typography>
+          <Button
+            variant={state.pomodoro.isRunning ? 'contained' : 'outlined'}
+            size="small"
+            onClick={() => navigate('/focus')}
+          >
+            {state.pomodoro.isRunning ? 'Pomodoro' : 'Timer'} {minutes}:{seconds}
+          </Button>
+        </Stack>
       </Box>
       <Box px={{ xs: 2, md: 4 }}>
         <Outlet />

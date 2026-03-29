@@ -34,14 +34,28 @@ const defaultState: AppState = {
       status: 'todo',
       roundId: 'r1',
     },
+  ],
+  taskBank: [
     {
-      id: 't3',
+      id: 'tb1',
+      title: 'Clean kitchen counters',
+      description: 'Wipe, disinfect and dry all prep surfaces.',
+      category: 'Household chores',
+      estimateMinutes: 25,
+    },
+    {
+      id: 'tb2',
+      title: 'Water indoor ferns',
+      description: 'Check moisture and mist leaves.',
+      category: 'Health and wellbeing',
+      estimateMinutes: 25,
+    },
+    {
+      id: 'tb3',
       title: 'Sort incoming mail',
       description: 'Separate bills, recycle spam, archive records.',
       category: 'Errands',
       estimateMinutes: 25,
-      status: 'todo',
-      roundId: 'r2',
     },
   ],
   taskPacks: [
@@ -88,7 +102,7 @@ const defaultState: AppState = {
       title: 'Round 2',
       scheduledTime: '09:05 AM',
       durationMinutes: 25,
-      taskIds: ['t3'],
+      taskIds: [],
       status: 'upcoming',
     },
   ],
@@ -107,12 +121,23 @@ const defaultState: AppState = {
 
 const normalizeState = (raw: Partial<AppState>): AppState => {
   const categories = raw.categories && raw.categories.length > 0 ? raw.categories : defaultCategories;
+  const taskBank =
+    raw.taskBank ??
+    raw.tasks?.map((task) => ({
+      id: crypto.randomUUID(),
+      title: task.title,
+      description: task.description,
+      category: task.category,
+      estimateMinutes: task.estimateMinutes,
+    })) ??
+    defaultState.taskBank;
   return {
     ...defaultState,
     ...raw,
     userName: raw.userName ?? '',
     categories,
     tasks: raw.tasks ?? defaultState.tasks,
+    taskBank,
     taskPacks: raw.taskPacks ?? defaultState.taskPacks,
     rounds: raw.rounds ?? defaultState.rounds,
     settings: {

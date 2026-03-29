@@ -2,6 +2,7 @@ import AddRounded from '@mui/icons-material/AddRounded';
 import CheckCircleOutlineRounded from '@mui/icons-material/CheckCircleOutlineRounded';
 import DeleteOutlineRounded from '@mui/icons-material/DeleteOutlineRounded';
 import EditOutlined from '@mui/icons-material/EditOutlined';
+import PlaylistAddRounded from '@mui/icons-material/PlaylistAddRounded';
 import RadioButtonUncheckedRounded from '@mui/icons-material/RadioButtonUncheckedRounded';
 import {
   Box,
@@ -19,8 +20,8 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { useEffect, useState } from 'react';
-import { Task, TaskPackTask } from '../types';
+import { useEffect, useMemo, useState } from 'react';
+import { Task, TaskBankItem, TaskPackTask } from '../types';
 import { useAppState } from '../state/AppStateContext';
 
 interface TaskFormState {
@@ -58,12 +59,31 @@ const emptyPackForm: PackFormState = {
 };
 
 export const TasksScreen = () => {
-  const { state, addTask, updateTask, deleteTask, toggleTask, addTaskPack, deleteTaskPack } = useAppState();
+  const {
+    state,
+    addTask,
+    addTaskFromBank,
+    updateTask,
+    deleteTask,
+    addTaskBankItem,
+    updateTaskBankItem,
+    deleteTaskBankItem,
+    toggleTask,
+    addTaskPack,
+    deleteTaskPack,
+  } = useAppState();
   const [open, setOpen] = useState(false);
   const [packOpen, setPackOpen] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [editingTaskBankId, setEditingTaskBankId] = useState<string | null>(null);
+  const [formMode, setFormMode] = useState<'today' | 'bank'>('today');
   const [form, setForm] = useState<TaskFormState>(emptyForm);
   const [packForm, setPackForm] = useState<PackFormState>(emptyPackForm);
+
+  const remainingTodayTasks = useMemo(
+    () => state.tasks.filter((task) => task.status !== 'done').length,
+    [state.tasks],
+  );
 
   useEffect(() => {
     if (!form.category && state.categories.length > 0) {
@@ -71,14 +91,39 @@ export const TasksScreen = () => {
     }
   }, [form.category, state.categories]);
 
-  const openCreateDialog = () => {
+  const openCreateTodayDialog = () => {
+    setFormMode('today');
     setEditingTaskId(null);
+    setEditingTaskBankId(null);
     setForm({ ...emptyForm, category: state.categories[0] ?? '' });
     setOpen(true);
   };
 
-  const openEditDialog = (task: Task) => {
+  const openCreateBankDialog = () => {
+    setFormMode('bank');
+    setEditingTaskId(null);
+    setEditingTaskBankId(null);
+    setForm({ ...emptyForm, category: state.categories[0] ?? '' });
+    setOpen(true);
+  };
+
+  const openEditTodayDialog = (task: Task) => {
+    setFormMode('today');
     setEditingTaskId(task.id);
+    setEditingTaskBankId(null);
+    setForm({
+      title: task.title,
+      description: task.description,
+      category: task.category,
+      estimateMinutes: String(task.estimateMinutes),
+    });
+    setOpen(true);
+  };
+
+  const openEditBankDialog = (task: TaskBankItem) => {
+    setFormMode('bank');
+    setEditingTaskId(null);
+    setEditingTaskBankId(task.id);
     setForm({
       title: task.title,
       description: task.description,
@@ -91,6 +136,7 @@ export const TasksScreen = () => {
   const closeDialog = () => {
     setOpen(false);
     setEditingTaskId(null);
+    setEditingTaskBankId(null);
     setForm(emptyForm);
   };
 
@@ -123,18 +169,35 @@ export const TasksScreen = () => {
 
     if (!title || !Number.isFinite(estimateMinutes) || estimateMinutes <= 0) return;
 
-    if (editingTaskId) {
-      const existingTask = state.tasks.find((task) => task.id === editingTaskId);
-      if (!existingTask) return;
-      updateTask({
-        ...existingTask,
+    if (formMode === 'today') {
+      if (editingTaskId) {
+        const existingTask = state.tasks.find((task) => task.id === editingTaskId);
+        if (!existingTask) return;
+        updateTask({
+          ...existingTask,
+          title,
+          description,
+          category,
+          estimateMinutes,
+        });
+      } else {
+        addTask({
+          title,
+          description,
+          category,
+          estimateMinutes,
+        });
+      }
+    } else if (editingTaskBankId) {
+      updateTaskBankItem({
+        id: editingTaskBankId,
         title,
         description,
         category,
         estimateMinutes,
       });
     } else {
-      addTask({
+      addTaskBankItem({
         title,
         description,
         category,
@@ -171,7 +234,7 @@ export const TasksScreen = () => {
     if (!pack) return;
 
     pack.tasks.forEach((task) => {
-      addTask({
+      addTaskBankItem({
         title: task.title,
         description: task.description,
         category: task.category,
@@ -183,45 +246,29 @@ export const TasksScreen = () => {
   return (
     <Stack spacing={2}>
       <Box>
-        <Typography variant="h3">Task Bank</Typography>
-        <Typography color="text.secondary">Organize your work with focused routines.</Typography>
+        <Typography variant="h3">Tasks</Typography>
+        <Typography color="text.secondary">Build your task bank, then pull what you need into today.</Typography>
       </Box>
+
       <Card>
         <CardContent>
-          <Stack spacing={2}>
-            <Stack direction="row" alignItems="center" justifyContent="space-between">
-              <Box>
-                <Typography variant="h5">Task packs</Typography>
-                <Typography color="text.secondary">Create reusable daily or weekly bundles of common tasks.</Typography>
-              </Box>
-              <Button variant="outlined" onClick={openPackDialog}>New pack</Button>
-            </Stack>
-            {state.taskPacks.map((pack) => (
-              <Stack key={pack.id} direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
-                <Box>
-                  <Typography fontWeight={600}>{pack.name}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {pack.cadence === 'daily' ? 'Daily' : 'Weekly'} · {pack.tasks.length} tasks
-                  </Typography>
-                </Box>
-                <Stack direction="row" spacing={1}>
-                  <Button size="small" onClick={() => applyPack(pack.id)}>Add tasks</Button>
-                  <IconButton size="small" onClick={() => deleteTaskPack(pack.id)} aria-label={`delete-pack-${pack.id}`}>
-                    <DeleteOutlineRounded fontSize="small" />
-                  </IconButton>
-                </Stack>
-              </Stack>
-            ))}
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Box>
+              <Typography variant="h5">Today&apos;s tasks</Typography>
+              <Typography color="text.secondary">{remainingTodayTasks} remaining · These are assignable to rounds.</Typography>
+            </Box>
+            <Button variant="contained" onClick={openCreateTodayDialog}>Add today task</Button>
           </Stack>
         </CardContent>
       </Card>
+
       {state.tasks.map((task) => (
         <Card key={task.id}>
           <CardContent>
             <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
               <Stack direction="row" spacing={1} alignItems="center">
                 <Typography variant="h5">{task.title}</Typography>
-                <IconButton size="small" onClick={() => openEditDialog(task)} aria-label={`edit-${task.id}`}>
+                <IconButton size="small" onClick={() => openEditTodayDialog(task)} aria-label={`edit-${task.id}`}>
                   <EditOutlined fontSize="small" />
                 </IconButton>
                 <IconButton size="small" onClick={() => deleteTask(task.id)} aria-label={`delete-${task.id}`}>
@@ -238,22 +285,85 @@ export const TasksScreen = () => {
             <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
               <Chip label={task.category} />
               <Chip label={`${task.estimateMinutes} min`} variant="outlined" />
+              {task.roundId && <Chip label="Assigned to round" color="secondary" variant="outlined" />}
               <Button size="small" onClick={() => toggleTask(task.id)}>{task.status === 'done' ? 'Mark Todo' : 'Mark Done'}</Button>
             </Stack>
           </CardContent>
         </Card>
       ))}
 
+      <Card>
+        <CardContent>
+          <Stack spacing={2}>
+            <Stack direction="row" alignItems="center" justifyContent="space-between">
+              <Box>
+                <Typography variant="h5">Task bank</Typography>
+                <Typography color="text.secondary">Reusable tasks you can add to today any time.</Typography>
+              </Box>
+              <Stack direction="row" spacing={1}>
+                <Button variant="outlined" onClick={openCreateBankDialog}>New bank task</Button>
+                <Button variant="outlined" onClick={openPackDialog}>New pack</Button>
+              </Stack>
+            </Stack>
+            {state.taskBank.map((task) => (
+              <Stack key={task.id} direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
+                <Box>
+                  <Typography fontWeight={600}>{task.title}</Typography>
+                  <Typography variant="body2" color="text.secondary">{task.category} · {task.estimateMinutes} min</Typography>
+                </Box>
+                <Stack direction="row" spacing={1}>
+                  <Button size="small" onClick={() => addTaskFromBank(task.id)} startIcon={<PlaylistAddRounded />}>Add to today</Button>
+                  <IconButton size="small" onClick={() => openEditBankDialog(task)} aria-label={`edit-bank-${task.id}`}>
+                    <EditOutlined fontSize="small" />
+                  </IconButton>
+                  <IconButton size="small" onClick={() => deleteTaskBankItem(task.id)} aria-label={`delete-bank-${task.id}`}>
+                    <DeleteOutlineRounded fontSize="small" />
+                  </IconButton>
+                </Stack>
+              </Stack>
+            ))}
+            {state.taskBank.length === 0 && <Typography color="text.secondary">No task bank items yet.</Typography>}
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent>
+          <Stack spacing={2}>
+            <Typography variant="h5">Task packs</Typography>
+            <Typography color="text.secondary">Create reusable daily or weekly bundles of bank tasks.</Typography>
+            {state.taskPacks.map((pack) => (
+              <Stack key={pack.id} direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
+                <Box>
+                  <Typography fontWeight={600}>{pack.name}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {pack.cadence === 'daily' ? 'Daily' : 'Weekly'} · {pack.tasks.length} tasks
+                  </Typography>
+                </Box>
+                <Stack direction="row" spacing={1}>
+                  <Button size="small" onClick={() => applyPack(pack.id)}>Add to bank</Button>
+                  <IconButton size="small" onClick={() => deleteTaskPack(pack.id)} aria-label={`delete-pack-${pack.id}`}>
+                    <DeleteOutlineRounded fontSize="small" />
+                  </IconButton>
+                </Stack>
+              </Stack>
+            ))}
+          </Stack>
+        </CardContent>
+      </Card>
+
       <IconButton
         color="primary"
-        onClick={openCreateDialog}
+        onClick={openCreateTodayDialog}
         sx={{ position: 'fixed', right: 24, bottom: 92, bgcolor: 'primary.main', color: 'primary.contrastText', '&:hover': { bgcolor: 'primary.main' } }}
       >
         <AddRounded />
       </IconButton>
 
       <Dialog open={open} onClose={closeDialog} fullWidth>
-        <DialogTitle>{editingTaskId ? 'Edit task' : 'Add task'}</DialogTitle>
+        <DialogTitle>
+          {editingTaskId || editingTaskBankId ? 'Edit task' : `Add ${formMode === 'today' ? "today's task" : 'task bank item'}`}
+        </DialogTitle>
         <DialogContent>
           <TextField
             margin="dense"
