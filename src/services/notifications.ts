@@ -1,6 +1,8 @@
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
 
+export type AlarmTone = 'bell' | 'chime' | 'digital';
+
 export const requestNotificationPermissions = async (): Promise<void> => {
   if (Capacitor.isNativePlatform()) {
     await LocalNotifications.requestPermissions();
@@ -12,9 +14,7 @@ export const requestNotificationPermissions = async (): Promise<void> => {
   }
 };
 
-export const notifyPomodoroComplete = async (taskTitle: string): Promise<void> => {
-  const title = 'Pomodoro complete';
-  const body = `${taskTitle} is complete. Take a short break.`;
+export const notifyPomodoroComplete = async (title: string, body: string, tone: AlarmTone): Promise<void> => {
 
   if (Capacitor.isNativePlatform()) {
     await LocalNotifications.schedule({
@@ -24,7 +24,8 @@ export const notifyPomodoroComplete = async (taskTitle: string): Promise<void> =
           title,
           body,
           schedule: { at: new Date(Date.now() + 200) },
-          sound: 'res://raw/alarm_bell',
+          sound: `res://raw/alarm_${tone}`,
+          ongoing: true,
         },
       ],
     });
@@ -36,25 +37,63 @@ export const notifyPomodoroComplete = async (taskTitle: string): Promise<void> =
   }
 };
 
-export const playAlarmBell = (): void => {
-  const context = new AudioContext();
+export const dismissNativeAlarmNotifications = async (): Promise<void> => {
+  if (!Capacitor.isNativePlatform()) return;
+  const pending = await LocalNotifications.getPending();
+  if (pending.notifications.length > 0) {
+    await LocalNotifications.cancel({ notifications: pending.notifications.map(({ id }) => ({ id })) });
+  }
+  await LocalNotifications.removeAllDeliveredNotifications();
+};
+
+const playTonePattern = (context: AudioContext, tone: AlarmTone): void => {
   const now = context.currentTime;
 
-  const tone = (start: number, freq: number) => {
+  const beep = (start: number, freq: number, type: OscillatorType = 'triangle', length = 0.32) => {
     const oscillator = context.createOscillator();
     const gain = context.createGain();
-    oscillator.type = 'triangle';
+    oscillator.type = type;
     oscillator.frequency.value = freq;
     gain.gain.setValueAtTime(0.0001, start);
     gain.gain.exponentialRampToValueAtTime(0.25, start + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.3);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + Math.max(0.08, length - 0.02));
     oscillator.connect(gain);
     gain.connect(context.destination);
     oscillator.start(start);
-    oscillator.stop(start + 0.32);
+    oscillator.stop(start + length);
   };
 
-  tone(now, 784);
-  tone(now + 0.18, 988);
-  tone(now + 0.36, 1318);
+  if (tone === 'chime') {
+    beep(now, 523, 'sine', 0.38);
+    beep(now + 0.2, 659, 'sine', 0.38);
+    beep(now + 0.4, 784, 'sine', 0.42);
+    return;
+  }
+
+  if (tone === 'digital') {
+    beep(now, 880, 'square', 0.18);
+    beep(now + 0.22, 880, 'square', 0.18);
+    beep(now + 0.44, 1244, 'square', 0.24);
+    return;
+  }
+
+  beep(now, 784);
+  beep(now + 0.18, 988);
+  beep(now + 0.36, 1318);
+};
+
+export const playAlarmTone = (tone: AlarmTone): void => {
+  const context = new AudioContext();
+  playTonePattern(context, tone);
+};
+
+export const startRepeatingAlarm = (tone: AlarmTone): (() => void) => {
+  playAlarmTone(tone);
+  const interval = window.setInterval(() => {
+    playAlarmTone(tone);
+  }, 2500);
+
+  return () => {
+    window.clearInterval(interval);
+  };
 };

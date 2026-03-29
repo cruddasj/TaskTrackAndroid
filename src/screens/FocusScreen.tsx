@@ -130,7 +130,10 @@ export const FocusScreen = () => {
         </Box>
 
         <Stack spacing={1} alignItems="center" px={1}>
-          <Typography variant="h4" textAlign="center">{activeTask?.title ?? 'No task selected'}</Typography>
+          <Typography color="primary.main" fontWeight={700} letterSpacing="0.08em">
+            {state.pomodoro.phase === 'work' ? 'FOCUS' : state.pomodoro.phase === 'short_break' ? 'SHORT BREAK' : 'LONG BREAK'}
+          </Typography>
+          <Typography variant="h4" textAlign="center">{state.pomodoro.phase === 'work' ? activeTask?.title ?? 'No task selected' : 'Break time'}</Typography>
           <Typography color="text.secondary">
             {activeRound ? `${activeRound.title} · ${activeTask?.category ?? 'General'}` : activeTask?.category ?? 'General'}
           </Typography>

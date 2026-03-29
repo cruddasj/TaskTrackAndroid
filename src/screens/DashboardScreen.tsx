@@ -1,5 +1,5 @@
 import PlayArrowRounded from '@mui/icons-material/PlayArrowRounded';
-import { Box, Button, Card, CardContent, Stack, Typography } from '@mui/material';
+import { Box, Button, Card, CardContent, LinearProgress, Stack, Typography } from '@mui/material';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
@@ -14,6 +14,8 @@ export const DashboardScreen = () => {
   const navigate = useNavigate();
   const { state } = useAppState();
   const completed = state.tasks.filter((task) => task.status === 'done').length;
+  const progress = state.tasks.length ? Math.round((completed / state.tasks.length) * 100) : 0;
+  const totalFocusMinutes = state.pomodoro.completedWorkSessions * state.settings.pomodoroMinutes;
 
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
@@ -30,14 +32,22 @@ export const DashboardScreen = () => {
       <Card sx={{ background: 'radial-gradient(circle at 65% 40%, rgba(145,247,142,0.28), rgba(14,14,14,1) 60%)' }}>
         <CardContent>
           <Typography variant="overline" color="primary.main" letterSpacing="0.08em">
-            Active session
+            {state.pomodoro.phase === 'work' ? 'Active focus session' : 'Break in progress'}
           </Typography>
           <Typography variant="h4" mt={1} mb={2}>
-            Focus on your top priority
+            {state.pomodoro.phase === 'work' ? 'Focus on your top priority' : 'Take a breather, then jump back in'}
           </Typography>
           <Button size="large" variant="contained" startIcon={<PlayArrowRounded />} onClick={() => navigate('/focus')}>
-            Start Round
+            Open Timer
           </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent>
+          <Typography color="text.secondary">Daily velocity</Typography>
+          <Typography variant="h3" color="primary.main">{progress}%</Typography>
+          <LinearProgress variant="determinate" value={progress} sx={{ mt: 1, height: 8, borderRadius: 99 }} />
         </CardContent>
       </Card>
 
@@ -50,8 +60,14 @@ export const DashboardScreen = () => {
         </Card>
         <Card sx={{ flex: 1 }}>
           <CardContent>
-            <Typography color="text.secondary">Time tracked</Typography>
-            <Typography variant="h4">2.4 hrs</Typography>
+            <Typography color="text.secondary">Total focus</Typography>
+            <Typography variant="h4">{totalFocusMinutes}m</Typography>
+          </CardContent>
+        </Card>
+        <Card sx={{ flex: 1 }}>
+          <CardContent>
+            <Typography color="text.secondary">Rounds done</Typography>
+            <Typography variant="h4">{String(state.pomodoro.completedWorkSessions).padStart(2, '0')}</Typography>
           </CardContent>
         </Card>
       </Stack>

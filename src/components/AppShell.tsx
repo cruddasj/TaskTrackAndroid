@@ -1,9 +1,8 @@
 import DashboardOutlined from '@mui/icons-material/DashboardOutlined';
-import InsightsOutlined from '@mui/icons-material/InsightsOutlined';
 import ListAltOutlined from '@mui/icons-material/ListAltOutlined';
 import SettingsOutlined from '@mui/icons-material/SettingsOutlined';
 import TimerOutlined from '@mui/icons-material/TimerOutlined';
-import { BottomNavigation, BottomNavigationAction, Box, Button, Paper, Stack, Typography } from '@mui/material';
+import { Alert, BottomNavigation, BottomNavigationAction, Box, Button, Paper, Stack, Typography } from '@mui/material';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
 
@@ -12,12 +11,11 @@ const tabs = [
   { label: 'Task Bank', path: '/task-bank', icon: <ListAltOutlined /> },
   { label: "Today's Tasks", path: '/tasks-today', icon: <ListAltOutlined /> },
   { label: 'Rounds', path: '/rounds', icon: <TimerOutlined /> },
-  { label: 'Insights', path: '/insights', icon: <InsightsOutlined /> },
   { label: 'Settings', path: '/settings', icon: <SettingsOutlined /> },
 ];
 
 export const AppShell = () => {
-  const { state } = useAppState();
+  const { state, alarmActive, dismissAlarm } = useAppState();
   const navigate = useNavigate();
   const location = useLocation();
   const isFirstTimeUser = !state.userName.trim();
@@ -44,6 +42,13 @@ export const AppShell = () => {
           </Button>
         </Stack>
       </Box>
+      {alarmActive && (
+        <Box px={{ xs: 2, md: 4 }} pb={2}>
+          <Alert severity="warning" action={<Button onClick={dismissAlarm}>Dismiss</Button>}>
+            Pomodoro alarm is active.
+          </Alert>
+        </Box>
+      )}
       <Box px={{ xs: 2, md: 4 }}>
         <Outlet />
       </Box>
