@@ -32,6 +32,21 @@ export const theme = createTheme({
           textTransform: 'none',
           fontWeight: 700,
         },
+        outlinedSecondary: {
+          color: '#60a5fa',
+          borderColor: '#2563eb',
+          '&:hover': {
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(37, 99, 235, 0.12)',
+          },
+        },
+        containedSecondary: {
+          backgroundColor: '#2563eb',
+          color: '#eff6ff',
+          '&:hover': {
+            backgroundColor: '#1d4ed8',
+          },
+        },
       },
     },
   },
