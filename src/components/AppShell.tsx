@@ -2,7 +2,7 @@ import DashboardOutlined from '@mui/icons-material/DashboardOutlined';
 import ListAltOutlined from '@mui/icons-material/ListAltOutlined';
 import SettingsOutlined from '@mui/icons-material/SettingsOutlined';
 import TimerOutlined from '@mui/icons-material/TimerOutlined';
-import { Alert, BottomNavigation, BottomNavigationAction, Box, Button, Paper, Snackbar, Stack, Typography } from '@mui/material';
+import { BottomNavigation, BottomNavigationAction, Box, Button, Paper, Snackbar, Stack, Typography } from '@mui/material';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
 
@@ -15,7 +15,7 @@ const tabs = [
 ];
 
 export const AppShell = () => {
-  const { state, alarmActive, dismissAlarm, successMessage, clearSuccessMessage } = useAppState();
+  const { state, successMessage, clearSuccessMessage } = useAppState();
   const navigate = useNavigate();
   const location = useLocation();
   const isFirstTimeUser = !state.userName.trim();
@@ -47,13 +47,6 @@ export const AppShell = () => {
           </Button>
         </Stack>
       </Box>
-      {alarmActive && (
-        <Box px={{ xs: 2, md: 4 }} pb={2}>
-          <Alert severity="warning" action={<Button onClick={dismissAlarm}>Dismiss</Button>}>
-            Pomodoro alarm is active.
-          </Alert>
-        </Box>
-      )}
       <Box px={{ xs: 2, md: 4 }}>
         <Outlet />
       </Box>
@@ -66,6 +59,7 @@ export const AppShell = () => {
           bgcolor: '#121212',
           backgroundImage: 'none',
           pb: 'env(safe-area-inset-bottom, 0px)',
+          zIndex: (theme) => theme.zIndex.appBar,
           borderTop: '1px solid rgba(145, 247, 142, 0.14)',
         }}
         elevation={0}

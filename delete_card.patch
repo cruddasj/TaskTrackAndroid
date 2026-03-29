@@ -1,0 +1,11 @@
+--- src/screens/TodaysTasksScreen.tsx
++++ src/screens/TodaysTasksScreen.tsx
+@@ -95,12 +95,2 @@
+       </Box>
+
+-      <Card>
+-        <CardContent>
+-          <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={1.5}>
+-            <Box>
+-
+       {state.tasks.map((task) => (

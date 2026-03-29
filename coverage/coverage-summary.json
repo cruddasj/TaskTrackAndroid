@@ -1,0 +1,4 @@
+{"total": {"lines":{"total":100,"covered":98,"skipped":0,"pct":98},"statements":{"total":114,"covered":110,"skipped":0,"pct":96.49},"functions":{"total":21,"covered":19,"skipped":0,"pct":90.47},"branches":{"total":113,"covered":99,"skipped":0,"pct":87.61},"branchesTrue":{"total":0,"covered":0,"skipped":0,"pct":100}}
+,"/app/src/services/notifications.ts": {"lines":{"total":78,"covered":77,"skipped":0,"pct":98.71},"functions":{"total":17,"covered":16,"skipped":0,"pct":94.11},"statements":{"total":89,"covered":86,"skipped":0,"pct":96.62},"branches":{"total":35,"covered":28,"skipped":0,"pct":80}}
+,"/app/src/state/storage.ts": {"lines":{"total":22,"covered":21,"skipped":0,"pct":95.45},"functions":{"total":4,"covered":3,"skipped":0,"pct":75},"statements":{"total":25,"covered":24,"skipped":0,"pct":96},"branches":{"total":78,"covered":71,"skipped":0,"pct":91.02}}
+}

@@ -53,6 +53,10 @@ export const RoundsScreen = () => {
     setSelectedTaskIds([]);
   };
 
+  const availableTasks = useMemo(() => {
+    return state.tasks.filter((task) => !task.roundId || task.roundId === editingRound?.id);
+  }, [state.tasks, editingRound]);
+
   return (
     <Stack spacing={2}>
       <Box>
@@ -82,7 +86,7 @@ export const RoundsScreen = () => {
               <Button variant="outlined" onClick={() => openRoundAssignment(round.id)}>
                 Assign tasks
               </Button>
-              {round.status === 'active' && (
+              {round.status === 'active' && round.taskIds.length > 0 && (
                 <Button
                   variant="contained"
                   startIcon={<PlayArrowRounded />}
@@ -112,7 +116,10 @@ export const RoundsScreen = () => {
             {state.tasks.length === 0 && (
               <Typography color="text.secondary">No tasks in today&apos;s list yet. Add from Task Bank first.</Typography>
             )}
-            {state.tasks.map((task) => (
+            {availableTasks.length === 0 && state.tasks.length > 0 && (
+              <Typography color="text.secondary">All tasks are currently assigned to other rounds.</Typography>
+            )}
+            {availableTasks.map((task) => (
               <FormControlLabel
                 key={task.id}
                 control={(
