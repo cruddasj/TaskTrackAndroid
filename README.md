@@ -34,8 +34,8 @@ TaskTrack is a Pomodoro-driven task planner designed for daily execution. You ca
 - React 19 + TypeScript
 - MUI 7
 - React Router 7
-- Vite 7
-- Capacitor 7 (Android)
+- Vite 8
+- Capacitor 8 (Android)
 - Jest + ts-jest for automated tests
 
 ## Getting started
@@ -71,6 +71,14 @@ The app schedules native local notifications with sound references in the format
 - `res://raw/alarm_digital`
 
 If you want custom sounds, add corresponding files under `android/app/src/main/res/raw/`.
+
+
+## Dependency maintenance
+
+- Dependencies were upgraded to the latest available major versions that are compatible with this toolchain.
+- GitHub Actions now run on Node.js 22 to match Capacitor 8 CLI engine requirements.
+- Dependabot is configured in `.github/dependabot.yml` to open weekly updates for both npm packages and GitHub Actions.
+- All GitHub Actions in workflows are pinned to full commit SHAs for supply-chain safety.
 
 ## Android release workflow notes
 
