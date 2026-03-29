@@ -91,23 +91,38 @@ export const DashboardScreen = () => {
         </CardContent>
       </Card>
 
-      <Stack direction="row" spacing={2}>
-        <Card sx={{ flex: 1 }}>
+      <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
+        <Card sx={{ flex: 1, minWidth: { xs: 'calc(50% - 8px)', sm: 0 } }}>
           <CardContent>
-            <Typography color="text.secondary">Tasks done</Typography>
-            <Typography variant="h4">{completed} / {state.tasks.length}</Typography>
+            <Typography
+              color="text.secondary"
+              sx={{ fontSize: { xs: '0.82rem', sm: '0.92rem' }, lineHeight: 1.2, whiteSpace: 'nowrap' }}
+            >
+              Tasks done
+            </Typography>
+            <Typography variant="h4" sx={{ fontSize: { xs: '1.55rem', sm: '2.125rem' } }}>{completed} / {state.tasks.length}</Typography>
           </CardContent>
         </Card>
-        <Card sx={{ flex: 1 }}>
+        <Card sx={{ flex: 1, minWidth: { xs: 'calc(50% - 8px)', sm: 0 } }}>
           <CardContent>
-            <Typography color="text.secondary">Total focus</Typography>
-            <Typography variant="h4">{totalFocusMinutes}m</Typography>
+            <Typography
+              color="text.secondary"
+              sx={{ fontSize: { xs: '0.82rem', sm: '0.92rem' }, lineHeight: 1.2, whiteSpace: 'nowrap' }}
+            >
+              Total focus
+            </Typography>
+            <Typography variant="h4" sx={{ fontSize: { xs: '1.55rem', sm: '2.125rem' } }}>{totalFocusMinutes}m</Typography>
           </CardContent>
         </Card>
-        <Card sx={{ flex: 1 }}>
+        <Card sx={{ flex: 1, minWidth: { xs: 'calc(50% - 8px)', sm: 0 } }}>
           <CardContent>
-            <Typography color="text.secondary">Rounds done</Typography>
-            <Typography variant="h4">{String(state.pomodoro.completedWorkSessions).padStart(2, '0')}</Typography>
+            <Typography
+              color="text.secondary"
+              sx={{ fontSize: { xs: '0.82rem', sm: '0.92rem' }, lineHeight: 1.2, whiteSpace: 'nowrap' }}
+            >
+              Rounds done
+            </Typography>
+            <Typography variant="h4" sx={{ fontSize: { xs: '1.55rem', sm: '2.125rem' } }}>{String(state.pomodoro.completedWorkSessions).padStart(2, '0')}</Typography>
           </CardContent>
         </Card>
       </Stack>

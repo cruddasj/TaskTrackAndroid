@@ -64,7 +64,9 @@ export const AppShell = () => {
           left: 0,
           right: 0,
           bgcolor: '#121212',
+          backgroundImage: 'none',
           pb: 'env(safe-area-inset-bottom, 0px)',
+          borderTop: '1px solid rgba(145, 247, 142, 0.14)',
         }}
         elevation={0}
       >
