@@ -15,6 +15,9 @@ import {
   DialogTitle,
   FormControlLabel,
   IconButton,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
   Stack,
   Typography,
 } from '@mui/material';
@@ -80,6 +83,15 @@ export const RoundsScreen = () => {
     openRoundAssignment(newRoundId);
   };
 
+  const handleQuickAssignToRound = (taskId: string, event: SelectChangeEvent<string>) => {
+    const roundId = event.target.value;
+    const targetRound = state.rounds.find((round) => round.id === roundId);
+    if (!targetRound) return;
+    const nextTaskIds = targetRound.taskIds.includes(taskId) ? targetRound.taskIds : [...targetRound.taskIds, taskId];
+    assignTasksToRound(roundId, nextTaskIds);
+    showSuccessMessage(`Assigned task to ${targetRound.title}.`);
+  };
+
   return (
     <Stack spacing={2}>
       <Box>
@@ -105,7 +117,21 @@ export const RoundsScreen = () => {
             {unassignedTasks.map((task) => (
               <Stack direction="row" spacing={1} alignItems="center" key={task.id}>
                 <CircleOutlined fontSize="small" color="disabled" />
-                <Typography>{task.title}</Typography>
+                <Typography sx={{ flex: 1 }}>{task.title}</Typography>
+                <Select
+                  size="small"
+                  displayEmpty
+                  value=""
+                  disabled={state.rounds.length === 0}
+                  onChange={(event) => handleQuickAssignToRound(task.id, event)}
+                  sx={{ minWidth: 164 }}
+                  aria-label={`quick-assign-${task.id}`}
+                >
+                  <MenuItem value="" disabled>Assign to round</MenuItem>
+                  {state.rounds.map((round) => (
+                    <MenuItem key={round.id} value={round.id}>{round.title}</MenuItem>
+                  ))}
+                </Select>
               </Stack>
             ))}
             {unassignedTasks.length === 0 && (

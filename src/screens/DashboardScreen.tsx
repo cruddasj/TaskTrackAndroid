@@ -4,12 +4,7 @@ import { Box, Button, Card, CardContent, Divider, LinearProgress, Stack, Typogra
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
-
-const getGreeting = (hour: number): string => {
-  if (hour >= 6 && hour < 12) return 'Good morning';
-  if (hour >= 12 && hour < 17) return 'Good afternoon';
-  return 'Good evening';
-};
+import { getGreeting } from './greeting';
 
 export const DashboardScreen = () => {
   const navigate = useNavigate();
