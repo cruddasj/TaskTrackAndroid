@@ -125,7 +125,7 @@ export const RoundsScreen = () => {
             </Stack>
             <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
               <Button variant="outlined" onClick={() => openRoundAssignment(round.id)}>
-                Assign tasks
+                {round.taskIds.length > 0 ? 'Edit tasks' : 'Assign tasks'}
               </Button>
             </Stack>
           </CardContent>

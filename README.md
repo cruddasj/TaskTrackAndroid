@@ -9,6 +9,7 @@ TaskTrack is a Pomodoro-driven task planner designed for daily execution. You ca
 - Organizes daily tasks into **Rounds** (focus sessions).
 - Lets users auto-suggest round groupings by task category and splits suggested groups so they stay within the configured Pomodoro duration.
 - Lets users reorder rounds directly from the Rounds page using up/down controls.
+- Shows **Edit tasks** on rounds that already have assigned tasks (and **Assign tasks** for empty rounds) to make the next action clearer.
 - Shows a session-aware dashboard card that lists planned round tasks and guides users to assign or add tasks when a round is empty.
 - Splits dashboard round planning into separate gradient cards for **current round** tasks (green Active Session styling) and **next round** tasks (blue styling) so users can quickly distinguish now vs next.
 - Uses **upcoming round** language on the dashboard and prevents assignment prompts while a break is active.
