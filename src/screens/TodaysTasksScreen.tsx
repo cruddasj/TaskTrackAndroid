@@ -3,11 +3,11 @@ import CheckCircleOutlineRounded from '@mui/icons-material/CheckCircleOutlineRou
 import DeleteOutlineRounded from '@mui/icons-material/DeleteOutlineRounded';
 import EditOutlined from '@mui/icons-material/EditOutlined';
 import RadioButtonUncheckedRounded from '@mui/icons-material/RadioButtonUncheckedRounded';
-import { Box, Button, Card, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, Card, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useAppState } from '../state/AppStateContext';
-import { hasDuplicateTodayTaskTitle } from '../state/tasks';
-import { Task } from '../types';
+import { hasDuplicateTodayTaskTitle, suggestRecurringTaskBankItems } from '../state/tasks';
+import { Task, TaskBankItem } from '../types';
 
 interface TaskFormState {
   title: string;
@@ -28,6 +28,8 @@ export const TodaysTasksScreen = () => {
   const todayKey = new Date().toISOString().slice(0, 10);
   const todaysTasks = state.tasks.filter((task) => task.plannedDate === todayKey);
   const [open, setOpen] = useState(false);
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+  const [recurringSuggestions, setRecurringSuggestions] = useState<TaskBankItem[]>([]);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [form, setForm] = useState<TaskFormState>(emptyForm);
   const [validationMessage, setValidationMessage] = useState<string | null>(null);
@@ -94,12 +96,43 @@ export const TodaysTasksScreen = () => {
     closeDialog();
   };
 
+  const openRecurringSuggestions = () => {
+    const suggestions = suggestRecurringTaskBankItems(state.taskBank, state.tasks, todayKey);
+    setRecurringSuggestions(suggestions);
+    setSuggestionsOpen(true);
+  };
+
+  const addRecurringSuggestions = () => {
+    recurringSuggestions.forEach((item) =>
+      addTask({
+        title: item.title,
+        description: item.description,
+        category: item.category,
+        estimateMinutes: item.estimateMinutes,
+      }));
+    if (recurringSuggestions.length > 0) {
+      showSuccessMessage(`${recurringSuggestions.length} recurring task suggestion${recurringSuggestions.length === 1 ? '' : 's'} added.`);
+    }
+    setSuggestionsOpen(false);
+  };
+
   return (
     <Stack spacing={2}>
       <Box>
         <Typography variant="h3">Today&apos;s Tasks</Typography>
         <Typography color="text.secondary">Capture only what you plan to complete today, then assign tasks into rounds.</Typography>
       </Box>
+      <Card>
+        <CardContent>
+          <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between" spacing={1.5}>
+            <Box>
+              <Typography variant="h5">Recurring task suggestions</Typography>
+              <Typography color="text.secondary">Review templates from Task Bank that are due based on your repeat settings before adding them.</Typography>
+            </Box>
+            <Button variant="outlined" onClick={openRecurringSuggestions}>Suggest recurring tasks</Button>
+          </Stack>
+        </CardContent>
+      </Card>
 
       {todaysTasks.map((task) => (
         <Card key={task.id}>
@@ -215,6 +248,34 @@ export const TodaysTasksScreen = () => {
         <DialogActions>
           <Button onClick={closeDialog}>Cancel</Button>
           <Button variant="contained" onClick={saveTask}>Save</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={suggestionsOpen} onClose={() => setSuggestionsOpen(false)} fullWidth>
+        <DialogTitle>Suggested recurring tasks</DialogTitle>
+        <DialogContent>
+          {recurringSuggestions.length === 0 ? (
+            <Alert severity="info">No recurring tasks are due right now.</Alert>
+          ) : (
+            <Stack spacing={1.5} mt={0.5}>
+              <Typography color="text.secondary">Add these due recurring tasks to Today&apos;s Tasks?</Typography>
+              {recurringSuggestions.map((task) => (
+                <Box key={task.id}>
+                  <Typography fontWeight={700}>{task.title}</Typography>
+                  <Typography color="text.secondary" variant="body2">{task.description}</Typography>
+                  <Typography color="text.secondary" variant="body2">
+                    {task.category} • {task.estimateMinutes} min • every {task.recurrenceDays} days
+                  </Typography>
+                </Box>
+              ))}
+            </Stack>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setSuggestionsOpen(false)}>Cancel</Button>
+          <Button variant="contained" onClick={addRecurringSuggestions} disabled={recurringSuggestions.length === 0}>
+            Add suggested tasks
+          </Button>
         </DialogActions>
       </Dialog>
     </Stack>

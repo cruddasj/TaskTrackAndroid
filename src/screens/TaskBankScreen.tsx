@@ -14,6 +14,7 @@ interface TaskFormState {
   description: string;
   category: string;
   estimateMinutes: string;
+  recurrenceDays: string;
 }
 
 const emptyForm: TaskFormState = {
@@ -21,6 +22,7 @@ const emptyForm: TaskFormState = {
   description: '',
   category: '',
   estimateMinutes: '25',
+  recurrenceDays: '',
 };
 
 export const TaskBankScreen = () => {
@@ -52,6 +54,7 @@ export const TaskBankScreen = () => {
       description: task.description,
       category: task.category,
       estimateMinutes: String(task.estimateMinutes),
+      recurrenceDays: task.recurrenceDays ? String(task.recurrenceDays) : '',
     });
     setOpen(true);
   };
@@ -67,6 +70,9 @@ export const TaskBankScreen = () => {
     const description = form.description.trim() || 'Custom task';
     const category = form.category || state.categories[0] || 'Uncategorized';
     const estimateMinutes = Number(form.estimateMinutes);
+    const recurrenceDays = Number(form.recurrenceDays);
+    const normalizedRecurrenceDays =
+      Number.isFinite(recurrenceDays) && recurrenceDays > 0 ? Math.round(recurrenceDays) : undefined;
 
     if (!title || !Number.isFinite(estimateMinutes) || estimateMinutes <= 0) return;
 
@@ -77,10 +83,11 @@ export const TaskBankScreen = () => {
         description,
         category,
         estimateMinutes,
+        recurrenceDays: normalizedRecurrenceDays,
       });
       showSuccessMessage('Task Bank item updated.');
     } else {
-      addTaskBankItem({ title, description, category, estimateMinutes });
+      addTaskBankItem({ title, description, category, estimateMinutes, recurrenceDays: normalizedRecurrenceDays });
       showSuccessMessage('Task Bank item created.');
     }
 
@@ -135,6 +142,7 @@ export const TaskBankScreen = () => {
             <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
               <Chip label={task.category} />
               <Chip label={`${task.estimateMinutes} min`} variant="outlined" />
+              {task.recurrenceDays && <Chip label={`Every ${task.recurrenceDays} days`} variant="outlined" />}
               <Button
                 size="small"
                 onClick={() => {
@@ -208,6 +216,16 @@ export const TaskBankScreen = () => {
             inputProps={{ min: 1 }}
             value={form.estimateMinutes}
             onChange={(event) => setForm((current) => ({ ...current, estimateMinutes: event.target.value }))}
+          />
+          <TextField
+            margin="dense"
+            label="Repeat every (days)"
+            fullWidth
+            type="number"
+            inputProps={{ min: 1 }}
+            helperText="Optional. Leave blank for one-off templates."
+            value={form.recurrenceDays}
+            onChange={(event) => setForm((current) => ({ ...current, recurrenceDays: event.target.value }))}
           />
         </DialogContent>
         <DialogActions>
