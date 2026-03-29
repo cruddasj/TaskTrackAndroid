@@ -1,9 +1,11 @@
+import CheckCircleOutlineRounded from '@mui/icons-material/CheckCircleOutlineRounded';
 import PauseRounded from '@mui/icons-material/PauseRounded';
 import PlayArrowRounded from '@mui/icons-material/PlayArrowRounded';
+import RadioButtonUncheckedRounded from '@mui/icons-material/RadioButtonUncheckedRounded';
 import ReplayRounded from '@mui/icons-material/ReplayRounded';
 import SkipNextRounded from '@mui/icons-material/SkipNextRounded';
-import { Box, Chip, IconButton, Stack, Typography } from '@mui/material';
-import { useMemo } from 'react';
+import { Box, Button, Card, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, Typography } from '@mui/material';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
 
@@ -17,16 +19,67 @@ const formatTime = (seconds: number): string => {
 
 export const FocusScreen = () => {
   const navigate = useNavigate();
-  const { state, startPomodoro, pausePomodoro, resetPomodoro } = useAppState();
+  const { state, startPomodoro, pausePomodoro, resetPomodoro, toggleTask, assignTasksToRound } = useAppState();
+  const [sessionReviewOpen, setSessionReviewOpen] = useState(false);
+  const [confirmedDoneIds, setConfirmedDoneIds] = useState<string[]>([]);
+
+  const activeRound = useMemo(
+    () => state.rounds.find((round) => round.id === state.pomodoro.activeRoundId),
+    [state.rounds, state.pomodoro.activeRoundId],
+  );
+
+  const roundTasks = useMemo(() => {
+    if (activeRound) {
+      return activeRound.taskIds
+        .map((taskId) => state.tasks.find((task) => task.id === taskId))
+        .filter((task): task is NonNullable<typeof task> => !!task);
+    }
+
+    return state.tasks;
+  }, [activeRound, state.tasks]);
 
   const activeTask = useMemo(
-    () => state.tasks.find((task) => task.id === state.pomodoro.activeTaskId) ?? state.tasks[0],
-    [state.tasks, state.pomodoro.activeTaskId],
+    () => state.tasks.find((task) => task.id === state.pomodoro.activeTaskId) ?? roundTasks[0],
+    [state.tasks, state.pomodoro.activeTaskId, roundTasks],
   );
+
+  const unfinishedRoundTasks = useMemo(
+    () => roundTasks.filter((task) => task.status !== 'done'),
+    [roundTasks],
+  );
+
+  useEffect(() => {
+    if (state.pomodoro.remainingSeconds !== 0 || state.pomodoro.isRunning || unfinishedRoundTasks.length === 0) return;
+    setConfirmedDoneIds(roundTasks.filter((task) => task.status === 'done').map((task) => task.id));
+    setSessionReviewOpen(true);
+  }, [state.pomodoro.remainingSeconds, state.pomodoro.isRunning, unfinishedRoundTasks.length, roundTasks]);
 
   const progress = ((state.pomodoro.totalSeconds - state.pomodoro.remainingSeconds) / state.pomodoro.totalSeconds) * 100;
   const circumference = 2 * Math.PI * 140;
   const dashoffset = circumference - (progress / 100) * circumference;
+
+  const confirmSessionRollover = () => {
+    const confirmedDoneSet = new Set(confirmedDoneIds);
+    roundTasks.forEach((task) => {
+      const shouldBeDone = confirmedDoneSet.has(task.id);
+      if ((shouldBeDone && task.status !== 'done') || (!shouldBeDone && task.status === 'done')) {
+        toggleTask(task.id);
+      }
+    });
+
+    if (!activeRound) {
+      setSessionReviewOpen(false);
+      return;
+    }
+
+    const nextRound = state.rounds.find((round) => round.id !== activeRound.id && round.status !== 'done');
+    if (nextRound) {
+      const carryForwardIds = roundTasks.filter((task) => !confirmedDoneSet.has(task.id)).map((task) => task.id);
+      assignTasksToRound(nextRound.id, Array.from(new Set([...nextRound.taskIds, ...carryForwardIds])));
+    }
+
+    setSessionReviewOpen(false);
+  };
 
   return (
     <Box
@@ -77,6 +130,27 @@ export const FocusScreen = () => {
           <Typography color="text.secondary">Part of: {activeTask?.category ?? 'General'}</Typography>
         </Stack>
 
+        <Card sx={{ width: '100%', maxWidth: 780 }}>
+          <CardContent>
+            <Stack spacing={1}>
+              <Typography variant="h6">Tasks in this session</Typography>
+              {roundTasks.map((task) => (
+                <Stack key={task.id} direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
+                  <Typography>{task.title}</Typography>
+                  <Button
+                    size="small"
+                    startIcon={task.status === 'done' ? <CheckCircleOutlineRounded /> : <RadioButtonUncheckedRounded />}
+                    onClick={() => toggleTask(task.id)}
+                  >
+                    {task.status === 'done' ? 'Done' : 'Mark done'}
+                  </Button>
+                </Stack>
+              ))}
+              {roundTasks.length === 0 && <Typography color="text.secondary">No tasks assigned to this session yet.</Typography>}
+            </Stack>
+          </CardContent>
+        </Card>
+
         <Stack direction="row" spacing={3} alignItems="center" pb={1}>
           <IconButton sx={{ bgcolor: '#1a1a1a' }} onClick={resetPomodoro}><ReplayRounded /></IconButton>
           <IconButton
@@ -96,6 +170,37 @@ export const FocusScreen = () => {
           <IconButton sx={{ bgcolor: '#1a1a1a' }} onClick={() => navigate('/tasks-today')}><SkipNextRounded /></IconButton>
         </Stack>
       </Stack>
+
+      <Dialog open={sessionReviewOpen} onClose={() => setSessionReviewOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Session complete: confirm unfinished tasks</DialogTitle>
+        <DialogContent>
+          <Typography color="text.secondary" mb={2}>
+            Unfinished tasks will be moved to your next pomodoro session. Confirm any tasks that were actually completed.
+          </Typography>
+          <Stack spacing={1}>
+            {roundTasks.map((task) => {
+              const checked = confirmedDoneIds.includes(task.id);
+              return (
+                <Button
+                  key={task.id}
+                  variant={checked ? 'contained' : 'outlined'}
+                  onClick={() =>
+                    setConfirmedDoneIds((current) =>
+                      checked ? current.filter((id) => id !== task.id) : [...current, task.id],
+                    )
+                  }
+                >
+                  {checked ? 'Finished' : 'Unfinished'} · {task.title}
+                </Button>
+              );
+            })}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setSessionReviewOpen(false)}>Review later</Button>
+          <Button variant="contained" onClick={confirmSessionRollover}>Confirm and continue</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

@@ -18,21 +18,6 @@ export interface TaskBankItem {
   estimateMinutes: number;
 }
 
-export interface TaskPackTask {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  estimateMinutes: number;
-}
-
-export interface TaskPack {
-  id: string;
-  name: string;
-  cadence: 'daily' | 'weekly';
-  tasks: TaskPackTask[];
-}
-
 export interface Round {
   id: string;
   title: string;
@@ -56,7 +41,6 @@ export interface AppState {
   categories: string[];
   tasks: Task[];
   taskBank: TaskBankItem[];
-  taskPacks: TaskPack[];
   rounds: Round[];
   settings: {
     pomodoroMinutes: number;
