@@ -50,6 +50,7 @@ export interface AppState {
     longBreakMinutes: number;
     sessionsBeforeLongBreak: number;
     alarmTone: 'bell' | 'chime' | 'digital';
+    alarmRepeatCount: number;
   };
   pomodoro: PomodoroState;
 }

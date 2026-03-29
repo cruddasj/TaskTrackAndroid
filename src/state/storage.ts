@@ -5,6 +5,7 @@ const DEFAULT_POMODORO_MINUTES = 25;
 const DEFAULT_SHORT_BREAK_MINUTES = 5;
 const DEFAULT_LONG_BREAK_MINUTES = 15;
 const DEFAULT_SESSIONS_BEFORE_LONG_BREAK = 4;
+const DEFAULT_ALARM_REPEAT_COUNT = 3;
 
 const defaultCategories = [
   'Household chores',
@@ -85,6 +86,7 @@ const defaultState: AppState = {
     longBreakMinutes: DEFAULT_LONG_BREAK_MINUTES,
     sessionsBeforeLongBreak: DEFAULT_SESSIONS_BEFORE_LONG_BREAK,
     alarmTone: 'bell',
+    alarmRepeatCount: DEFAULT_ALARM_REPEAT_COUNT,
   },
   pomodoro: {
     isRunning: false,
@@ -136,6 +138,10 @@ const normalizeState = (raw: Partial<AppState>): AppState => {
           ? raw.settings.sessionsBeforeLongBreak
           : DEFAULT_SESSIONS_BEFORE_LONG_BREAK,
       alarmTone: raw.settings?.alarmTone ?? 'bell',
+      alarmRepeatCount:
+        raw.settings?.alarmRepeatCount && raw.settings.alarmRepeatCount > 0
+          ? Math.min(10, Math.round(raw.settings.alarmRepeatCount))
+          : DEFAULT_ALARM_REPEAT_COUNT,
     },
     pomodoro: {
       ...defaultState.pomodoro,

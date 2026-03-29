@@ -26,6 +26,7 @@ type Action =
   | { type: 'SET_LONG_BREAK_MINUTES'; payload: { minutes: number } }
   | { type: 'SET_SESSIONS_BEFORE_LONG_BREAK'; payload: { sessions: number } }
   | { type: 'SET_ALARM_TONE'; payload: { tone: AlarmTone } }
+  | { type: 'SET_ALARM_REPEAT_COUNT'; payload: { count: number } }
   | { type: 'START_POMODORO'; payload: { taskId: string; roundId?: string; minutes?: number } }
   | { type: 'PAUSE_POMODORO' }
   | { type: 'COMPLETE_POMODORO' }
@@ -195,6 +196,14 @@ const reducer = (state: AppState, action: Action): AppState => {
           alarmTone: action.payload.tone,
         },
       };
+    case 'SET_ALARM_REPEAT_COUNT':
+      return {
+        ...state,
+        settings: {
+          ...state.settings,
+          alarmRepeatCount: Math.max(1, Math.min(10, Math.round(action.payload.count))),
+        },
+      };
     case 'START_POMODORO': {
       const phase = state.pomodoro.phase;
       const totalSeconds = action.payload.minutes ? action.payload.minutes * 60 : getPhaseSeconds(state, phase);
@@ -284,6 +293,7 @@ interface AppStateContextValue {
   setLongBreakMinutes: (minutes: number) => void;
   setSessionsBeforeLongBreak: (sessions: number) => void;
   setAlarmTone: (tone: AlarmTone) => void;
+  setAlarmRepeatCount: (count: number) => void;
   startPomodoro: (taskId: string, roundId?: string, minutes?: number) => void;
   pausePomodoro: () => void;
   completePomodoro: () => void;
@@ -331,15 +341,21 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
       long_break: 'Great work. Start your next focus session.',
     };
 
-    notifyPomodoroComplete(titleByPhase[state.pomodoro.phase], bodyByPhase[state.pomodoro.phase], state.settings.alarmTone).catch(
-      () => undefined,
-    );
+    notifyPomodoroComplete(
+      titleByPhase[state.pomodoro.phase],
+      bodyByPhase[state.pomodoro.phase],
+      state.settings.alarmTone,
+      state.settings.alarmRepeatCount,
+    ).catch(() => undefined);
 
     stopAlarmRef.current?.();
-    stopAlarmRef.current = startRepeatingAlarm(state.settings.alarmTone);
     setAlarmActive(true);
+    stopAlarmRef.current = startRepeatingAlarm(state.settings.alarmTone, state.settings.alarmRepeatCount, () => {
+      stopAlarmRef.current = null;
+      setAlarmActive(false);
+    });
     dispatch({ type: 'ADVANCE_POMODORO_PHASE' });
-  }, [state.pomodoro.remainingSeconds, state.pomodoro.phase, state.settings.alarmTone]);
+  }, [state.pomodoro.remainingSeconds, state.pomodoro.phase, state.settings.alarmTone, state.settings.alarmRepeatCount]);
 
   const dismissAlarm = () => {
     stopAlarmRef.current?.();
@@ -378,6 +394,7 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
       setLongBreakMinutes: (minutes) => dispatch({ type: 'SET_LONG_BREAK_MINUTES', payload: { minutes } }),
       setSessionsBeforeLongBreak: (sessions) => dispatch({ type: 'SET_SESSIONS_BEFORE_LONG_BREAK', payload: { sessions } }),
       setAlarmTone: (tone) => dispatch({ type: 'SET_ALARM_TONE', payload: { tone } }),
+      setAlarmRepeatCount: (count) => dispatch({ type: 'SET_ALARM_REPEAT_COUNT', payload: { count } }),
       startPomodoro: (taskId, roundId, minutes) => dispatch({ type: 'START_POMODORO', payload: { taskId, roundId, minutes } }),
       pausePomodoro: () => dispatch({ type: 'PAUSE_POMODORO' }),
       completePomodoro: () => dispatch({ type: 'COMPLETE_POMODORO' }),

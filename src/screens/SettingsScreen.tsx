@@ -17,6 +17,7 @@ export const SettingsScreen = () => {
     setLongBreakMinutes,
     setSessionsBeforeLongBreak,
     setAlarmTone,
+    setAlarmRepeatCount,
     showSuccessMessage,
   } = useAppState();
   const [name, setName] = useState(state.userName);
@@ -25,6 +26,7 @@ export const SettingsScreen = () => {
   const [shortBreakMinutes, setShortBreakMinutesInput] = useState(String(state.settings.shortBreakMinutes));
   const [longBreakMinutes, setLongBreakMinutesInput] = useState(String(state.settings.longBreakMinutes));
   const [sessionsBeforeLongBreak, setSessionsBeforeLongBreakInput] = useState(String(state.settings.sessionsBeforeLongBreak));
+  const [alarmRepeatCount, setAlarmRepeatCountInput] = useState(String(state.settings.alarmRepeatCount));
 
   const needsName = !state.userName.trim();
   const categoryExists = useMemo(
@@ -38,8 +40,8 @@ export const SettingsScreen = () => {
         <Typography variant="h3">Settings</Typography>
         <Typography color="text.secondary">
           {needsName
-            ? 'Welcome! Add your name for personalization. This data stays on your device and is never shared.'
-            : 'Manage your profile and task categories.'}
+            ? 'Welcome! Start by adding your name so the app can personalize your dashboard. Your data stays on this device.'
+            : 'Update your profile, timer behavior, alarm settings, and task categories.'}
         </Typography>
       </Box>
 
@@ -49,7 +51,7 @@ export const SettingsScreen = () => {
           severity="success"
           sx={{ bgcolor: 'rgba(145,247,142,0.12)', color: 'primary.main', '& .MuiAlert-icon': { color: 'primary.main' } }}
         >
-          This is your setup page. You can also manage your own task categories here any time.
+          Finish this setup once, then revisit anytime to adjust your timer and alarm preferences.
         </Alert>
       )}
 
@@ -125,6 +127,14 @@ export const SettingsScreen = () => {
               <MenuItem value="chime">Chime</MenuItem>
               <MenuItem value="digital">Digital</MenuItem>
             </TextField>
+            <TextField
+              label="Alarm repeats per session end"
+              type="number"
+              inputProps={{ min: 1, max: 10 }}
+              value={alarmRepeatCount}
+              onChange={(event) => setAlarmRepeatCountInput(event.target.value)}
+              helperText="Choose how many times the alarm should ring (1 to 10)."
+            />
             <Button
               variant="outlined"
               color="secondary"
@@ -140,16 +150,19 @@ export const SettingsScreen = () => {
                 const shortBreak = Number(shortBreakMinutes);
                 const longBreak = Number(longBreakMinutes);
                 const sessions = Number(sessionsBeforeLongBreak);
-                if (!Number.isFinite(minutes) || !Number.isFinite(shortBreak) || !Number.isFinite(longBreak) || !Number.isFinite(sessions)) return;
-                if (minutes <= 0 || shortBreak <= 0 || longBreak <= 0 || sessions <= 1) return;
+                const repeats = Number(alarmRepeatCount);
+                if (!Number.isFinite(minutes) || !Number.isFinite(shortBreak) || !Number.isFinite(longBreak) || !Number.isFinite(sessions) || !Number.isFinite(repeats)) return;
+                if (minutes <= 0 || shortBreak <= 0 || longBreak <= 0 || sessions <= 1 || repeats < 1 || repeats > 10) return;
                 setPomodoroMinutes(minutes);
                 setShortBreakMinutes(shortBreak);
                 setLongBreakMinutes(longBreak);
                 setSessionsBeforeLongBreak(sessions);
+                setAlarmRepeatCount(repeats);
                 setPomodoroMinutesInput(String(Math.round(minutes)));
                 setShortBreakMinutesInput(String(Math.round(shortBreak)));
                 setLongBreakMinutesInput(String(Math.round(longBreak)));
                 setSessionsBeforeLongBreakInput(String(Math.round(sessions)));
+                setAlarmRepeatCountInput(String(Math.max(1, Math.min(10, Math.round(repeats)))));
                 showSuccessMessage('Timer settings saved.');
               }}
               disabled={
@@ -157,10 +170,13 @@ export const SettingsScreen = () => {
                 !shortBreakMinutes.trim() ||
                 !longBreakMinutes.trim() ||
                 !sessionsBeforeLongBreak.trim() ||
+                !alarmRepeatCount.trim() ||
                 Number(pomodoroMinutes) <= 0 ||
                 Number(shortBreakMinutes) <= 0 ||
                 Number(longBreakMinutes) <= 0 ||
-                Number(sessionsBeforeLongBreak) <= 1
+                Number(sessionsBeforeLongBreak) <= 1 ||
+                Number(alarmRepeatCount) < 1 ||
+                Number(alarmRepeatCount) > 10
               }
             >
               Save timer settings

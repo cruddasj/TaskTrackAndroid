@@ -92,7 +92,7 @@ export const TodaysTasksScreen = () => {
     <Stack spacing={2}>
       <Box>
         <Typography variant="h3">Today&apos;s Tasks</Typography>
-        <Typography color="text.secondary">Add and complete the specific tasks for today.</Typography>
+        <Typography color="text.secondary">Capture only what you plan to complete today, then assign tasks into rounds.</Typography>
       </Box>
 
       <Card>
@@ -100,7 +100,7 @@ export const TodaysTasksScreen = () => {
           <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={1.5}>
             <Box>
               <Typography variant="h5">Today&apos;s task list</Typography>
-              <Typography color="text.secondary">{remainingTodayTasks} remaining · These tasks are assignable to rounds.</Typography>
+              <Typography color="text.secondary">{remainingTodayTasks} remaining · Use “Assign tasks” in Rounds to place them into sessions.</Typography>
             </Box>
             <Stack direction="row" spacing={1}>
               <Button variant="outlined" onClick={() => navigate('/task-bank')}>Open task bank</Button>

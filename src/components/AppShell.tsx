@@ -73,7 +73,7 @@ export const AppShell = () => {
           onChange={(_, next) => navigate(next)}
           showLabels
           sx={{
-            bgcolor: 'transparent',
+            bgcolor: '#121212',
             height: 72,
             '& .MuiBottomNavigationAction-root': {
               minWidth: 0,

@@ -185,7 +185,7 @@ export const FocusScreen = () => {
         <DialogTitle>Session complete: confirm unfinished tasks</DialogTitle>
         <DialogContent>
           <Typography color="text.secondary" mb={2}>
-            Unfinished tasks will be moved to your next pomodoro session. Confirm any tasks that were actually completed.
+            Tasks left unchecked will automatically move to your next round. Mark anything you finished before continuing.
           </Typography>
           <Stack spacing={1}>
             {roundTasks.map((task) => {

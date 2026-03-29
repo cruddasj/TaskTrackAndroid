@@ -3,6 +3,8 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 
 export type AlarmTone = 'bell' | 'chime' | 'digital';
 
+const ALARM_REPEAT_INTERVAL_MS = 2500;
+
 export const requestNotificationPermissions = async (): Promise<void> => {
   if (Capacitor.isNativePlatform()) {
     await LocalNotifications.requestPermissions();
@@ -14,20 +16,24 @@ export const requestNotificationPermissions = async (): Promise<void> => {
   }
 };
 
-export const notifyPomodoroComplete = async (title: string, body: string, tone: AlarmTone): Promise<void> => {
+export const notifyPomodoroComplete = async (
+  title: string,
+  body: string,
+  tone: AlarmTone,
+  repeatCount: number,
+): Promise<void> => {
+  const safeRepeatCount = Math.max(1, Math.round(repeatCount));
 
   if (Capacitor.isNativePlatform()) {
+    const now = Date.now();
     await LocalNotifications.schedule({
-      notifications: [
-        {
-          id: Date.now(),
-          title,
-          body,
-          schedule: { at: new Date(Date.now() + 200) },
-          sound: `res://raw/alarm_${tone}`,
-          ongoing: true,
-        },
-      ],
+      notifications: Array.from({ length: safeRepeatCount }, (_, index) => ({
+        id: now + index,
+        title,
+        body,
+        schedule: { at: new Date(now + 200 + index * ALARM_REPEAT_INTERVAL_MS) },
+        sound: `res://raw/alarm_${tone}`,
+      })),
     });
     return;
   }
@@ -87,13 +93,44 @@ export const playAlarmTone = (tone: AlarmTone): void => {
   playTonePattern(context, tone);
 };
 
-export const startRepeatingAlarm = (tone: AlarmTone): (() => void) => {
-  playAlarmTone(tone);
+export const startRepeatingAlarm = (
+  tone: AlarmTone,
+  repeatCount: number,
+  onComplete?: () => void,
+  player: (nextTone: AlarmTone) => void = playAlarmTone,
+): (() => void) => {
+  const safeRepeatCount = Math.max(1, Math.round(repeatCount));
+  let playCount = 0;
+  let completed = false;
+
+  const finish = () => {
+    if (completed) return;
+    completed = true;
+    onComplete?.();
+  };
+
+  const playOnce = () => {
+    playCount += 1;
+    player(tone);
+    if (playCount >= safeRepeatCount) {
+      finish();
+      return true;
+    }
+    return false;
+  };
+
+  if (playOnce()) {
+    return () => finish();
+  }
+
   const interval = window.setInterval(() => {
-    playAlarmTone(tone);
-  }, 2500);
+    if (playOnce()) {
+      window.clearInterval(interval);
+    }
+  }, ALARM_REPEAT_INTERVAL_MS);
 
   return () => {
     window.clearInterval(interval);
+    finish();
   };
 };
