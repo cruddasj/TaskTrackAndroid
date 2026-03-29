@@ -6,7 +6,7 @@ import RadioButtonUncheckedRounded from '@mui/icons-material/RadioButtonUnchecke
 import { Alert, Box, Button, Card, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useAppState } from '../state/AppStateContext';
-import { hasDuplicateTodayTaskTitle, suggestRecurringTaskBankItems } from '../state/tasks';
+import { hasDuplicateTodayTaskTitle, suggestRecurringTaskBankItems, WEEKDAY_LABELS } from '../state/tasks';
 import { Task, TaskBankItem } from '../types';
 
 interface TaskFormState {
@@ -33,6 +33,14 @@ export const TodaysTasksScreen = () => {
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [form, setForm] = useState<TaskFormState>(emptyForm);
   const [validationMessage, setValidationMessage] = useState<string | null>(null);
+
+  const formatRecurrenceLabel = (task: TaskBankItem): string => {
+    if (task.recurrenceWeekdays && task.recurrenceWeekdays.length > 0) {
+      return `on ${task.recurrenceWeekdays.map((weekday) => WEEKDAY_LABELS[weekday]).join(', ')}`;
+    }
+    if (task.recurrenceDays) return `every ${task.recurrenceDays} days`;
+    return 'manual';
+  };
 
   useEffect(() => {
     if (!form.category && state.categories.length > 0) {
@@ -129,7 +137,7 @@ export const TodaysTasksScreen = () => {
               <Typography variant="h5">Recurring task suggestions</Typography>
               <Typography color="text.secondary">Review templates from Task Bank that are due based on your repeat settings before adding them.</Typography>
             </Box>
-            <Button variant="outlined" onClick={openRecurringSuggestions}>Suggest overdue recurring tasks</Button>
+            <Button variant="outlined" onClick={openRecurringSuggestions}>Suggest recurring tasks</Button>
           </Stack>
         </CardContent>
       </Card>
@@ -265,9 +273,7 @@ export const TodaysTasksScreen = () => {
                 <Box key={task.id}>
                   <Typography fontWeight={700}>{task.title}</Typography>
                   <Typography color="text.secondary" variant="body2">{task.description}</Typography>
-                  <Typography color="text.secondary" variant="body2">
-                    {task.category} • {task.estimateMinutes} min • every {task.recurrenceDays} days
-                  </Typography>
+                  <Typography color="text.secondary" variant="body2">{task.category} • {task.estimateMinutes} min • {formatRecurrenceLabel(task)}</Typography>
                 </Box>
               ))}
             </Stack>

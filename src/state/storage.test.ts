@@ -108,6 +108,7 @@ describe('storage', () => {
             category: 'Health and wellbeing',
             estimateMinutes: 10,
             recurrenceDays: 2.7,
+            recurrenceWeekdays: [2, 2, 7, -1],
           },
         ],
       }),
@@ -116,5 +117,6 @@ describe('storage', () => {
     const loaded = loadState();
     expect(loaded.taskBank[0].recurrenceDays).toBeUndefined();
     expect(loaded.taskBank[1].recurrenceDays).toBe(3);
+    expect(loaded.taskBank[1].recurrenceWeekdays).toEqual([2]);
   });
 });

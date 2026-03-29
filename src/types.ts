@@ -19,6 +19,7 @@ export interface TaskBankItem {
   category: string;
   estimateMinutes: number;
   recurrenceDays?: number;
+  recurrenceWeekdays?: number[];
 }
 
 export interface Round {

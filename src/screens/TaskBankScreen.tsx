@@ -3,11 +3,11 @@ import DeleteOutlineRounded from '@mui/icons-material/DeleteOutlineRounded';
 import EditOutlined from '@mui/icons-material/EditOutlined';
 import PlaylistAddRounded from '@mui/icons-material/PlaylistAddRounded';
 import InfoOutlined from '@mui/icons-material/InfoOutlined';
-import { Alert, Box, Button, Card, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, Card, CardContent, Checkbox, Chip, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
-import { hasDuplicateTodayTaskTitle } from '../state/tasks';
+import { hasDuplicateTodayTaskTitle, WEEKDAY_LABELS } from '../state/tasks';
 import { TaskBankItem } from '../types';
 
 interface TaskFormState {
@@ -15,7 +15,9 @@ interface TaskFormState {
   description: string;
   category: string;
   estimateMinutes: string;
+  recurrenceMode: 'none' | 'days' | 'weekdays';
   recurrenceDays: string;
+  recurrenceWeekdays: number[];
 }
 
 const emptyForm: TaskFormState = {
@@ -23,7 +25,9 @@ const emptyForm: TaskFormState = {
   description: '',
   category: '',
   estimateMinutes: '25',
+  recurrenceMode: 'none',
   recurrenceDays: '',
+  recurrenceWeekdays: [],
 };
 
 export const TaskBankScreen = () => {
@@ -55,7 +59,9 @@ export const TaskBankScreen = () => {
       description: task.description,
       category: task.category,
       estimateMinutes: String(task.estimateMinutes),
+      recurrenceMode: task.recurrenceWeekdays && task.recurrenceWeekdays.length > 0 ? 'weekdays' : task.recurrenceDays ? 'days' : 'none',
       recurrenceDays: task.recurrenceDays ? String(task.recurrenceDays) : '',
+      recurrenceWeekdays: task.recurrenceWeekdays ?? [],
     });
     setOpen(true);
   };
@@ -73,9 +79,14 @@ export const TaskBankScreen = () => {
     const estimateMinutes = Number(form.estimateMinutes);
     const recurrenceDays = Number(form.recurrenceDays);
     const normalizedRecurrenceDays =
-      Number.isFinite(recurrenceDays) && recurrenceDays > 0 ? Math.round(recurrenceDays) : undefined;
+      form.recurrenceMode === 'days' && Number.isFinite(recurrenceDays) && recurrenceDays > 0 ? Math.round(recurrenceDays) : undefined;
+    const normalizedRecurrenceWeekdays =
+      form.recurrenceMode === 'weekdays'
+        ? [...new Set(form.recurrenceWeekdays)].filter((weekday) => Number.isInteger(weekday) && weekday >= 0 && weekday <= 6).sort((a, b) => a - b)
+        : undefined;
 
     if (!title || !Number.isFinite(estimateMinutes) || estimateMinutes <= 0) return;
+    if (form.recurrenceMode === 'weekdays' && (!normalizedRecurrenceWeekdays || normalizedRecurrenceWeekdays.length === 0)) return;
 
     if (editingTaskBankId) {
       updateTaskBankItem({
@@ -85,10 +96,18 @@ export const TaskBankScreen = () => {
         category,
         estimateMinutes,
         recurrenceDays: normalizedRecurrenceDays,
+        recurrenceWeekdays: normalizedRecurrenceWeekdays,
       });
       showSuccessMessage('Task Bank item updated.');
     } else {
-      addTaskBankItem({ title, description, category, estimateMinutes, recurrenceDays: normalizedRecurrenceDays });
+      addTaskBankItem({
+        title,
+        description,
+        category,
+        estimateMinutes,
+        recurrenceDays: normalizedRecurrenceDays,
+        recurrenceWeekdays: normalizedRecurrenceWeekdays,
+      });
       showSuccessMessage('Task Bank item created.');
     }
 
@@ -151,6 +170,9 @@ export const TaskBankScreen = () => {
               <Chip label={task.category} />
               <Chip label={`${task.estimateMinutes} min`} variant="outlined" />
               {task.recurrenceDays && <Chip label={`Every ${task.recurrenceDays} days`} variant="outlined" />}
+              {task.recurrenceWeekdays && task.recurrenceWeekdays.length > 0 && (
+                <Chip label={`On ${task.recurrenceWeekdays.map((weekday) => WEEKDAY_LABELS[weekday]).join(', ')}`} variant="outlined" />
+              )}
               <Button
                 size="small"
                 onClick={() => {
@@ -227,14 +249,52 @@ export const TaskBankScreen = () => {
           />
           <TextField
             margin="dense"
-            label="Repeat every (days)"
+            label="Repeat pattern"
             fullWidth
-            type="number"
-            inputProps={{ min: 1 }}
-            helperText="Optional. Leave blank for one-off templates."
-            value={form.recurrenceDays}
-            onChange={(event) => setForm((current) => ({ ...current, recurrenceDays: event.target.value }))}
-          />
+            select
+            value={form.recurrenceMode}
+            onChange={(event) => setForm((current) => ({ ...current, recurrenceMode: event.target.value as TaskFormState['recurrenceMode'] }))}
+          >
+            <MenuItem value="none">No repeat</MenuItem>
+            <MenuItem value="days">Every X days</MenuItem>
+            <MenuItem value="weekdays">Specific weekdays</MenuItem>
+          </TextField>
+          {form.recurrenceMode === 'days' && (
+            <TextField
+              margin="dense"
+              label="Repeat every (days)"
+              fullWidth
+              type="number"
+              inputProps={{ min: 1 }}
+              helperText="Optional. Leave blank for one-off templates."
+              value={form.recurrenceDays}
+              onChange={(event) => setForm((current) => ({ ...current, recurrenceDays: event.target.value }))}
+            />
+          )}
+          {form.recurrenceMode === 'weekdays' && (
+            <Stack mt={1}>
+              <Typography variant="body2" color="text.secondary">Repeat on weekdays</Typography>
+              <Stack direction="row" flexWrap="wrap" useFlexGap>
+                {WEEKDAY_LABELS.map((label, weekday) => (
+                  <FormControlLabel
+                    key={label}
+                    control={(
+                      <Checkbox
+                        checked={form.recurrenceWeekdays.includes(weekday)}
+                        onChange={(_, checked) => setForm((current) => ({
+                          ...current,
+                          recurrenceWeekdays: checked
+                            ? [...current.recurrenceWeekdays, weekday]
+                            : current.recurrenceWeekdays.filter((item) => item !== weekday),
+                        }))}
+                      />
+                    )}
+                    label={label.slice(0, 3)}
+                  />
+                ))}
+              </Stack>
+            </Stack>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={closeDialog}>Cancel</Button>
