@@ -49,5 +49,8 @@ export interface AppState {
   tasks: Task[];
   taskPacks: TaskPack[];
   rounds: Round[];
+  settings: {
+    pomodoroMinutes: number;
+  };
   pomodoro: PomodoroState;
 }

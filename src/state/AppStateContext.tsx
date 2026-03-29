@@ -17,6 +17,8 @@ type Action =
   | { type: 'DELETE_CATEGORY'; payload: { category: string } }
   | { type: 'ADD_TASK_PACK'; payload: NewTaskPack }
   | { type: 'DELETE_TASK_PACK'; payload: { id: string } }
+  | { type: 'ASSIGN_TASKS_TO_ROUND'; payload: { roundId: string; taskIds: string[] } }
+  | { type: 'SET_POMODORO_MINUTES'; payload: { minutes: number } }
   | { type: 'START_POMODORO'; payload: { taskId: string; roundId?: string; minutes?: number } }
   | { type: 'PAUSE_POMODORO' }
   | { type: 'TICK' }
@@ -120,8 +122,54 @@ const reducer = (state: AppState, action: Action): AppState => {
         ...state,
         taskPacks: state.taskPacks.filter((pack) => pack.id !== action.payload.id),
       };
+    case 'ASSIGN_TASKS_TO_ROUND': {
+      const { roundId, taskIds } = action.payload;
+      const taskIdSet = new Set(taskIds);
+      return {
+        ...state,
+        rounds: state.rounds.map((round) =>
+          round.id === roundId
+            ? {
+                ...round,
+                taskIds,
+              }
+            : {
+                ...round,
+                taskIds: round.taskIds.filter((taskId) => !taskIdSet.has(taskId)),
+              },
+        ),
+        tasks: state.tasks.map((task) => {
+          if (taskIdSet.has(task.id)) {
+            return { ...task, roundId };
+          }
+          if (task.roundId === roundId) {
+            return { ...task, roundId: undefined };
+          }
+          return task;
+        }),
+      };
+    }
+    case 'SET_POMODORO_MINUTES': {
+      const minutes = Math.max(1, Math.round(action.payload.minutes));
+      return {
+        ...state,
+        settings: {
+          ...state.settings,
+          pomodoroMinutes: minutes,
+        },
+        rounds: state.rounds.map((round) => ({
+          ...round,
+          durationMinutes: minutes,
+        })),
+        pomodoro: {
+          ...state.pomodoro,
+          totalSeconds: minutes * 60,
+          remainingSeconds: state.pomodoro.isRunning ? state.pomodoro.remainingSeconds : minutes * 60,
+        },
+      };
+    }
     case 'START_POMODORO': {
-      const totalSeconds = (action.payload.minutes ?? 25) * 60;
+      const totalSeconds = (action.payload.minutes ?? state.settings.pomodoroMinutes) * 60;
       const pomodoro: PomodoroState = {
         ...state.pomodoro,
         isRunning: true,
@@ -179,6 +227,8 @@ interface AppStateContextValue {
   deleteCategory: (category: string) => void;
   addTaskPack: (taskPack: NewTaskPack) => void;
   deleteTaskPack: (id: string) => void;
+  assignTasksToRound: (roundId: string, taskIds: string[]) => void;
+  setPomodoroMinutes: (minutes: number) => void;
   startPomodoro: (taskId: string, roundId?: string, minutes?: number) => void;
   pausePomodoro: () => void;
   resetPomodoro: () => void;
@@ -228,6 +278,8 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
       deleteCategory: (category) => dispatch({ type: 'DELETE_CATEGORY', payload: { category } }),
       addTaskPack: (taskPack) => dispatch({ type: 'ADD_TASK_PACK', payload: taskPack }),
       deleteTaskPack: (id) => dispatch({ type: 'DELETE_TASK_PACK', payload: { id } }),
+      assignTasksToRound: (roundId, taskIds) => dispatch({ type: 'ASSIGN_TASKS_TO_ROUND', payload: { roundId, taskIds } }),
+      setPomodoroMinutes: (minutes) => dispatch({ type: 'SET_POMODORO_MINUTES', payload: { minutes } }),
       startPomodoro: (taskId, roundId, minutes) => dispatch({ type: 'START_POMODORO', payload: { taskId, roundId, minutes } }),
       pausePomodoro: () => dispatch({ type: 'PAUSE_POMODORO' }),
       resetPomodoro: () => dispatch({ type: 'RESET_POMODORO' }),
