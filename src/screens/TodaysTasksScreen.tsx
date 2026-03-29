@@ -162,7 +162,14 @@ export const TodaysTasksScreen = () => {
       <IconButton
         color="primary"
         onClick={openCreateDialog}
-        sx={{ position: 'fixed', right: 24, bottom: 92, bgcolor: 'primary.main', color: 'primary.contrastText', '&:hover': { bgcolor: 'primary.main' } }}
+        sx={{
+          position: 'fixed',
+          right: 24,
+          bottom: 'calc(92px + env(safe-area-inset-bottom, 0px))',
+          bgcolor: 'primary.main',
+          color: 'primary.contrastText',
+          '&:hover': { bgcolor: 'primary.main' },
+        }}
       >
         <AddRounded />
       </IconButton>

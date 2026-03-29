@@ -31,7 +31,7 @@ export const AppShell = () => {
       minHeight="100dvh"
       bgcolor="background.default"
       pb="calc(80px + env(safe-area-inset-bottom, 0px))"
-      pt="max(8px, env(safe-area-inset-top, 0px))"
+      pt="calc(env(safe-area-inset-top, 0px) + 12px)"
     >
       <Box px={{ xs: 2, md: 4 }} py={3}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
@@ -72,7 +72,24 @@ export const AppShell = () => {
           value={current}
           onChange={(_, next) => navigate(next)}
           showLabels
-          sx={{ bgcolor: 'transparent', height: 72 }}
+          sx={{
+            bgcolor: 'transparent',
+            height: 72,
+            '& .MuiBottomNavigationAction-root': {
+              minWidth: 0,
+              px: 0.25,
+              flex: 1,
+            },
+            '& .MuiBottomNavigationAction-label': {
+              fontSize: '0.72rem',
+              lineHeight: 1.1,
+              whiteSpace: 'normal',
+              textAlign: 'center',
+            },
+            '& .MuiBottomNavigationAction-label.Mui-selected': {
+              fontSize: '0.75rem',
+            },
+          }}
         >
           {visibleTabs.map((tab) => (
             <BottomNavigationAction key={tab.path} value={tab.path} label={tab.label} icon={tab.icon} />
