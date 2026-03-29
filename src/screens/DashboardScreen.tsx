@@ -35,7 +35,7 @@ export const DashboardScreen = () => {
     <Stack spacing={3}>
       <Box>
         <Typography variant="h3">{greeting}, {state.userName}</Typography>
-        <Typography color="text.secondary">Pick a round, focus on one task, and track your completion progress.</Typography>
+        <Typography color="text.secondary">Pick a round and use focused attention blocks to move through small, manageable tasks.</Typography>
       </Box>
 
       <Card sx={{ background: 'radial-gradient(circle at 65% 40%, rgba(145,247,142,0.28), rgba(14,14,14,1) 60%)' }}>

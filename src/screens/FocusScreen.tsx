@@ -131,8 +131,8 @@ export const FocusScreen = () => {
               transform="rotate(-90 160 160)"
             />
           </svg>
-          <Stack position="absolute" sx={{ inset: 0, px: 2 }} alignItems="center" justifyContent="center">
-            <Typography variant="h1" fontSize={{ xs: 82, md: 88 }} fontWeight={800}>{formatTime(state.pomodoro.remainingSeconds)}</Typography>
+          <Stack position="absolute" sx={{ inset: 0, px: { xs: 3.5, md: 4 } }} alignItems="center" justifyContent="center">
+            <Typography variant="h1" fontSize={{ xs: 76, md: 88 }} fontWeight={800}>{formatTime(state.pomodoro.remainingSeconds)}</Typography>
             <Typography color="text.secondary" letterSpacing="0.1em">REMAINING</Typography>
           </Stack>
         </Box>

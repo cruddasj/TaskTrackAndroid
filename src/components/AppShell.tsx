@@ -30,8 +30,8 @@ export const AppShell = () => {
     <Box
       minHeight="100dvh"
       bgcolor="background.default"
-      pb="calc(80px + env(safe-area-inset-bottom, 0px))"
-      pt="calc(env(safe-area-inset-top, 0px) + 12px)"
+      pb="calc(96px + env(safe-area-inset-bottom, 0px))"
+      pt="calc(max(env(safe-area-inset-top, 0px), 24px) + 12px)"
     >
       <Box px={{ xs: 2, md: 4 }} py={3}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
