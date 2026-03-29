@@ -2,7 +2,7 @@ import DashboardOutlined from '@mui/icons-material/DashboardOutlined';
 import ListAltOutlined from '@mui/icons-material/ListAltOutlined';
 import SettingsOutlined from '@mui/icons-material/SettingsOutlined';
 import TimerOutlined from '@mui/icons-material/TimerOutlined';
-import { Alert, BottomNavigation, BottomNavigationAction, Box, Button, Paper, Stack, Typography } from '@mui/material';
+import { Alert, BottomNavigation, BottomNavigationAction, Box, Button, Paper, Snackbar, Stack, Typography } from '@mui/material';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
 
@@ -15,7 +15,7 @@ const tabs = [
 ];
 
 export const AppShell = () => {
-  const { state, alarmActive, dismissAlarm } = useAppState();
+  const { state, alarmActive, dismissAlarm, successMessage, clearSuccessMessage } = useAppState();
   const navigate = useNavigate();
   const location = useLocation();
   const isFirstTimeUser = !state.userName.trim();
@@ -27,7 +27,12 @@ export const AppShell = () => {
   const seconds = (state.pomodoro.remainingSeconds % 60).toString().padStart(2, '0');
 
   return (
-    <Box minHeight="100dvh" bgcolor="background.default" pb={10}>
+    <Box
+      minHeight="100dvh"
+      bgcolor="background.default"
+      pb="calc(80px + env(safe-area-inset-bottom, 0px))"
+      pt="max(8px, env(safe-area-inset-top, 0px))"
+    >
       <Box px={{ xs: 2, md: 4 }} py={3}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
           <Typography variant="h5" color="primary.main" fontWeight={800}>
@@ -52,7 +57,17 @@ export const AppShell = () => {
       <Box px={{ xs: 2, md: 4 }}>
         <Outlet />
       </Box>
-      <Paper sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, bgcolor: '#121212' }} elevation={0}>
+      <Paper
+        sx={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          bgcolor: '#121212',
+          pb: 'env(safe-area-inset-bottom, 0px)',
+        }}
+        elevation={0}
+      >
         <BottomNavigation
           value={current}
           onChange={(_, next) => navigate(next)}
@@ -64,6 +79,14 @@ export const AppShell = () => {
           ))}
         </BottomNavigation>
       </Paper>
+      <Snackbar
+        open={!!successMessage}
+        autoHideDuration={2500}
+        onClose={clearSuccessMessage}
+        message={successMessage}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        sx={{ mb: 'calc(70px + env(safe-area-inset-bottom, 0px))' }}
+      />
     </Box>
   );
 };
