@@ -72,4 +72,34 @@ describe('storage', () => {
 
     expect(loadState().tasks[0].plannedDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
+
+  it('normalizes invalid task bank recurrence values', () => {
+    localStorage.setItem(
+      'tasktrack.state.v2',
+      JSON.stringify({
+        taskBank: [
+          {
+            id: 'tb-1',
+            title: 'Make bread',
+            description: 'Bake',
+            category: 'Household chores',
+            estimateMinutes: 45,
+            recurrenceDays: 0,
+          },
+          {
+            id: 'tb-2',
+            title: 'Water plants',
+            description: 'Mist',
+            category: 'Health and wellbeing',
+            estimateMinutes: 10,
+            recurrenceDays: 2.7,
+          },
+        ],
+      }),
+    );
+
+    const loaded = loadState();
+    expect(loaded.taskBank[0].recurrenceDays).toBeUndefined();
+    expect(loaded.taskBank[1].recurrenceDays).toBe(3);
+  });
 });

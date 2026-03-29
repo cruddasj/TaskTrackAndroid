@@ -18,6 +18,7 @@ export interface TaskBankItem {
   description: string;
   category: string;
   estimateMinutes: number;
+  recurrenceDays?: number;
 }
 
 export interface Round {

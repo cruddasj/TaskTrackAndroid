@@ -10,7 +10,8 @@ export const DashboardScreen = () => {
   const navigate = useNavigate();
   const { state } = useAppState();
   const todayKey = new Date().toISOString().slice(0, 10);
-  const recentDayKeys = Array.from({ length: 7 }, (_, index) => {
+  const historyWindowDays = 30;
+  const recentDayKeys = Array.from({ length: historyWindowDays }, (_, index) => {
     const date = new Date();
     date.setDate(date.getDate() - index);
     return date.toISOString().slice(0, 10);
@@ -184,7 +185,7 @@ export const DashboardScreen = () => {
 
       <Card>
         <CardContent>
-          <Typography variant="h6" mb={1}>Completed focus by category (last 7 days)</Typography>
+          <Typography variant="h6" mb={1}>Completed focus by category (last 30 days)</Typography>
           <Stack spacing={0.75}>
             {Object.entries(categoryTotals)
               .sort((a, b) => b[1] - a[1])
@@ -195,7 +196,7 @@ export const DashboardScreen = () => {
                 </Stack>
               ))}
             {Object.keys(categoryTotals).length === 0 && (
-              <Typography color="text.secondary">No completed tasks in the last 7 days yet.</Typography>
+              <Typography color="text.secondary">No completed tasks in the last 30 days yet.</Typography>
             )}
           </Stack>
         </CardContent>
@@ -203,7 +204,7 @@ export const DashboardScreen = () => {
 
       <Card>
         <CardContent>
-          <Typography variant="h6" mb={1}>Last 7 days activity</Typography>
+          <Typography variant="h6" mb={1}>Last 30 days activity</Typography>
           <Stack spacing={1.25}>
             {historyByDay.map(({ dayKey, planned, completedForDay }, index) => (
               <Box key={dayKey}>

@@ -49,6 +49,7 @@ const defaultState: AppState = {
       description: 'Wipe, disinfect and dry all prep surfaces.',
       category: 'Household chores',
       estimateMinutes: 25,
+      recurrenceDays: 7,
     },
     {
       id: 'tb2',
@@ -56,6 +57,7 @@ const defaultState: AppState = {
       description: 'Check moisture and mist leaves.',
       category: 'Health and wellbeing',
       estimateMinutes: 25,
+      recurrenceDays: 3,
     },
     {
       id: 'tb3',
@@ -113,6 +115,7 @@ const normalizeState = (raw: Partial<AppState>): AppState => {
       description: task.description,
       category: task.category,
       estimateMinutes: task.estimateMinutes,
+      recurrenceDays: undefined,
     })) ??
     defaultState.taskBank;
   return {
@@ -125,7 +128,13 @@ const normalizeState = (raw: Partial<AppState>): AppState => {
         ...task,
         plannedDate: task.plannedDate ?? todayKey,
       })) ?? defaultState.tasks,
-    taskBank,
+    taskBank: taskBank.map((item) => ({
+      ...item,
+      recurrenceDays:
+        item.recurrenceDays && item.recurrenceDays > 0
+          ? Math.round(item.recurrenceDays)
+          : undefined,
+    })),
     rounds: raw.rounds ?? defaultState.rounds,
     settings: {
       pomodoroMinutes:
