@@ -89,6 +89,8 @@ export const FocusScreen = () => {
     <Box
       sx={{
         minHeight: '100dvh',
+        overflowY: 'auto',
+        WebkitOverflowScrolling: 'touch',
         px: { xs: 2, sm: 3, md: 4 },
         pt: 'calc(env(safe-area-inset-top, 0px) + 16px)',
         pb: 'calc(env(safe-area-inset-bottom, 0px) + 20px)',
@@ -104,10 +106,7 @@ export const FocusScreen = () => {
         sx={{
           width: '100%',
           maxWidth: 980,
-          height: '100%',
-          maxHeight: 'calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 36px)',
-          overflowY: { xs: 'auto', md: 'visible' },
-          pb: { xs: 1, md: 0 },
+          pb: { xs: 2, md: 0 },
         }}
       >
         <Box width="100%" display="flex" justifyContent="space-between" alignItems="center" px={{ xs: 0.5, md: 1 }}>

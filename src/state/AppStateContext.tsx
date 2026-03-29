@@ -33,6 +33,7 @@ type Action =
   | { type: 'SET_SESSIONS_BEFORE_LONG_BREAK'; payload: { sessions: number } }
   | { type: 'SET_ALARM_TONE'; payload: { tone: AlarmTone } }
   | { type: 'SET_ALARM_REPEAT_COUNT'; payload: { count: number } }
+  | { type: 'SET_SHOW_FIRST_TIME_GUIDANCE'; payload: { enabled: boolean } }
   | { type: 'START_POMODORO'; payload: { taskId: string; roundId?: string; minutes?: number } }
   | { type: 'PAUSE_POMODORO' }
   | { type: 'COMPLETE_POMODORO' }
@@ -320,6 +321,14 @@ const reducer = (state: AppState, action: Action): AppState => {
           alarmRepeatCount: Math.max(1, Math.min(10, Math.round(action.payload.count))),
         },
       };
+    case 'SET_SHOW_FIRST_TIME_GUIDANCE':
+      return {
+        ...state,
+        settings: {
+          ...state.settings,
+          showFirstTimeGuidance: action.payload.enabled,
+        },
+      };
     case 'START_POMODORO': {
       const phase = state.pomodoro.phase;
       const totalSeconds = action.payload.minutes ? action.payload.minutes * 60 : getPhaseSeconds(state, phase);
@@ -414,6 +423,7 @@ interface AppStateContextValue {
   setSessionsBeforeLongBreak: (sessions: number) => void;
   setAlarmTone: (tone: AlarmTone) => void;
   setAlarmRepeatCount: (count: number) => void;
+  setShowFirstTimeGuidance: (enabled: boolean) => void;
   startPomodoro: (taskId: string, roundId?: string, minutes?: number) => void;
   pausePomodoro: () => void;
   completePomodoro: () => void;
@@ -526,6 +536,7 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
       setSessionsBeforeLongBreak: (sessions) => dispatch({ type: 'SET_SESSIONS_BEFORE_LONG_BREAK', payload: { sessions } }),
       setAlarmTone: (tone) => dispatch({ type: 'SET_ALARM_TONE', payload: { tone } }),
       setAlarmRepeatCount: (count) => dispatch({ type: 'SET_ALARM_REPEAT_COUNT', payload: { count } }),
+      setShowFirstTimeGuidance: (enabled) => dispatch({ type: 'SET_SHOW_FIRST_TIME_GUIDANCE', payload: { enabled } }),
       startPomodoro: (taskId, roundId, minutes) => dispatch({ type: 'START_POMODORO', payload: { taskId, roundId, minutes } }),
       pausePomodoro: () => dispatch({ type: 'PAUSE_POMODORO' }),
       completePomodoro: () => dispatch({ type: 'COMPLETE_POMODORO' }),

@@ -1,7 +1,7 @@
 import DeleteOutlineRounded from '@mui/icons-material/DeleteOutlineRounded';
 import InfoOutlined from '@mui/icons-material/InfoOutlined';
 import VolumeUpRounded from '@mui/icons-material/VolumeUpRounded';
-import { Alert, Box, Button, Card, CardContent, IconButton, MenuItem, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, Card, CardContent, FormControlLabel, IconButton, MenuItem, Stack, Switch, TextField, Typography } from '@mui/material';
 import { useMemo, useState } from 'react';
 import { playAlarmTone } from '../services/notifications';
 import { useAppState } from '../state/AppStateContext';
@@ -18,6 +18,7 @@ export const SettingsScreen = () => {
     setSessionsBeforeLongBreak,
     setAlarmTone,
     setAlarmRepeatCount,
+    setShowFirstTimeGuidance,
     showSuccessMessage,
   } = useAppState();
   const [name, setName] = useState(state.userName);
@@ -46,7 +47,7 @@ export const SettingsScreen = () => {
         </Typography>
       </Box>
 
-      {needsName && (
+      {needsName && state.settings.showFirstTimeGuidance && (
         <Alert
           icon={<InfoOutlined fontSize="inherit" />}
           severity="success"
@@ -83,17 +84,31 @@ export const SettingsScreen = () => {
       <Card>
         <CardContent>
           <Stack spacing={2}>
-            <Alert severity="success" icon={<InfoOutlined fontSize="inherit" />} sx={guidanceAlertSx}>
-              <Typography variant="body2" fontWeight={700} mb={0.5}>New to Pomodoro?</Typography>
-              <Typography variant="body2">
-                The Pomodoro technique breaks work into short focus rounds followed by breaks. Start with a 25-minute
-                round, take a short break, and use a longer break after a few rounds.
-              </Typography>
-              <Typography variant="body2" mt={1}>
-                Adjust the values below to match your energy and workload. Your timer and alarm preferences apply to
-                all new rounds.
-              </Typography>
-            </Alert>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={state.settings.showFirstTimeGuidance}
+                  onChange={(_, checked) => {
+                    setShowFirstTimeGuidance(checked);
+                    showSuccessMessage(`First-time guidance ${checked ? 'enabled' : 'hidden'}.`);
+                  }}
+                />
+              }
+              label="Show first-time guidance across the app"
+            />
+            {state.settings.showFirstTimeGuidance && (
+              <Alert severity="success" icon={<InfoOutlined fontSize="inherit" />} sx={guidanceAlertSx}>
+                <Typography variant="body2" fontWeight={700} mb={0.5}>New to Pomodoro?</Typography>
+                <Typography variant="body2">
+                  The Pomodoro technique breaks work into short focus rounds followed by breaks. Start with a 25-minute
+                  round, take a short break, and use a longer break after a few rounds.
+                </Typography>
+                <Typography variant="body2" mt={1}>
+                  Adjust the values below to match your energy and workload. Your timer and alarm preferences apply to
+                  all new rounds.
+                </Typography>
+              </Alert>
+            )}
             <Typography variant="h5">Pomodoro timing</Typography>
             <TextField
               label="Recommended minutes per round"

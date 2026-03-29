@@ -114,13 +114,15 @@ export const TaskBankScreen = () => {
               <Button variant="contained" onClick={openCreateBankDialog}>New bank task</Button>
             </Stack>
           </Stack>
-          <Alert
-            icon={<InfoOutlined fontSize="inherit" />}
-            severity="success"
-            sx={{ mt: 2, bgcolor: 'rgba(145,247,142,0.12)', color: 'primary.main', '& .MuiAlert-icon': { color: 'primary.main' } }}
-          >
-            Use clear task names, set an estimate, and add a repeat interval only for truly recurring tasks.
-          </Alert>
+          {state.settings.showFirstTimeGuidance && (
+            <Alert
+              icon={<InfoOutlined fontSize="inherit" />}
+              severity="success"
+              sx={{ mt: 2, bgcolor: 'rgba(145,247,142,0.12)', color: 'primary.main', '& .MuiAlert-icon': { color: 'primary.main' } }}
+            >
+              Use clear task names, set an estimate, and add a repeat interval only for truly recurring tasks.
+            </Alert>
+          )}
           {validationMessage && <Alert severity="warning" sx={{ mt: 2 }}>{validationMessage}</Alert>}
         </CardContent>
       </Card>

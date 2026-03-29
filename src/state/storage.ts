@@ -6,6 +6,7 @@ const DEFAULT_SHORT_BREAK_MINUTES = 5;
 const DEFAULT_LONG_BREAK_MINUTES = 15;
 const DEFAULT_SESSIONS_BEFORE_LONG_BREAK = 4;
 const DEFAULT_ALARM_REPEAT_COUNT = 3;
+const DEFAULT_SHOW_FIRST_TIME_GUIDANCE = true;
 const todayKey = new Date().toISOString().slice(0, 10);
 
 const defaultCategories = [
@@ -92,6 +93,7 @@ const defaultState: AppState = {
     sessionsBeforeLongBreak: DEFAULT_SESSIONS_BEFORE_LONG_BREAK,
     alarmTone: 'bell',
     alarmRepeatCount: DEFAULT_ALARM_REPEAT_COUNT,
+    showFirstTimeGuidance: DEFAULT_SHOW_FIRST_TIME_GUIDANCE,
   },
   pomodoro: {
     isRunning: false,
@@ -158,6 +160,7 @@ const normalizeState = (raw: Partial<AppState>): AppState => {
         raw.settings?.alarmRepeatCount && raw.settings.alarmRepeatCount > 0
           ? Math.min(10, Math.round(raw.settings.alarmRepeatCount))
           : DEFAULT_ALARM_REPEAT_COUNT,
+      showFirstTimeGuidance: raw.settings?.showFirstTimeGuidance ?? DEFAULT_SHOW_FIRST_TIME_GUIDANCE,
     },
     pomodoro: {
       ...defaultState.pomodoro,
