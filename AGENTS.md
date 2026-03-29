@@ -20,7 +20,7 @@ This repository contains TaskTrack Android (React + Capacitor). Keep changes foc
 - Alarm behavior must remain user-configurable from Settings.
 
 ## Documentation rule (required)
-When new features are added or behavior is changed, update `README.md` in the same PR to reflect:
+Update `README.md` in the same PR only when major functionality changes are introduced. For major changes, reflect:
 - What changed for users.
 - Any new settings/options.
 - Any setup/runtime implications.

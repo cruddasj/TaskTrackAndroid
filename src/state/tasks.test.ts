@@ -77,4 +77,35 @@ describe('suggestRecurringTaskBankItems', () => {
 
     expect(suggestions).toEqual([]);
   });
+
+  it('suggests weekday-recurring items when today matches the configured weekday', () => {
+    const taskBank = [
+      { id: 'tb1', title: 'Sunday reset', description: 'Plan next week', category: 'Personal projects', estimateMinutes: 30, recurrenceWeekdays: [0] },
+    ];
+
+    const suggestions = suggestRecurringTaskBankItems(taskBank, [], todayKey, new Date('2026-03-29T12:00:00.000Z'));
+
+    expect(suggestions.map((item) => item.id)).toEqual(['tb1']);
+  });
+
+  it('suggests overdue weekday-recurring items when they have not appeared in the last seven days', () => {
+    const taskBank = [
+      { id: 'tb1', title: 'Sunday reset', description: 'Plan next week', category: 'Personal projects', estimateMinutes: 30, recurrenceWeekdays: [0] },
+    ];
+
+    const suggestions = suggestRecurringTaskBankItems(taskBank, [], '2026-03-30', new Date('2026-03-30T12:00:00.000Z'));
+
+    expect(suggestions.map((item) => item.id)).toEqual(['tb1']);
+  });
+
+  it('does not suggest overdue weekday-recurring items when they already appeared in the last seven days', () => {
+    const taskBank = [
+      { id: 'tb1', title: 'Sunday reset', description: 'Plan next week', category: 'Personal projects', estimateMinutes: 30, recurrenceWeekdays: [0] },
+    ];
+    const tasks = [buildTask({ id: 'todo-1', title: 'Sunday reset', plannedDate: '2026-03-29' })];
+
+    const suggestions = suggestRecurringTaskBankItems(taskBank, tasks, '2026-03-30', new Date('2026-03-30T12:00:00.000Z'));
+
+    expect(suggestions).toEqual([]);
+  });
 });

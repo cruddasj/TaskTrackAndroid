@@ -51,6 +51,7 @@ const defaultState: AppState = {
       category: 'Household chores',
       estimateMinutes: 25,
       recurrenceDays: 7,
+      recurrenceWeekdays: undefined,
     },
     {
       id: 'tb2',
@@ -59,6 +60,7 @@ const defaultState: AppState = {
       category: 'Health and wellbeing',
       estimateMinutes: 25,
       recurrenceDays: 3,
+      recurrenceWeekdays: undefined,
     },
     {
       id: 'tb3',
@@ -66,6 +68,7 @@ const defaultState: AppState = {
       description: 'Separate bills, recycle spam, archive records.',
       category: 'Errands',
       estimateMinutes: 25,
+      recurrenceWeekdays: [0],
     },
   ],
   rounds: [
@@ -118,6 +121,7 @@ const normalizeState = (raw: Partial<AppState>): AppState => {
       category: task.category,
       estimateMinutes: task.estimateMinutes,
       recurrenceDays: undefined,
+      recurrenceWeekdays: undefined,
     })) ??
     defaultState.taskBank;
   return {
@@ -135,6 +139,12 @@ const normalizeState = (raw: Partial<AppState>): AppState => {
       recurrenceDays:
         item.recurrenceDays && item.recurrenceDays > 0
           ? Math.round(item.recurrenceDays)
+          : undefined,
+      recurrenceWeekdays:
+        item.recurrenceWeekdays && item.recurrenceWeekdays.length > 0
+          ? [...new Set(item.recurrenceWeekdays)]
+            .filter((weekday): weekday is number => typeof weekday === 'number' && Number.isInteger(weekday) && weekday >= 0 && weekday <= 6)
+            .sort((a, b) => a - b)
           : undefined,
     })),
     rounds: raw.rounds ?? defaultState.rounds,
