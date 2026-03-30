@@ -256,7 +256,13 @@ export const RoundsScreen = () => {
             {round.status === 'done' ? (
               <Typography color="text.secondary">Completed round (read-only).</Typography>
             ) : (
-              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+              <Stack
+                direction="row"
+                spacing={1}
+                flexWrap="wrap"
+                useFlexGap
+                mt={(roundEstimatedMinutes[round.id] ?? 0) > state.settings.pomodoroMinutes ? 1 : 0}
+              >
                 <Button variant="outlined" onClick={() => openRoundAssignment(round.id)}>
                   {round.taskIds.length > 0 ? 'Edit tasks' : 'Assign tasks'}
                 </Button>
