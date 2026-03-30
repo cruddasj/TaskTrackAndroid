@@ -75,10 +75,6 @@ export const FocusScreen = () => {
     setSessionReviewOpen(true);
   };
 
-  const progress = ((state.pomodoro.totalSeconds - state.pomodoro.remainingSeconds) / state.pomodoro.totalSeconds) * 100;
-  const circumference = 2 * Math.PI * 140;
-  const dashoffset = circumference - (progress / 100) * circumference;
-
   const confirmSessionRollover = useCallback(() => {
     const confirmedDoneSet = new Set(confirmedDoneIds);
     roundTasks.forEach((task) => {
@@ -112,6 +108,12 @@ export const FocusScreen = () => {
     }, state.settings.sessionReviewGraceSeconds * 1000);
     return () => window.clearTimeout(timeoutId);
   }, [sessionReviewOpen, confirmSessionRollover, state.settings.sessionReviewGraceSeconds]);
+
+  const progress = state.pomodoro.totalSeconds > 0
+    ? ((state.pomodoro.totalSeconds - state.pomodoro.remainingSeconds) / state.pomodoro.totalSeconds) * 100
+    : 0;
+  const circumference = 2 * Math.PI * 140;
+  const dashoffset = circumference - (progress / 100) * circumference;
 
   return (
     <Box

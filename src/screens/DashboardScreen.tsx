@@ -14,12 +14,6 @@ export const DashboardScreen = () => {
   const navigate = useNavigate();
   const { state } = useAppState();
   const todayKey = getTodayKey();
-  const historyWindowDays = HISTORY_WINDOW_DAYS;
-  const recentDayKeys = Array.from({ length: historyWindowDays }, (_, index) => {
-    const date = new Date();
-    date.setDate(date.getDate() - index);
-    return date.toISOString().slice(0, 10);
-  });
   const todaysTasks = state.tasks.filter((task) => task.plannedDate === todayKey);
   const completed = todaysTasks.filter((task) => task.status === 'done').length;
   const progress = todaysTasks.length ? Math.round((completed / todaysTasks.length) * 100) : 0;
@@ -44,14 +38,24 @@ export const DashboardScreen = () => {
     : [];
   const hasTodayTasks = todaysTasks.length > 0;
   const allTodaysTasksDone = hasTodayTasks && completed === todaysTasks.length;
-  const categoryTotals = recentDayKeys.reduce<Record<string, number>>((acc, dayKey) => {
-    state.tasks
-      .filter((task) => task.completedAt?.startsWith(dayKey))
-      .forEach((task) => {
-        acc[task.category] = (acc[task.category] ?? 0) + task.estimateMinutes;
-      });
-    return acc;
-  }, {});
+
+  const categoryTotals = useMemo(() => {
+    const recentDayKeys = Array.from({ length: HISTORY_WINDOW_DAYS }, (_, index) => {
+      const date = new Date();
+      date.setDate(date.getDate() - index);
+      return date.toISOString().slice(0, 10);
+    });
+
+    return recentDayKeys.reduce<Record<string, number>>((acc, dayKey) => {
+      state.tasks
+        .filter((task) => task.completedAt?.startsWith(dayKey))
+        .forEach((task) => {
+          acc[task.category] = (acc[task.category] ?? 0) + task.estimateMinutes;
+        });
+      return acc;
+    }, {});
+  }, [state.tasks]);
+
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
     return getGreeting(hour);
@@ -182,7 +186,7 @@ export const DashboardScreen = () => {
               color="text.secondary"
               sx={{ fontSize: { xs: '0.82rem', sm: '0.92rem' }, lineHeight: 1.2, whiteSpace: 'nowrap' }}
             >
-              Focussed time spent today
+              Focused time spent today
             </Typography>
             <Typography variant="h4" sx={{ fontSize: { xs: '1.55rem', sm: '2.125rem' } }}>{formattedFocusTimeSpent}</Typography>
           </CardContent>

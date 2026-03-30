@@ -4,6 +4,7 @@ import SettingsOutlined from '@mui/icons-material/SettingsOutlined';
 import TimerOutlined from '@mui/icons-material/TimerOutlined';
 import { Capacitor } from '@capacitor/core';
 import { BottomNavigation, BottomNavigationAction, Box, Button, Paper, Snackbar, Stack, Typography } from '@mui/material';
+import { useMemo } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
 import { hasRoundsWithAssignedTasks } from '../state/rounds';
@@ -26,8 +27,8 @@ export const AppShell = () => {
   const hasTrackableRound = hasRoundsWithAssignedTasks(state.rounds);
   const allTodaysTasksDone = areAllTasksCompletedForDate(state.tasks, getTodayKey());
   const showTimerButton = !allTodaysTasksDone && (state.pomodoro.isRunning || hasTrackableRound);
-  const visibleTabs = isFirstTimeUser ? tabs.filter((tab) => tab.path === '/settings') : tabs;
-  const current = visibleTabs.find((tab) => tab.path === location.pathname)?.path ?? false;
+  const visibleTabs = useMemo(() => isFirstTimeUser ? tabs.filter((tab) => tab.path === '/settings') : tabs, [isFirstTimeUser]);
+  const current = useMemo(() => visibleTabs.find((tab) => tab.path === location.pathname)?.path ?? false, [visibleTabs, location.pathname]);
   const topPadding = Capacitor.isNativePlatform()
     ? 'calc(max(env(safe-area-inset-top, 0px), 24px) + 12px)'
     : '16px';
