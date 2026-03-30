@@ -3,6 +3,7 @@ import AddRounded from '@mui/icons-material/AddRounded';
 import ArrowDropDownRounded from '@mui/icons-material/ArrowDropDownRounded';
 import ArrowDropUpRounded from '@mui/icons-material/ArrowDropUpRounded';
 import DeleteOutlineRounded from '@mui/icons-material/DeleteOutlineRounded';
+import EditOutlined from '@mui/icons-material/EditOutlined';
 import {
   Alert,
   Box,
@@ -20,17 +21,23 @@ import {
   Select,
   SelectChangeEvent,
   Stack,
+  TextField,
   Typography,
 } from '@mui/material';
 import { useMemo, useState } from 'react';
 import { useAppState } from '../state/AppStateContext';
-import { hasEmptyRoundWithoutTasks } from '../state/rounds';
+import { getDefaultRoundTitle, hasEmptyRoundWithoutTasks } from '../state/rounds';
 import { getTodayKey } from '../utils';
 
 export const RoundsScreen = () => {
-  const { state, assignTasksToRound, autoGroupTodayTasks, moveRound, createRound, deleteRound, showSuccessMessage } = useAppState();
+  const { state, assignTasksToRound, autoGroupTodayTasks, moveRound, createRound, deleteRound, updateRoundTitle, showSuccessMessage } = useAppState();
   const [editingRoundId, setEditingRoundId] = useState<string | null>(null);
   const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
+  const [createRoundOpen, setCreateRoundOpen] = useState(false);
+  const [newRoundTitle, setNewRoundTitle] = useState('');
+  const [newRoundTaskIds, setNewRoundTaskIds] = useState<string[]>([]);
+  const [renameRoundId, setRenameRoundId] = useState<string | null>(null);
+  const [renameRoundTitle, setRenameRoundTitle] = useState('');
   const [roundCreationValidationMessage, setRoundCreationValidationMessage] = useState<string | null>(null);
   const todayKey = getTodayKey();
   const todaysTasks = useMemo(() => state.tasks.filter((task) => task.plannedDate === todayKey), [state.tasks, todayKey]);
@@ -78,7 +85,7 @@ export const RoundsScreen = () => {
     () => todaysTasks.filter((task) => !task.roundId || !state.rounds.some((round) => round.id === task.roundId)),
     [todaysTasks, state.rounds],
   );
-  const handleCreateRound = () => {
+  const openCreateRoundDialog = () => {
     const hasEmptyRound = hasEmptyRoundWithoutTasks(state.rounds);
     if (hasEmptyRound) {
       setRoundCreationValidationMessage(
@@ -87,11 +94,34 @@ export const RoundsScreen = () => {
       return;
     }
 
-    createRound();
+    setNewRoundTitle(getDefaultRoundTitle(state.rounds));
+    setNewRoundTaskIds([]);
+    setCreateRoundOpen(true);
     setRoundCreationValidationMessage(null);
-    showSuccessMessage('New round created.');
     setEditingRoundId(null);
     setSelectedTaskIds([]);
+  };
+  const handleCreateRound = () => {
+    const resolvedTitle = newRoundTitle.trim() || getDefaultRoundTitle(state.rounds);
+    createRound({ title: resolvedTitle, taskIds: newRoundTaskIds });
+    setCreateRoundOpen(false);
+    setNewRoundTitle('');
+    setNewRoundTaskIds([]);
+    showSuccessMessage('New round created.');
+  };
+
+  const openRenameDialog = (roundId: string, title: string) => {
+    setRenameRoundId(roundId);
+    setRenameRoundTitle(title);
+  };
+
+  const saveRename = () => {
+    const nextTitle = renameRoundTitle.trim();
+    if (!renameRoundId || !nextTitle) return;
+    updateRoundTitle(renameRoundId, nextTitle);
+    setRenameRoundId(null);
+    setRenameRoundTitle('');
+    showSuccessMessage('Round name updated.');
   };
 
   const handleQuickAssignToRound = (taskId: string, event: SelectChangeEvent<string>) => {
@@ -146,7 +176,11 @@ export const RoundsScreen = () => {
               </Stack>
             ))}
             {unassignedTasks.length === 0 && (
-              <Typography color="text.secondary">All today tasks are assigned to a round.</Typography>
+              <Typography color="text.secondary">
+                {todaysTasks.length === 0
+                  ? 'No tasks in Today\'s Tasks yet.'
+                  : 'All today tasks are assigned to a round.'}
+              </Typography>
             )}
           </Stack>
         </CardContent>
@@ -165,6 +199,9 @@ export const RoundsScreen = () => {
               <Stack direction="row" spacing={0.25}>
                 {round.status !== 'done' && (
                   <>
+                    <IconButton size="small" onClick={() => openRenameDialog(round.id, round.title)} aria-label={`rename-round-${round.id}`}>
+                      <EditOutlined fontSize="small" />
+                    </IconButton>
                     <IconButton size="small" onClick={() => {
                       deleteRound(round.id);
                       showSuccessMessage(`${round.title} deleted. Tasks moved to Unassigned today tasks.`);
@@ -252,7 +289,7 @@ export const RoundsScreen = () => {
       </Dialog>
       <IconButton
         color="primary"
-        onClick={handleCreateRound}
+        onClick={openCreateRoundDialog}
         size="large"
         sx={{
           position: 'fixed',
@@ -269,6 +306,62 @@ export const RoundsScreen = () => {
       >
         <AddRounded />
       </IconButton>
+      <Dialog open={createRoundOpen} onClose={() => setCreateRoundOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Create round</DialogTitle>
+        <DialogContent>
+          <TextField
+            margin="dense"
+            label="Round name"
+            fullWidth
+            value={newRoundTitle}
+            onChange={(event) => setNewRoundTitle(event.target.value)}
+          />
+          <Typography variant="subtitle2" mt={1.5} mb={0.5}>Assign tasks now (optional)</Typography>
+          <Stack>
+            {unassignedTasks.length === 0 && (
+              <Typography color="text.secondary">No unassigned tasks available.</Typography>
+            )}
+            {unassignedTasks.map((task) => (
+              <FormControlLabel
+                key={task.id}
+                control={(
+                  <Checkbox
+                    checked={newRoundTaskIds.includes(task.id)}
+                    onChange={(_, checked) =>
+                      setNewRoundTaskIds((current) =>
+                        checked ? [...current, task.id] : current.filter((id) => id !== task.id),
+                      )
+                    }
+                  />
+                )}
+                label={`${task.title} (${task.estimateMinutes} min)`}
+              />
+            ))}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCreateRoundOpen(false)}>Cancel</Button>
+          <Button variant="contained" onClick={handleCreateRound}>Create round</Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={!!renameRoundId} onClose={() => setRenameRoundId(null)} fullWidth maxWidth="xs">
+        <DialogTitle>Rename round</DialogTitle>
+        <DialogContent>
+          <TextField
+            margin="dense"
+            label="Round name"
+            fullWidth
+            value={renameRoundTitle}
+            onChange={(event) => setRenameRoundTitle(event.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setRenameRoundId(null)}>Cancel</Button>
+          <Button variant="contained" onClick={saveRename} disabled={!renameRoundTitle.trim()}>
+            Save name
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 };

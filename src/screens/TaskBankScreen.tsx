@@ -5,7 +5,6 @@ import PlaylistAddRounded from '@mui/icons-material/PlaylistAddRounded';
 import InfoOutlined from '@mui/icons-material/InfoOutlined';
 import { Alert, Box, Button, Card, CardContent, Checkbox, Chip, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
 import { hasDuplicateTodayTaskTitle, WEEKDAY_LABELS } from '../state/tasks';
 import { TaskBankItem } from '../types';
@@ -32,7 +31,6 @@ const emptyForm: TaskFormState = {
 };
 
 export const TaskBankScreen = () => {
-  const navigate = useNavigate();
   const { state, addTaskFromBank, addTaskBankItem, updateTaskBankItem, deleteTaskBankItem, showSuccessMessage } = useAppState();
 
   const [open, setOpen] = useState(false);
@@ -121,11 +119,6 @@ export const TaskBankScreen = () => {
         <Typography variant="h3">Task Bank</Typography>
         <Typography color="text.secondary">Create and manage your reusable task templates for quick reuse.</Typography>
       </Box>
-      <Stack direction="row" spacing={1}>
-        <Button variant="outlined" onClick={() => navigate('/tasks-today')}>Open today&apos;s tasks</Button>
-        <Button variant="contained" onClick={openCreateBankDialog}>New bank task</Button>
-      </Stack>
-
       {state.settings.showFirstTimeGuidance && (
         <Card>
           <CardContent>

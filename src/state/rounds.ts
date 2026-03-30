@@ -2,12 +2,31 @@ import { Round, Task } from '../types';
 
 export const hasEmptyRoundWithoutTasks = (rounds: Round[]): boolean => rounds.some((round) => round.taskIds.length === 0);
 
-export const buildNewRound = (rounds: Round[], pomodoroMinutes: number): Round => ({
+export const hasRoundsWithAssignedTasks = (rounds: Round[]): boolean => rounds.some((round) => round.taskIds.length > 0);
+
+const getNextRoundSequence = (rounds: Round[]): number => {
+  const numberedRoundValues = rounds
+    .map((round) => {
+      const matched = /^Round (\d+)$/.exec(round.title.trim());
+      return matched ? Number(matched[1]) : 0;
+    })
+    .filter((value) => Number.isFinite(value) && value > 0);
+  const highestNamedRound = numberedRoundValues.length > 0 ? Math.max(...numberedRoundValues) : 0;
+  return Math.max(rounds.length, highestNamedRound) + 1;
+};
+
+export const getDefaultRoundTitle = (rounds: Round[]): string => `Round ${getNextRoundSequence(rounds)}`;
+
+export const buildNewRound = (
+  rounds: Round[],
+  pomodoroMinutes: number,
+  options?: { title?: string; taskIds?: string[] },
+): Round => ({
   id: crypto.randomUUID(),
-  title: `Round ${rounds.length + 1}`,
+  title: options?.title?.trim() || getDefaultRoundTitle(rounds),
   scheduledTime: '',
   durationMinutes: pomodoroMinutes,
-  taskIds: [],
+  taskIds: options?.taskIds ?? [],
   status: rounds.some((round) => round.status !== 'done') ? 'upcoming' : 'active',
 });
 

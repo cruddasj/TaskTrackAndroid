@@ -10,6 +10,7 @@ type EditableTask = Omit<Task, 'status'>;
 type NewTaskBankItem = Omit<TaskBankItem, 'id'>;
 type EditableTaskBankItem = TaskBankItem;
 type NewRound = Round;
+type NewRoundOptions = { title?: string; taskIds?: string[] };
 
 type Action =
   | { type: 'ADD_TASK'; payload: NewTask }
@@ -24,6 +25,7 @@ type Action =
   | { type: 'ADD_CATEGORY'; payload: { category: string } }
   | { type: 'DELETE_CATEGORY'; payload: { category: string } }
   | { type: 'ADD_ROUND'; payload: NewRound }
+  | { type: 'UPDATE_ROUND_TITLE'; payload: { roundId: string; title: string } }
   | { type: 'DELETE_ROUND'; payload: { roundId: string } }
   | { type: 'ASSIGN_TASKS_TO_ROUND'; payload: { roundId: string; taskIds: string[] } }
   | { type: 'AUTO_GROUP_TODAY_TASKS' }
@@ -141,6 +143,7 @@ const reducer = (state: AppState, action: Action): AppState => {
     }
     case 'ADD_ROUND': {
       const hasOpenRound = state.rounds.some((round) => round.status !== 'done');
+      const assignedTaskIds = new Set(action.payload.taskIds);
       return {
         ...state,
         rounds: [
@@ -150,8 +153,18 @@ const reducer = (state: AppState, action: Action): AppState => {
             status: hasOpenRound ? 'upcoming' : 'active',
           },
         ],
+        tasks: state.tasks.map((task) =>
+          assignedTaskIds.has(task.id) ? { ...task, roundId: action.payload.id } : task,
+        ),
       };
     }
+    case 'UPDATE_ROUND_TITLE':
+      return {
+        ...state,
+        rounds: state.rounds.map((round) =>
+          round.id === action.payload.roundId ? { ...round, title: action.payload.title } : round,
+        ),
+      };
     case 'DELETE_ROUND': {
       const roundId = action.payload.roundId;
       const rounds = removeRoundAndNormalizeStatuses(state.rounds, roundId);
@@ -445,7 +458,8 @@ interface AppStateContextValue {
   setUserName: (userName: string) => void;
   addCategory: (category: string) => void;
   deleteCategory: (category: string) => void;
-  createRound: () => string;
+  createRound: (options?: NewRoundOptions) => string;
+  updateRoundTitle: (roundId: string, title: string) => void;
   deleteRound: (roundId: string) => void;
   assignTasksToRound: (roundId: string, taskIds: string[]) => void;
   autoGroupTodayTasks: () => void;
@@ -553,14 +567,16 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
       setUserName: (userName) => dispatch({ type: 'SET_USER_NAME', payload: { userName } }),
       addCategory: (category) => dispatch({ type: 'ADD_CATEGORY', payload: { category } }),
       deleteCategory: (category) => dispatch({ type: 'DELETE_CATEGORY', payload: { category } }),
-      createRound: () => {
-        const newRound = buildNewRound(state.rounds, state.settings.pomodoroMinutes);
+      createRound: (options) => {
+        const newRound = buildNewRound(state.rounds, state.settings.pomodoroMinutes, options);
         dispatch({
           type: 'ADD_ROUND',
           payload: newRound,
         });
         return newRound.id;
       },
+      updateRoundTitle: (roundId, title) =>
+        dispatch({ type: 'UPDATE_ROUND_TITLE', payload: { roundId, title } }),
       deleteRound: (roundId) => dispatch({ type: 'DELETE_ROUND', payload: { roundId } }),
       assignTasksToRound: (roundId, taskIds) => dispatch({ type: 'ASSIGN_TASKS_TO_ROUND', payload: { roundId, taskIds } }),
       autoGroupTodayTasks: () => dispatch({ type: 'AUTO_GROUP_TODAY_TASKS' }),
