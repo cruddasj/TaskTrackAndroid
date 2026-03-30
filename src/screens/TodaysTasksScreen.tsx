@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react';
 import { useAppState } from '../state/AppStateContext';
 import { hasDuplicateTodayTaskTitle, suggestRecurringTaskBankItems, WEEKDAY_LABELS } from '../state/tasks';
 import { Task, TaskBankItem } from '../types';
-import { getTodayKey } from '../utils';
+import { getTodayKey, normalizeOptionalDescription } from '../utils';
 
 interface TaskFormState {
   title: string;
@@ -77,7 +77,7 @@ export const TodaysTasksScreen = () => {
 
   const saveTask = () => {
     const title = form.title.trim();
-    const description = form.description.trim() || 'Custom task';
+    const description = normalizeOptionalDescription(form.description);
     const category = form.category || state.categories[0] || 'Uncategorized';
     const estimateMinutes = Number(form.estimateMinutes);
 
@@ -180,7 +180,7 @@ export const TodaysTasksScreen = () => {
               </Stack>
               {task.status === 'done' ? <CheckCircleOutlineRounded color="primary" /> : <RadioButtonUncheckedRounded color="primary" />}
             </Stack>
-            <Typography color="text.secondary" mb={2}>{task.description}</Typography>
+            {task.description && <Typography color="text.secondary" mb={2}>{task.description}</Typography>}
             <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
               <Chip label={task.category} />
               <Chip label={`${task.estimateMinutes} min`} variant="outlined" />
