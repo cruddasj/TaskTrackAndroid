@@ -1,4 +1,5 @@
 import CircleOutlined from '@mui/icons-material/CircleOutlined';
+import CheckCircleRounded from '@mui/icons-material/CheckCircleRounded';
 import CheckCircleOutlineRounded from '@mui/icons-material/CheckCircleOutlineRounded';
 import AddRounded from '@mui/icons-material/AddRounded';
 import ArrowDropDownRounded from '@mui/icons-material/ArrowDropDownRounded';
@@ -258,7 +259,9 @@ export const RoundsScreen = () => {
                 if (!task) return null;
                 return (
                   <Stack direction="row" spacing={1} alignItems="center" key={task.id}>
-                    <CircleOutlined fontSize="small" color={task.status === 'done' ? 'success' : 'disabled'} />
+                    {task.status === 'done'
+                      ? <CheckCircleRounded fontSize="small" color="success" />
+                      : <CircleOutlined fontSize="small" color="disabled" />}
                     <Typography>{task.title}</Typography>
                   </Stack>
                 );
