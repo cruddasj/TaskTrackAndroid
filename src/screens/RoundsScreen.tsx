@@ -211,6 +211,9 @@ export const RoundsScreen = () => {
       </Card>
       {orderedRounds.map((round) => {
         const displayTaskIds = getRoundTaskIdsForDisplay(round, todaysTasks);
+        const roundTitle = round.status === 'done'
+          ? `${round.title} (${round.durationMinutes} min completed)`
+          : `${round.title} (${roundEstimatedMinutes[round.id] ?? 0} min est)`;
         return (
           <Card
           key={round.id}
@@ -223,7 +226,7 @@ export const RoundsScreen = () => {
             <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
               <Stack direction="row" spacing={0.75} alignItems="center">
                 <Typography variant="h5">
-                  {round.title} ({roundEstimatedMinutes[round.id] ?? 0} min est)
+                  {roundTitle}
                 </Typography>
                 {round.status === 'done' && (
                   <Chip
