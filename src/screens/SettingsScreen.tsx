@@ -2,7 +2,7 @@ import DeleteOutlineRounded from '@mui/icons-material/DeleteOutlineRounded';
 import InfoOutlined from '@mui/icons-material/InfoOutlined';
 import DownloadRounded from '@mui/icons-material/DownloadRounded';
 import VolumeUpRounded from '@mui/icons-material/VolumeUpRounded';
-import { Alert, Box, Button, Card, CardContent, FormControlLabel, IconButton, MenuItem, Stack, Switch, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, Card, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, MenuItem, Stack, Switch, TextField, Typography } from '@mui/material';
 import { useMemo, useState } from 'react';
 import { playAlarmTone } from '../services/notifications';
 import { useAppState } from '../state/AppStateContext';
@@ -32,6 +32,7 @@ export const SettingsScreen = () => {
   const [sessionsBeforeLongBreak, setSessionsBeforeLongBreakInput] = useState(String(state.settings.sessionsBeforeLongBreak));
   const [sessionReviewGraceSeconds, setSessionReviewGraceSecondsInput] = useState(String(state.settings.sessionReviewGraceSeconds));
   const [alarmRepeatCount, setAlarmRepeatCountInput] = useState(String(state.settings.alarmRepeatCount));
+  const [categoryPendingDelete, setCategoryPendingDelete] = useState<string | null>(null);
 
   const needsName = !state.userName.trim();
   const categoryExists = useMemo(
@@ -270,10 +271,7 @@ export const SettingsScreen = () => {
                 <Typography>{category}</Typography>
                 <IconButton
                   aria-label={`delete-${category}`}
-                  onClick={() => {
-                    deleteCategory(category);
-                    showSuccessMessage('Category deleted.');
-                  }}
+                  onClick={() => setCategoryPendingDelete(category)}
                   disabled={state.categories.length <= 1}
                 >
                   <DeleteOutlineRounded color="error" />
@@ -307,6 +305,30 @@ export const SettingsScreen = () => {
           </Stack>
         </CardContent>
       </Card>
+
+      <Dialog open={!!categoryPendingDelete} onClose={() => setCategoryPendingDelete(null)} fullWidth maxWidth="xs">
+        <DialogTitle>Delete category?</DialogTitle>
+        <DialogContent>
+          <Typography color="text.secondary">
+            Are you sure you want to delete &quot;{categoryPendingDelete}&quot;? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCategoryPendingDelete(null)}>Cancel</Button>
+          <Button
+            color="error"
+            variant="contained"
+            onClick={() => {
+              if (!categoryPendingDelete) return;
+              deleteCategory(categoryPendingDelete);
+              showSuccessMessage('Category deleted.');
+              setCategoryPendingDelete(null);
+            }}
+          >
+            Delete category
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 };
