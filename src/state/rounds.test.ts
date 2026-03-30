@@ -1,4 +1,4 @@
-import { advanceActiveRound, buildNewRound, getCarryForwardRound, getDefaultRoundTitle, getRoundEstimatedMinutes, getRoundTaskIdsForDisplay, getVisibleRoundId, hasEmptyRoundWithoutTasks, hasRoundsWithAssignedTasks, isRoundCompleted, removeRoundAndNormalizeStatuses, sortRoundsChronologically, unassignTasksFromRound } from './rounds';
+import { advanceActiveRound, buildNewRound, getCarryForwardRound, getCarryHistoryForRound, getDefaultRoundTitle, getRoundEstimatedMinutes, getRoundTaskIdsForDisplay, getVisibleRoundId, hasEmptyRoundWithoutTasks, hasRoundsWithAssignedTasks, isRoundCompleted, removeRoundAndNormalizeStatuses, sortRoundsChronologically, unassignTasksFromRound } from './rounds';
 
 describe('round helpers', () => {
   it('detects when a round has no tasks assigned', () => {
@@ -242,4 +242,43 @@ describe('round helpers', () => {
 
     expect(sorted.map((round) => round.title)).toEqual(['Round 1', 'Round 2', 'Round 3']);
   });
+
+  it('maps carry-over history to the immediate prior and next rounds for display', () => {
+    expect(
+      getCarryHistoryForRound(
+        {
+          id: 't1',
+          title: 'Review sprint priorities',
+          description: '',
+          category: 'Work',
+          estimateMinutes: 20,
+          status: 'todo',
+          plannedDate: '2026-03-29',
+          roundId: 'r4',
+          previousRoundIds: ['r1', 'r2', 'r3'],
+        },
+        'r2',
+      ),
+    ).toEqual({ carriedFromRoundId: 'r1', carriedToRoundId: 'r3' });
+  });
+
+  it('keeps first carry-over copy focused on the next round only', () => {
+    expect(
+      getCarryHistoryForRound(
+        {
+          id: 't1',
+          title: 'Review sprint priorities',
+          description: '',
+          category: 'Work',
+          estimateMinutes: 20,
+          status: 'todo',
+          plannedDate: '2026-03-29',
+          roundId: 'r2',
+          previousRoundIds: ['r1'],
+        },
+        'r1',
+      ),
+    ).toEqual({ carriedFromRoundId: undefined, carriedToRoundId: 'r2' });
+  });
+
 });
