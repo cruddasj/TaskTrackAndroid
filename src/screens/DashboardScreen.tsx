@@ -5,7 +5,7 @@ import { Box, Button, Card, CardContent, LinearProgress, Stack, Typography } fro
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
-import { getGreeting } from './greeting';
+import { formatFocusTimeSpent, getGreeting } from './greeting';
 import { getTodayKey } from '../utils';
 
 const HISTORY_WINDOW_DAYS = 30;
@@ -24,6 +24,7 @@ export const DashboardScreen = () => {
   const completed = todaysTasks.filter((task) => task.status === 'done').length;
   const progress = todaysTasks.length ? Math.round((completed / todaysTasks.length) * 100) : 0;
   const totalFocusMinutes = state.pomodoro.completedWorkSessions * state.settings.pomodoroMinutes;
+  const formattedFocusTimeSpent = formatFocusTimeSpent(totalFocusMinutes);
   const currentRound = state.rounds.find((round) => round.id === state.pomodoro.activeRoundId)
     ?? state.rounds.find((round) => round.status === 'active');
   const currentRoundTasks = currentRound
@@ -181,9 +182,9 @@ export const DashboardScreen = () => {
               color="text.secondary"
               sx={{ fontSize: { xs: '0.82rem', sm: '0.92rem' }, lineHeight: 1.2, whiteSpace: 'nowrap' }}
             >
-              Focus minutes today
+              Focussed time spent today
             </Typography>
-            <Typography variant="h4" sx={{ fontSize: { xs: '1.55rem', sm: '2.125rem' } }}>{totalFocusMinutes}m</Typography>
+            <Typography variant="h4" sx={{ fontSize: { xs: '1.55rem', sm: '2.125rem' } }}>{formattedFocusTimeSpent}</Typography>
           </CardContent>
         </Card>
         <Card
