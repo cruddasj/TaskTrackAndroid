@@ -4,6 +4,7 @@ import ArrowDropDownRounded from '@mui/icons-material/ArrowDropDownRounded';
 import ArrowDropUpRounded from '@mui/icons-material/ArrowDropUpRounded';
 import DeleteOutlineRounded from '@mui/icons-material/DeleteOutlineRounded';
 import EditOutlined from '@mui/icons-material/EditOutlined';
+import WarningAmberRounded from '@mui/icons-material/WarningAmberRounded';
 import {
   Alert,
   Box,
@@ -26,7 +27,7 @@ import {
 } from '@mui/material';
 import { useMemo, useState } from 'react';
 import { useAppState } from '../state/AppStateContext';
-import { getDefaultRoundTitle, hasEmptyRoundWithoutTasks } from '../state/rounds';
+import { getDefaultRoundTitle, getRoundEstimatedMinutes, hasEmptyRoundWithoutTasks } from '../state/rounds';
 import { getTodayKey } from '../utils';
 
 export const RoundsScreen = () => {
@@ -84,6 +85,14 @@ export const RoundsScreen = () => {
   const unassignedTasks = useMemo(
     () => todaysTasks.filter((task) => !task.roundId || !state.rounds.some((round) => round.id === task.roundId)),
     [todaysTasks, state.rounds],
+  );
+  const roundEstimatedMinutes = useMemo(
+    () =>
+      state.rounds.reduce<Record<string, number>>((acc, round) => {
+        acc[round.id] = getRoundEstimatedMinutes(round, todaysTasks);
+        return acc;
+      }, {}),
+    [state.rounds, todaysTasks],
   );
   const openCreateRoundDialog = () => {
     const hasEmptyRound = hasEmptyRoundWithoutTasks(state.rounds);
@@ -195,7 +204,14 @@ export const RoundsScreen = () => {
         >
           <CardContent>
             <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
-              <Typography variant="h5">{round.title} ({state.settings.pomodoroMinutes} min)</Typography>
+              <Stack direction="row" spacing={0.75} alignItems="center">
+                <Typography variant="h5">
+                  {round.title} ({roundEstimatedMinutes[round.id] ?? 0} min est)
+                </Typography>
+                {(roundEstimatedMinutes[round.id] ?? 0) > state.settings.pomodoroMinutes && (
+                  <WarningAmberRounded color="warning" fontSize="small" aria-label={`round-overflow-warning-${round.id}`} />
+                )}
+              </Stack>
               <Stack direction="row" spacing={0.25}>
                 {round.status !== 'done' && (
                   <>
@@ -231,6 +247,12 @@ export const RoundsScreen = () => {
               })}
               {round.taskIds.length === 0 && <Typography color="text.secondary">No tasks assigned yet.</Typography>}
             </Stack>
+            {(roundEstimatedMinutes[round.id] ?? 0) > state.settings.pomodoroMinutes && (
+              <Alert severity="success" icon={<WarningAmberRounded color="warning" />}>
+                This round is estimated at {roundEstimatedMinutes[round.id]} minutes, which is above your {state.settings.pomodoroMinutes}
+                -minute round setting. Tasks will likely roll over into later rounds.
+              </Alert>
+            )}
             {round.status === 'done' ? (
               <Typography color="text.secondary">Completed round (read-only).</Typography>
             ) : (

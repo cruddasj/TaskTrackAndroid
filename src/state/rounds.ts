@@ -4,6 +4,12 @@ export const hasEmptyRoundWithoutTasks = (rounds: Round[]): boolean => rounds.so
 
 export const hasRoundsWithAssignedTasks = (rounds: Round[]): boolean => rounds.some((round) => round.taskIds.length > 0);
 
+export const getRoundEstimatedMinutes = (round: Round, tasks: Task[]): number =>
+  round.taskIds.reduce((total, taskId) => {
+    const task = tasks.find((candidate) => candidate.id === taskId);
+    return total + (task?.estimateMinutes ?? 0);
+  }, 0);
+
 const getNextRoundSequence = (rounds: Round[]): number => {
   const numberedRoundValues = rounds
     .map((round) => {
