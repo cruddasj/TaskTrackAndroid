@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useReducer, useRef, useS
 import { AlarmTone, dismissNativeAlarmNotifications, notifyPomodoroComplete, requestNotificationPermissions, startRepeatingAlarm } from '../services/notifications';
 import { AppState, PomodoroState, Round, Task, TaskBankItem } from '../types';
 import { advanceActiveRound, buildNewRound, isRoundCompleted, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
+import { getNextPomodoroPhase, getRoundProgressionForPhaseAdvance } from './pomodoroTransition';
 import { createDemoState, loadState, saveState } from './storage';
 import { getTodayKey } from '../utils';
 
@@ -392,14 +393,9 @@ const reducer = (state: AppState, action: Action): AppState => {
     case 'SKIP_POMODORO': {
       const completedWorkSessions =
         state.pomodoro.phase === 'work' ? state.pomodoro.completedWorkSessions + 1 : state.pomodoro.completedWorkSessions;
-      const nextPhase: PomodoroState['phase'] =
-        state.pomodoro.phase === 'work'
-          ? completedWorkSessions % state.settings.sessionsBeforeLongBreak === 0
-            ? 'long_break'
-            : 'short_break'
-          : 'work';
+      const nextPhase = getNextPomodoroPhase(state);
       const totalSeconds = getPhaseSeconds(state, nextPhase);
-      const roundProgression = nextPhase === 'work' ? advanceActiveRound(state.rounds, state.pomodoro.activeRoundId) : undefined;
+      const roundProgression = getRoundProgressionForPhaseAdvance(state);
 
       return {
         ...state,
@@ -434,14 +430,9 @@ const reducer = (state: AppState, action: Action): AppState => {
       const completedWorkSessions =
         state.pomodoro.phase === 'work' ? state.pomodoro.completedWorkSessions + 1 : state.pomodoro.completedWorkSessions;
 
-      const nextPhase: PomodoroState['phase'] =
-        state.pomodoro.phase === 'work'
-          ? completedWorkSessions % state.settings.sessionsBeforeLongBreak === 0
-            ? 'long_break'
-            : 'short_break'
-          : 'work';
+      const nextPhase = getNextPomodoroPhase(state);
       const totalSeconds = getPhaseSeconds(state, nextPhase);
-      const roundProgression = nextPhase === 'work' ? advanceActiveRound(state.rounds, state.pomodoro.activeRoundId) : undefined;
+      const roundProgression = getRoundProgressionForPhaseAdvance(state);
 
       return {
         ...state,
