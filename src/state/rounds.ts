@@ -71,6 +71,16 @@ export const advanceActiveRound = (rounds: Round[], currentRoundId?: string): { 
   };
 };
 
+export const getCarryForwardRound = (rounds: Round[], currentRoundId: string): Round | undefined => {
+  const openRounds = rounds.filter((round) => round.status !== 'done');
+  const currentRoundIndex = openRounds.findIndex((round) => round.id === currentRoundId);
+  if (currentRoundIndex < 0) {
+    return openRounds.find((round) => round.id !== currentRoundId);
+  }
+
+  return openRounds[currentRoundIndex + 1];
+};
+
 export const getVisibleRoundId = (
   rounds: Round[],
   requestedRoundId?: string,
