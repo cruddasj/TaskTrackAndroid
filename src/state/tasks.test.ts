@@ -1,5 +1,5 @@
 import { Task } from '../types';
-import { hasDuplicateTodayTaskTitle, suggestRecurringTaskBankItems } from './tasks';
+import { areAllTasksCompletedForDate, hasDuplicateTodayTaskTitle, suggestRecurringTaskBankItems } from './tasks';
 
 const todayKey = '2026-03-29';
 
@@ -107,5 +107,32 @@ describe('suggestRecurringTaskBankItems', () => {
     const suggestions = suggestRecurringTaskBankItems(taskBank, tasks, '2026-03-30', new Date('2026-03-30T12:00:00.000Z'));
 
     expect(suggestions).toEqual([]);
+  });
+});
+
+describe('areAllTasksCompletedForDate', () => {
+  it('returns true when every task for a date is complete', () => {
+    const tasks = [
+      buildTask({ id: 'done-1', status: 'done' }),
+      buildTask({ id: 'done-2', status: 'done' }),
+      buildTask({ id: 'other-day', plannedDate: '2026-03-28', status: 'todo' }),
+    ];
+
+    expect(areAllTasksCompletedForDate(tasks, todayKey)).toBe(true);
+  });
+
+  it('returns false when there are no tasks for the date', () => {
+    const tasks = [buildTask({ id: 'other-day', plannedDate: '2026-03-28', status: 'done' })];
+
+    expect(areAllTasksCompletedForDate(tasks, todayKey)).toBe(false);
+  });
+
+  it('returns false when at least one task for the date is not complete', () => {
+    const tasks = [
+      buildTask({ id: 'done-1', status: 'done' }),
+      buildTask({ id: 'todo-1', status: 'todo' }),
+    ];
+
+    expect(areAllTasksCompletedForDate(tasks, todayKey)).toBe(false);
   });
 });

@@ -6,7 +6,8 @@ import { BottomNavigation, BottomNavigationAction, Box, Button, Paper, Snackbar,
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
 import { hasRoundsWithAssignedTasks } from '../state/rounds';
-import { formatTime } from '../utils';
+import { areAllTasksCompletedForDate } from '../state/tasks';
+import { formatTime, getTodayKey } from '../utils';
 
 const tabs = [
   { label: 'Dashboard', path: '/', icon: <DashboardOutlined /> },
@@ -22,7 +23,8 @@ export const AppShell = () => {
   const location = useLocation();
   const isFirstTimeUser = !state.userName.trim();
   const hasTrackableRound = hasRoundsWithAssignedTasks(state.rounds);
-  const showTimerButton = state.pomodoro.isRunning || hasTrackableRound;
+  const allTodaysTasksDone = areAllTasksCompletedForDate(state.tasks, getTodayKey());
+  const showTimerButton = !allTodaysTasksDone && (state.pomodoro.isRunning || hasTrackableRound);
   const visibleTabs = isFirstTimeUser ? tabs.filter((tab) => tab.path === '/settings') : tabs;
   const current = visibleTabs.find((tab) => tab.path === location.pathname)?.path ?? false;
 
