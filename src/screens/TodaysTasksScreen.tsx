@@ -192,7 +192,7 @@ export const TodaysTasksScreen = () => {
                   showSuccessMessage(task.status === 'done' ? 'Task marked as todo.' : 'Task marked as done.');
                 }}
               >
-                {task.status === 'done' ? 'Mark Todo' : 'Mark Done'}
+                {task.status === 'done' ? 'Mark as to-do' : 'Mark as done'}
               </Button>
             </Stack>
           </CardContent>
