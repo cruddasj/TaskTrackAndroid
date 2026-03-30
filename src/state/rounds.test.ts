@@ -1,4 +1,4 @@
-import { advanceActiveRound, buildNewRound, getDefaultRoundTitle, getRoundEstimatedMinutes, hasEmptyRoundWithoutTasks, hasRoundsWithAssignedTasks, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
+import { advanceActiveRound, buildNewRound, getDefaultRoundTitle, getRoundEstimatedMinutes, getVisibleRoundId, hasEmptyRoundWithoutTasks, hasRoundsWithAssignedTasks, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
 
 describe('round helpers', () => {
   it('detects when a round has no tasks assigned', () => {
@@ -110,5 +110,31 @@ describe('round helpers', () => {
         [{ id: 't1', title: 'A', description: '', category: 'Work', estimateMinutes: 10, status: 'todo', plannedDate: '2026-03-29', roundId: 'r1' }],
       ),
     ).toBe(10);
+  });
+
+  it('prefers the active pomodoro round over a requested round id', () => {
+    expect(
+      getVisibleRoundId(
+        [
+          { id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'upcoming' },
+          { id: 'r2', title: 'Round 2', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'active' },
+        ],
+        'r1',
+        'r2',
+      ),
+    ).toBe('r2');
+  });
+
+  it('falls back to active status round when requested and active ids are missing', () => {
+    expect(
+      getVisibleRoundId(
+        [
+          { id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'active' },
+          { id: 'r2', title: 'Round 2', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'upcoming' },
+        ],
+        'missing',
+        'also-missing',
+      ),
+    ).toBe('r1');
   });
 });

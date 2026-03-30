@@ -8,6 +8,7 @@ import { Alert, Box, Button, Card, CardContent, Chip, Dialog, DialogActions, Dia
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
+import { getVisibleRoundId } from '../state/rounds';
 import { formatTime, getTodayKey } from '../utils';
 
 export const FocusScreen = () => {
@@ -17,8 +18,7 @@ export const FocusScreen = () => {
   const [sessionReviewOpen, setSessionReviewOpen] = useState(false);
   const [confirmedDoneIds, setConfirmedDoneIds] = useState<string[]>([]);
   const requestedRoundId = searchParams.get('roundId') ?? undefined;
-  const fallbackRoundId = state.rounds.find((round) => round.status === 'active')?.id;
-  const visibleRoundId = requestedRoundId ?? state.pomodoro.activeRoundId ?? fallbackRoundId;
+  const visibleRoundId = getVisibleRoundId(state.rounds, requestedRoundId, state.pomodoro.activeRoundId);
 
   const activeRound = useMemo(
     () => state.rounds.find((round) => round.id === visibleRoundId),
