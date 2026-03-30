@@ -82,9 +82,23 @@ describe('round helpers', () => {
     );
 
     expect(result.nextRoundId).toBe('r2');
-    expect(result.rounds.find((round) => round.id === 'r1')?.status).toBe('upcoming');
+    expect(result.rounds.find((round) => round.id === 'r1')?.status).toBe('done');
     expect(result.rounds.find((round) => round.id === 'r2')?.status).toBe('active');
     expect(result.rounds.find((round) => round.id === 'r3')?.status).toBe('done');
+  });
+
+  it('marks the final open round as done when no next round exists', () => {
+    const result = advanceActiveRound(
+      [
+        { id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'active' },
+        { id: 'r2', title: 'Round 2', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'done' },
+      ],
+      'r1',
+    );
+
+    expect(result.nextRoundId).toBeUndefined();
+    expect(result.rounds.find((round) => round.id === 'r1')?.status).toBe('done');
+    expect(result.rounds.find((round) => round.id === 'r2')?.status).toBe('done');
   });
 
   it('detects when at least one round can be tracked', () => {

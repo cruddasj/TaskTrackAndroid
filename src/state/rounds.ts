@@ -56,19 +56,17 @@ export const advanceActiveRound = (rounds: Round[], currentRoundId?: string): { 
     return { rounds, nextRoundId: undefined };
   }
 
-  const currentIndex = openRounds.findIndex((round) => round.id === currentRoundId);
-  const nextRound =
-    currentIndex >= 0 && currentIndex < openRounds.length - 1
-      ? openRounds[currentIndex + 1]
-      : currentIndex >= 0
-        ? openRounds[currentIndex]
-        : openRounds[0];
+  const currentRound = openRounds.find((round) => round.id === currentRoundId) ?? openRounds[0];
+  const currentIndex = openRounds.findIndex((round) => round.id === currentRound.id);
+  const nextRound = currentIndex < openRounds.length - 1 ? openRounds[currentIndex + 1] : undefined;
 
   return {
-    nextRoundId: nextRound.id,
-    rounds: rounds.map((round) =>
-      round.status === 'done' ? round : { ...round, status: round.id === nextRound.id ? 'active' : 'upcoming' },
-    ),
+    nextRoundId: nextRound?.id,
+    rounds: rounds.map((round) => {
+      if (round.status === 'done') return round;
+      if (round.id === currentRound.id) return { ...round, status: 'done' };
+      return { ...round, status: round.id === nextRound?.id ? 'active' : 'upcoming' };
+    }),
   };
 };
 

@@ -257,12 +257,21 @@ export const RoundsScreen = () => {
               {round.taskIds.map((taskId) => {
                 const task = todaysTasks.find((candidate) => candidate.id === taskId);
                 if (!task) return null;
+                const carriedToRound = task.roundId && task.roundId !== round.id
+                  ? state.rounds.find((candidate) => candidate.id === task.roundId)
+                  : undefined;
+                const carriedMessage = carriedToRound
+                  ? `(Not completed in this round, carried over to ${carriedToRound.title})`
+                  : null;
                 return (
                   <Stack direction="row" spacing={1} alignItems="center" key={task.id}>
-                    {task.status === 'done'
+                    {task.status === 'done' && !carriedMessage
                       ? <CheckCircleRounded fontSize="small" color="success" />
                       : <CircleOutlined fontSize="small" color="disabled" />}
-                    <Typography>{task.title}</Typography>
+                    <Typography>
+                      {task.title}
+                      {carriedMessage ? ` ${carriedMessage}` : ''}
+                    </Typography>
                   </Stack>
                 );
               })}
