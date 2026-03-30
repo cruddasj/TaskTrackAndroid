@@ -32,8 +32,10 @@ export const TodaysTasksScreen = () => {
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const [recurringSuggestions, setRecurringSuggestions] = useState<TaskBankItem[]>([]);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [taskPendingDelete, setTaskPendingDelete] = useState<Task | null>(null);
   const [form, setForm] = useState<TaskFormState>(emptyForm);
   const [validationMessage, setValidationMessage] = useState<string | null>(null);
+  const taskActionButtonSx = { p: 0.625 };
 
   const formatRecurrenceLabel = (task: TaskBankItem): string => {
     if (task.recurrenceWeekdays && task.recurrenceWeekdays.length > 0) {
@@ -125,6 +127,21 @@ export const TodaysTasksScreen = () => {
     setSuggestionsOpen(false);
   };
 
+  const requestDeleteTask = (task: Task) => {
+    setTaskPendingDelete(task);
+  };
+
+  const cancelDeleteTask = () => {
+    setTaskPendingDelete(null);
+  };
+
+  const confirmDeleteTask = () => {
+    if (!taskPendingDelete) return;
+    deleteTask(taskPendingDelete.id);
+    showSuccessMessage('Today task deleted.');
+    setTaskPendingDelete(null);
+  };
+
   return (
     <Stack spacing={2}>
       <Box>
@@ -149,18 +166,16 @@ export const TodaysTasksScreen = () => {
             <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
               <Stack direction="row" spacing={1} alignItems="center">
                 <Typography variant="h5">{task.title}</Typography>
-                <IconButton size="small" onClick={() => openEditDialog(task)} aria-label={`edit-${task.id}`}>
+                <IconButton size="small" onClick={() => openEditDialog(task)} aria-label={`edit-${task.id}`} sx={taskActionButtonSx}>
                   <EditOutlined fontSize="small" />
                 </IconButton>
                 <IconButton
                   size="small"
-                  onClick={() => {
-                    deleteTask(task.id);
-                    showSuccessMessage('Today task deleted.');
-                  }}
+                  onClick={() => requestDeleteTask(task)}
                   aria-label={`delete-${task.id}`}
+                  sx={taskActionButtonSx}
                 >
-                  <DeleteOutlineRounded fontSize="small" color="error" />
+                  <DeleteOutlineRounded sx={{ fontSize: 18 }} color="error" />
                 </IconButton>
               </Stack>
               {task.status === 'done' ? <CheckCircleOutlineRounded color="primary" /> : <RadioButtonUncheckedRounded color="primary" />}
@@ -257,6 +272,21 @@ export const TodaysTasksScreen = () => {
         <DialogActions>
           <Button onClick={closeDialog}>Cancel</Button>
           <Button variant="contained" onClick={saveTask}>Save</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={!!taskPendingDelete} onClose={cancelDeleteTask} fullWidth>
+        <DialogTitle>Delete task?</DialogTitle>
+        <DialogContent>
+          <Typography color="text.secondary">
+            Are you sure you want to delete &quot;{taskPendingDelete?.title}&quot;? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={cancelDeleteTask}>Cancel</Button>
+          <Button variant="contained" color="error" onClick={confirmDeleteTask}>
+            Delete task
+          </Button>
         </DialogActions>
       </Dialog>
 
