@@ -643,6 +643,7 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAppState = () => {
   const context = useContext(AppStateContext);
   if (!context) {

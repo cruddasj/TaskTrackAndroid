@@ -7,6 +7,7 @@ This repository contains TaskTrack Android (React + Capacitor). Keep changes foc
 - Prefer small, scoped commits tied to a user-visible problem or feature.
 - Preserve TypeScript strictness and existing lint/style patterns.
 - Update or add automated tests for logic changes.
+- Always run linting checks (`npm run lint`) as part of every change, and fix any warnings/errors before committing.
 - Run relevant checks before committing (`npm run test:coverage` at minimum for behavior changes).
 
 ## Product/content guidance
