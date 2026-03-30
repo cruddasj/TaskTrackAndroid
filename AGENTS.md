@@ -31,3 +31,10 @@ Update `README.md` in the same PR only when major functionality changes are intr
 - Feature request addressed end-to-end (UI + state + persistence where relevant).
 - Tests pass and coverage remains at/above configured threshold.
 - README stays accurate.
+
+## CI/build safety checks (required)
+- Before committing, run the same core checks used by CI for app health:
+  - `npm run lint`
+  - `npm run test:coverage` (for behavior or logic changes)
+  - `npm run build` (required for TypeScript/packaging validation)
+- Treat TypeScript compile errors as blocking, even if tests pass.
