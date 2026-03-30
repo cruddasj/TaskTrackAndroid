@@ -17,6 +17,7 @@ export const SettingsScreen = () => {
     setShortBreakMinutes,
     setLongBreakMinutes,
     setSessionsBeforeLongBreak,
+    setSessionReviewGraceSeconds,
     setAlarmTone,
     setAlarmRepeatCount,
     setShowFirstTimeGuidance,
@@ -29,6 +30,7 @@ export const SettingsScreen = () => {
   const [shortBreakMinutes, setShortBreakMinutesInput] = useState(String(state.settings.shortBreakMinutes));
   const [longBreakMinutes, setLongBreakMinutesInput] = useState(String(state.settings.longBreakMinutes));
   const [sessionsBeforeLongBreak, setSessionsBeforeLongBreakInput] = useState(String(state.settings.sessionsBeforeLongBreak));
+  const [sessionReviewGraceSeconds, setSessionReviewGraceSecondsInput] = useState(String(state.settings.sessionReviewGraceSeconds));
   const [alarmRepeatCount, setAlarmRepeatCountInput] = useState(String(state.settings.alarmRepeatCount));
 
   const needsName = !state.userName.trim();
@@ -195,6 +197,14 @@ export const SettingsScreen = () => {
               onChange={(event) => setAlarmRepeatCountInput(event.target.value)}
               helperText="Choose how many times the alarm should ring (1 to 10)."
             />
+            <TextField
+              label="Task confirmation timeout (seconds)"
+              type="number"
+              inputProps={{ min: 5, max: 600 }}
+              value={sessionReviewGraceSeconds}
+              onChange={(event) => setSessionReviewGraceSecondsInput(event.target.value)}
+              helperText="If you do not confirm completed tasks in time, the app starts your break automatically."
+            />
             <Button
               variant="outlined"
               color="secondary"
@@ -210,18 +220,21 @@ export const SettingsScreen = () => {
                 const shortBreak = Number(shortBreakMinutes);
                 const longBreak = Number(longBreakMinutes);
                 const sessions = Number(sessionsBeforeLongBreak);
+                const reviewTimeout = Number(sessionReviewGraceSeconds);
                 const repeats = Number(alarmRepeatCount);
-                if (!Number.isFinite(minutes) || !Number.isFinite(shortBreak) || !Number.isFinite(longBreak) || !Number.isFinite(sessions) || !Number.isFinite(repeats)) return;
-                if (minutes <= 0 || shortBreak <= 0 || longBreak <= 0 || sessions <= 1 || repeats < 1 || repeats > 10) return;
+                if (!Number.isFinite(minutes) || !Number.isFinite(shortBreak) || !Number.isFinite(longBreak) || !Number.isFinite(sessions) || !Number.isFinite(reviewTimeout) || !Number.isFinite(repeats)) return;
+                if (minutes <= 0 || shortBreak <= 0 || longBreak <= 0 || sessions <= 1 || reviewTimeout < 5 || reviewTimeout > 600 || repeats < 1 || repeats > 10) return;
                 setPomodoroMinutes(minutes);
                 setShortBreakMinutes(shortBreak);
                 setLongBreakMinutes(longBreak);
                 setSessionsBeforeLongBreak(sessions);
+                setSessionReviewGraceSeconds(reviewTimeout);
                 setAlarmRepeatCount(repeats);
                 setPomodoroMinutesInput(String(Math.round(minutes)));
                 setShortBreakMinutesInput(String(Math.round(shortBreak)));
                 setLongBreakMinutesInput(String(Math.round(longBreak)));
                 setSessionsBeforeLongBreakInput(String(Math.round(sessions)));
+                setSessionReviewGraceSecondsInput(String(Math.max(5, Math.min(600, Math.round(reviewTimeout)))));
                 setAlarmRepeatCountInput(String(Math.max(1, Math.min(10, Math.round(repeats)))));
                 showSuccessMessage('Timer settings saved.');
               }}
@@ -230,11 +243,14 @@ export const SettingsScreen = () => {
                 !shortBreakMinutes.trim() ||
                 !longBreakMinutes.trim() ||
                 !sessionsBeforeLongBreak.trim() ||
+                !sessionReviewGraceSeconds.trim() ||
                 !alarmRepeatCount.trim() ||
                 Number(pomodoroMinutes) <= 0 ||
                 Number(shortBreakMinutes) <= 0 ||
                 Number(longBreakMinutes) <= 0 ||
                 Number(sessionsBeforeLongBreak) <= 1 ||
+                Number(sessionReviewGraceSeconds) < 5 ||
+                Number(sessionReviewGraceSeconds) > 600 ||
                 Number(alarmRepeatCount) < 1 ||
                 Number(alarmRepeatCount) > 10
               }
