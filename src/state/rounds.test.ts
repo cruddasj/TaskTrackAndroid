@@ -10,6 +10,15 @@ describe('round helpers', () => {
     ).toBe(true);
   });
 
+  it('ignores empty rounds that are completed and locked', () => {
+    expect(
+      hasEmptyRoundWithoutTasks([
+        { id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'done' },
+        { id: 'r2', title: 'Round 2', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'active' },
+      ]),
+    ).toBe(false);
+  });
+
   it('recognizes completed rounds for assignment guards', () => {
     expect(isRoundCompleted({ id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'done' })).toBe(true);
     expect(isRoundCompleted({ id: 'r2', title: 'Round 2', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'active' })).toBe(false);
