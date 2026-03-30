@@ -193,7 +193,15 @@ export const FocusScreen = () => {
             </CardContent>
           </Card>
         ) : (
-          <Alert severity="success" sx={{ width: '100%', maxWidth: 780 }}>
+          <Alert
+            severity="success"
+            sx={{
+              width: '100%',
+              maxWidth: 780,
+              justifyContent: 'center',
+              '& .MuiAlert-message': { width: '100%', textAlign: 'center' },
+            }}
+          >
             Break in progress. Tasks are hidden until your next focus session starts.
           </Alert>
         )}
@@ -245,7 +253,6 @@ export const FocusScreen = () => {
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={confirmSessionRollover}>Continue without changes</Button>
           <Button variant="contained" onClick={confirmSessionRollover}>Confirm and continue</Button>
         </DialogActions>
       </Dialog>

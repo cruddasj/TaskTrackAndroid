@@ -30,7 +30,13 @@ import {
 } from '@mui/material';
 import { useMemo, useState } from 'react';
 import { useAppState } from '../state/AppStateContext';
-import { getDefaultRoundTitle, getRoundEstimatedMinutes, hasEmptyRoundWithoutTasks, isRoundCompleted } from '../state/rounds';
+import {
+  getDefaultRoundTitle,
+  getRoundEstimatedMinutes,
+  hasEmptyRoundWithoutTasks,
+  isRoundCompleted,
+  sortRoundsChronologically,
+} from '../state/rounds';
 import { getTodayKey } from '../utils';
 
 export const RoundsScreen = () => {
@@ -78,13 +84,10 @@ export const RoundsScreen = () => {
   const availableTasks = useMemo(() => {
     return todaysTasks.filter((task) => !task.roundId || task.roundId === editingRound?.id);
   }, [todaysTasks, editingRound]);
+  const orderedRounds = useMemo(() => sortRoundsChronologically(state.rounds), [state.rounds]);
   const plannedRounds = useMemo(
-    () => state.rounds.filter((round) => round.status !== 'done'),
-    [state.rounds],
-  );
-  const completedRounds = useMemo(
-    () => state.rounds.filter((round) => round.status === 'done'),
-    [state.rounds],
+    () => orderedRounds.filter((round) => round.status !== 'done'),
+    [orderedRounds],
   );
   const unassignedTasks = useMemo(
     () => todaysTasks.filter((task) => !task.roundId || !state.rounds.some((round) => round.id === task.roundId)),
@@ -205,7 +208,7 @@ export const RoundsScreen = () => {
           </Stack>
         </CardContent>
       </Card>
-      {[...plannedRounds, ...completedRounds].map((round) => (
+      {orderedRounds.map((round) => (
         <Card
           key={round.id}
           sx={{

@@ -25,6 +25,30 @@ const getNextRoundSequence = (rounds: Round[]): number => {
 
 export const getDefaultRoundTitle = (rounds: Round[]): string => `Round ${getNextRoundSequence(rounds)}`;
 
+const getRoundTitleSequence = (title: string): number | undefined => {
+  const matched = /^Round (\d+)\b/.exec(title.trim());
+  if (!matched) return undefined;
+  const sequence = Number(matched[1]);
+  return Number.isFinite(sequence) ? sequence : undefined;
+};
+
+export const sortRoundsChronologically = (rounds: Round[]): Round[] =>
+  rounds
+    .map((round, index) => ({ round, index }))
+    .sort((left, right) => {
+      const leftSequence = getRoundTitleSequence(left.round.title);
+      const rightSequence = getRoundTitleSequence(right.round.title);
+
+      if (leftSequence !== undefined && rightSequence !== undefined && leftSequence !== rightSequence) {
+        return leftSequence - rightSequence;
+      }
+      if (leftSequence !== undefined && rightSequence === undefined) return -1;
+      if (leftSequence === undefined && rightSequence !== undefined) return 1;
+
+      return left.index - right.index;
+    })
+    .map(({ round }) => round);
+
 export const buildNewRound = (
   rounds: Round[],
   pomodoroMinutes: number,
