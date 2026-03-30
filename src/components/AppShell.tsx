@@ -5,6 +5,7 @@ import TimerOutlined from '@mui/icons-material/TimerOutlined';
 import { BottomNavigation, BottomNavigationAction, Box, Button, Paper, Snackbar, Stack, Typography } from '@mui/material';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
+import { hasRoundsWithAssignedTasks } from '../state/rounds';
 import { formatTime } from '../utils';
 
 const tabs = [
@@ -20,6 +21,8 @@ export const AppShell = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isFirstTimeUser = !state.userName.trim();
+  const hasTrackableRound = hasRoundsWithAssignedTasks(state.rounds);
+  const showTimerButton = state.pomodoro.isRunning || hasTrackableRound;
   const visibleTabs = isFirstTimeUser ? tabs.filter((tab) => tab.path === '/settings') : tabs;
   const current = visibleTabs.find((tab) => tab.path === location.pathname)?.path ?? false;
 
@@ -35,13 +38,15 @@ export const AppShell = () => {
           <Typography variant="h5" color="primary.main" fontWeight={800}>
             TaskTrack
           </Typography>
-          <Button
-            variant={state.pomodoro.isRunning ? 'contained' : 'outlined'}
-            size="small"
-            onClick={() => navigate('/focus')}
-          >
-            {state.pomodoro.isRunning ? 'Active session' : 'Timer'} {formatTime(state.pomodoro.remainingSeconds)}
-          </Button>
+          {showTimerButton && (
+            <Button
+              variant={state.pomodoro.isRunning ? 'contained' : 'outlined'}
+              size="small"
+              onClick={() => navigate('/focus')}
+            >
+              {state.pomodoro.isRunning ? 'Active session' : 'Timer'} {formatTime(state.pomodoro.remainingSeconds)}
+            </Button>
+          )}
         </Stack>
       </Box>
       <Box px={{ xs: 2, md: 4 }}>
