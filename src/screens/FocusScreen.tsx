@@ -252,8 +252,10 @@ export const FocusScreen = () => {
             })}
           </Stack>
         </DialogContent>
-        <DialogActions>
-          <Button variant="contained" onClick={confirmSessionRollover}>Confirm and continue</Button>
+        <DialogActions sx={{ px: 3, pb: 3 }}>
+          <Button variant="contained" fullWidth onClick={confirmSessionRollover}>
+            Confirm and continue
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>
