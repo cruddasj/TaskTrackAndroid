@@ -190,7 +190,11 @@ const reducer = (state: AppState, action: Action): AppState => {
       return {
         ...state,
         rounds: state.rounds.map((round) =>
-          round.id === roundId ? { ...round, taskIds } : { ...round, taskIds: round.taskIds.filter((taskId) => !taskIdSet.has(taskId)) },
+          round.id === roundId
+            ? { ...round, taskIds }
+            : isRoundCompleted(round)
+              ? round
+              : { ...round, taskIds: round.taskIds.filter((taskId) => !taskIdSet.has(taskId)) },
         ),
         tasks: state.tasks.map((task) => {
           if (taskIdSet.has(task.id)) return { ...task, roundId };
