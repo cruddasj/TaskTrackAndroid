@@ -198,7 +198,13 @@ const reducer = (state: AppState, action: Action): AppState => {
               : { ...round, taskIds: round.taskIds.filter((taskId) => !taskIdSet.has(taskId)) },
         ),
         tasks: state.tasks.map((task) => {
-          if (taskIdSet.has(task.id)) return { ...task, roundId };
+          if (taskIdSet.has(task.id)) {
+            const wasInDifferentRound = task.roundId && task.roundId !== roundId;
+            const previousRoundIds = wasInDifferentRound
+              ? Array.from(new Set([...(task.previousRoundIds ?? []), task.roundId]))
+              : task.previousRoundIds;
+            return { ...task, roundId, previousRoundIds };
+          }
           if (task.roundId === roundId) return { ...task, roundId: undefined };
           return task;
         }),

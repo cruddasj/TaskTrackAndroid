@@ -33,6 +33,7 @@ import { useAppState } from '../state/AppStateContext';
 import {
   getDefaultRoundTitle,
   getRoundEstimatedMinutes,
+  getRoundTaskIdsForDisplay,
   hasEmptyRoundWithoutTasks,
   isRoundCompleted,
   sortRoundsChronologically,
@@ -208,15 +209,17 @@ export const RoundsScreen = () => {
           </Stack>
         </CardContent>
       </Card>
-      {orderedRounds.map((round) => (
-        <Card
+      {orderedRounds.map((round) => {
+        const displayTaskIds = getRoundTaskIdsForDisplay(round, todaysTasks);
+        return (
+          <Card
           key={round.id}
           sx={{
             bgcolor: round.status === 'active' ? '#20201f' : round.status === 'done' ? '#131313' : '#1a1a1a',
             opacity: round.status === 'done' ? 0.75 : 1,
           }}
-        >
-          <CardContent>
+          >
+            <CardContent>
             <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
               <Stack direction="row" spacing={0.75} alignItems="center">
                 <Typography variant="h5">
@@ -256,8 +259,8 @@ export const RoundsScreen = () => {
                 )}
               </Stack>
             </Stack>
-            <Stack spacing={1} mb={2}>
-              {round.taskIds.map((taskId) => {
+              <Stack spacing={1} mb={2}>
+                {displayTaskIds.map((taskId) => {
                 const task = todaysTasks.find((candidate) => candidate.id === taskId);
                 if (!task) return null;
                 const carriedToRound = task.roundId && task.roundId !== round.id
@@ -278,9 +281,9 @@ export const RoundsScreen = () => {
                   </Stack>
                 );
               })}
-              {round.taskIds.length === 0 && <Typography color="text.secondary">No tasks assigned yet.</Typography>}
-            </Stack>
-            {(roundEstimatedMinutes[round.id] ?? 0) > state.settings.pomodoroMinutes && (
+                {displayTaskIds.length === 0 && <Typography color="text.secondary">No tasks assigned yet.</Typography>}
+              </Stack>
+              {(roundEstimatedMinutes[round.id] ?? 0) > state.settings.pomodoroMinutes && (
               <Alert severity="success" icon={<WarningAmberRounded color="warning" />}>
                 This round is estimated at {roundEstimatedMinutes[round.id]} minutes, which is above your {state.settings.pomodoroMinutes}
                 -minute round setting. Tasks will likely roll over into later rounds.
@@ -301,9 +304,10 @@ export const RoundsScreen = () => {
                 </Button>
               </Stack>
             )}
-          </CardContent>
-        </Card>
-      ))}
+            </CardContent>
+          </Card>
+        );
+      })}
       <Dialog
         open={!!editingRound}
         onClose={() => setEditingRoundId(null)}
