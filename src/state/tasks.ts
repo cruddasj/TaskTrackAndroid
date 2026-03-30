@@ -6,6 +6,7 @@ const normalizeTaskTitle = (title: string): string => title.trim().toLocaleLower
 const parseDayKeyToUtcMs = (dayKey: string): number => new Date(`${dayKey}T00:00:00.000Z`).getTime();
 
 export const WEEKDAY_LABELS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] as const;
+export const WEEKDAY_SELECTION_ORDER = [1, 2, 3, 4, 5, 6, 0] as const;
 
 export const areAllTasksCompletedForDate = (tasks: Task[], plannedDate: string): boolean => {
   const tasksForDate = tasks.filter((task) => task.plannedDate === plannedDate);
