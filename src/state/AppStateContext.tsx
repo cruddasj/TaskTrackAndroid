@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { AlarmTone, dismissNativeAlarmNotifications, notifyPomodoroComplete, requestNotificationPermissions, startRepeatingAlarm } from '../services/notifications';
 import { AppState, PomodoroState, Round, Task, TaskBankItem } from '../types';
-import { advanceActiveRound, buildNewRound, isRoundCompleted, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
+import { buildNewRound, isRoundCompleted, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
 import { getNextPomodoroPhase, getRoundProgressionForPhaseAdvance } from './pomodoroTransition';
 import { createDemoState, loadState, saveState } from './storage';
 import { getTodayKey } from '../utils';
