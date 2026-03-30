@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
 import { hasDuplicateTodayTaskTitle, WEEKDAY_LABELS } from '../state/tasks';
 import { TaskBankItem } from '../types';
+import { getTodayKey } from '../utils';
 
 interface TaskFormState {
   title: string;
@@ -38,7 +39,7 @@ export const TaskBankScreen = () => {
   const [editingTaskBankId, setEditingTaskBankId] = useState<string | null>(null);
   const [form, setForm] = useState<TaskFormState>(emptyForm);
   const [validationMessage, setValidationMessage] = useState<string | null>(null);
-  const todayKey = new Date().toISOString().slice(0, 10);
+  const todayKey = getTodayKey();
 
   useEffect(() => {
     if (!form.category && state.categories.length > 0) {

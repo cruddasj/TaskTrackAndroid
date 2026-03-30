@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import { useAppState } from '../state/AppStateContext';
 import { hasDuplicateTodayTaskTitle, suggestRecurringTaskBankItems, WEEKDAY_LABELS } from '../state/tasks';
 import { Task, TaskBankItem } from '../types';
+import { getTodayKey } from '../utils';
 
 interface TaskFormState {
   title: string;
@@ -25,7 +26,7 @@ const emptyForm: TaskFormState = {
 
 export const TodaysTasksScreen = () => {
   const { state, addTask, updateTask, deleteTask, toggleTask, showSuccessMessage } = useAppState();
-  const todayKey = new Date().toISOString().slice(0, 10);
+  const todayKey = getTodayKey();
   const todaysTasks = state.tasks.filter((task) => task.plannedDate === todayKey);
   const [open, setOpen] = useState(false);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);

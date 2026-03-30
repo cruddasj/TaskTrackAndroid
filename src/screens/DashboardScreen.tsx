@@ -6,12 +6,15 @@ import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
 import { getGreeting } from './greeting';
+import { getTodayKey } from '../utils';
+
+const HISTORY_WINDOW_DAYS = 30;
 
 export const DashboardScreen = () => {
   const navigate = useNavigate();
   const { state } = useAppState();
-  const todayKey = new Date().toISOString().slice(0, 10);
-  const historyWindowDays = 30;
+  const todayKey = getTodayKey();
+  const historyWindowDays = HISTORY_WINDOW_DAYS;
   const recentDayKeys = Array.from({ length: historyWindowDays }, (_, index) => {
     const date = new Date();
     date.setDate(date.getDate() - index);

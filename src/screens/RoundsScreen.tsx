@@ -25,13 +25,14 @@ import {
 import { useMemo, useState } from 'react';
 import { useAppState } from '../state/AppStateContext';
 import { hasEmptyRoundWithoutTasks } from '../state/rounds';
+import { getTodayKey } from '../utils';
 
 export const RoundsScreen = () => {
   const { state, assignTasksToRound, autoGroupTodayTasks, moveRound, createRound, deleteRound, showSuccessMessage } = useAppState();
   const [editingRoundId, setEditingRoundId] = useState<string | null>(null);
   const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
   const [roundCreationValidationMessage, setRoundCreationValidationMessage] = useState<string | null>(null);
-  const todayKey = new Date().toISOString().slice(0, 10);
+  const todayKey = getTodayKey();
   const todaysTasks = useMemo(() => state.tasks.filter((task) => task.plannedDate === todayKey), [state.tasks, todayKey]);
 
   const editingRound = useMemo(

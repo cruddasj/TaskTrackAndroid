@@ -5,6 +5,7 @@ import TimerOutlined from '@mui/icons-material/TimerOutlined';
 import { BottomNavigation, BottomNavigationAction, Box, Button, Paper, Snackbar, Stack, Typography } from '@mui/material';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
+import { formatTime } from '../utils';
 
 const tabs = [
   { label: 'Dashboard', path: '/', icon: <DashboardOutlined /> },
@@ -21,10 +22,6 @@ export const AppShell = () => {
   const isFirstTimeUser = !state.userName.trim();
   const visibleTabs = isFirstTimeUser ? tabs.filter((tab) => tab.path === '/settings') : tabs;
   const current = visibleTabs.find((tab) => tab.path === location.pathname)?.path ?? false;
-  const minutes = Math.floor(state.pomodoro.remainingSeconds / 60)
-    .toString()
-    .padStart(2, '0');
-  const seconds = (state.pomodoro.remainingSeconds % 60).toString().padStart(2, '0');
 
   return (
     <Box
@@ -43,7 +40,7 @@ export const AppShell = () => {
             size="small"
             onClick={() => navigate('/focus')}
           >
-            {state.pomodoro.isRunning ? 'Active session' : 'Timer'} {minutes}:{seconds}
+            {state.pomodoro.isRunning ? 'Active session' : 'Timer'} {formatTime(state.pomodoro.remainingSeconds)}
           </Button>
         </Stack>
       </Box>

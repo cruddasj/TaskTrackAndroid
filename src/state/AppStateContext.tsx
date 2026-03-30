@@ -3,6 +3,7 @@ import { AlarmTone, dismissNativeAlarmNotifications, notifyPomodoroComplete, req
 import { AppState, PomodoroState, Round, Task, TaskBankItem } from '../types';
 import { advanceActiveRound, buildNewRound, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
 import { createDemoState, loadState, saveState } from './storage';
+import { getTodayKey } from '../utils';
 
 type NewTask = Omit<Task, 'id' | 'status' | 'plannedDate' | 'completedAt'>;
 type EditableTask = Omit<Task, 'status'>;
@@ -48,8 +49,6 @@ const getPhaseSeconds = (state: AppState, phase: PomodoroState['phase']): number
   if (phase === 'long_break') return state.settings.longBreakMinutes * 60;
   return state.settings.pomodoroMinutes * 60;
 };
-
-const getTodayKey = (): string => new Date().toISOString().slice(0, 10);
 
 const reducer = (state: AppState, action: Action): AppState => {
   switch (action.type) {
