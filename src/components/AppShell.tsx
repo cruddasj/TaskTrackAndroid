@@ -2,6 +2,7 @@ import DashboardOutlined from '@mui/icons-material/DashboardOutlined';
 import ListAltOutlined from '@mui/icons-material/ListAltOutlined';
 import SettingsOutlined from '@mui/icons-material/SettingsOutlined';
 import TimerOutlined from '@mui/icons-material/TimerOutlined';
+import { Capacitor } from '@capacitor/core';
 import { BottomNavigation, BottomNavigationAction, Box, Button, Paper, Snackbar, Stack, Typography } from '@mui/material';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
@@ -27,13 +28,16 @@ export const AppShell = () => {
   const showTimerButton = !allTodaysTasksDone && (state.pomodoro.isRunning || hasTrackableRound);
   const visibleTabs = isFirstTimeUser ? tabs.filter((tab) => tab.path === '/settings') : tabs;
   const current = visibleTabs.find((tab) => tab.path === location.pathname)?.path ?? false;
+  const topPadding = Capacitor.isNativePlatform()
+    ? 'calc(max(env(safe-area-inset-top, 0px), 24px) + 12px)'
+    : '16px';
 
   return (
     <Box
       minHeight="100dvh"
       bgcolor="background.default"
       pb="calc(96px + env(safe-area-inset-bottom, 0px))"
-      pt="calc(max(env(safe-area-inset-top, 0px), 24px) + 12px)"
+      pt={topPadding}
     >
       <Box px={{ xs: 2, md: 4 }} py={3}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
