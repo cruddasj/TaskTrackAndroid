@@ -35,6 +35,7 @@ export const TaskBankScreen = () => {
 
   const [open, setOpen] = useState(false);
   const [editingTaskBankId, setEditingTaskBankId] = useState<string | null>(null);
+  const [taskPendingDelete, setTaskPendingDelete] = useState<TaskBankItem | null>(null);
   const [form, setForm] = useState<TaskFormState>(emptyForm);
   const [validationMessage, setValidationMessage] = useState<string | null>(null);
   const todayKey = getTodayKey();
@@ -69,6 +70,13 @@ export const TaskBankScreen = () => {
     setOpen(false);
     setEditingTaskBankId(null);
     setForm(emptyForm);
+  };
+
+  const confirmDeleteTaskBankItem = () => {
+    if (!taskPendingDelete) return;
+    deleteTaskBankItem(taskPendingDelete.id);
+    showSuccessMessage('Task Bank item deleted.');
+    setTaskPendingDelete(null);
   };
 
   const saveTask = () => {
@@ -150,10 +158,7 @@ export const TaskBankScreen = () => {
                 <IconButton
                   size="small"
                   sx={{ px: 0.5 }}
-                  onClick={() => {
-                    deleteTaskBankItem(task.id);
-                    showSuccessMessage('Task Bank item deleted.');
-                  }}
+                  onClick={() => setTaskPendingDelete(task)}
                   aria-label={`delete-bank-${task.id}`}
                 >
                   <DeleteOutlineRounded fontSize="small" color="error" />
@@ -294,6 +299,20 @@ export const TaskBankScreen = () => {
         <DialogActions>
           <Button onClick={closeDialog}>Cancel</Button>
           <Button variant="contained" onClick={saveTask}>Save</Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={!!taskPendingDelete} onClose={() => setTaskPendingDelete(null)} fullWidth maxWidth="xs">
+        <DialogTitle>Delete Task Bank item?</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to delete &quot;{taskPendingDelete?.title}&quot;? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setTaskPendingDelete(null)}>Cancel</Button>
+          <Button variant="contained" color="error" onClick={confirmDeleteTaskBankItem}>
+            Delete item
+          </Button>
         </DialogActions>
       </Dialog>
     </Stack>
