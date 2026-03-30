@@ -6,7 +6,7 @@ import InfoOutlined from '@mui/icons-material/InfoOutlined';
 import { Alert, Box, Button, Card, CardContent, Checkbox, Chip, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useAppState } from '../state/AppStateContext';
-import { hasDuplicateTodayTaskTitle, WEEKDAY_LABELS } from '../state/tasks';
+import { hasDuplicateTodayTaskTitle, WEEKDAY_LABELS, WEEKDAY_SELECTION_ORDER } from '../state/tasks';
 import { TaskBankItem } from '../types';
 import { getTodayKey, normalizeOptionalDescription } from '../utils';
 
@@ -275,9 +275,9 @@ export const TaskBankScreen = () => {
             <Stack mt={1}>
               <Typography variant="body2" color="text.secondary">Repeat on weekdays</Typography>
               <Stack direction="row" flexWrap="wrap" useFlexGap>
-                {WEEKDAY_LABELS.map((label, weekday) => (
+                {WEEKDAY_SELECTION_ORDER.map((weekday) => (
                   <FormControlLabel
-                    key={label}
+                    key={WEEKDAY_LABELS[weekday]}
                     control={(
                       <Checkbox
                         checked={form.recurrenceWeekdays.includes(weekday)}
@@ -289,7 +289,7 @@ export const TaskBankScreen = () => {
                         }))}
                       />
                     )}
-                    label={label.slice(0, 3)}
+                    label={WEEKDAY_LABELS[weekday].slice(0, 3)}
                   />
                 ))}
               </Stack>

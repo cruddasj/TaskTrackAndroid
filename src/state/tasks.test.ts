@@ -1,5 +1,5 @@
 import { Task } from '../types';
-import { areAllTasksCompletedForDate, hasDuplicateTodayTaskTitle, suggestRecurringTaskBankItems } from './tasks';
+import { areAllTasksCompletedForDate, hasDuplicateTodayTaskTitle, suggestRecurringTaskBankItems, WEEKDAY_SELECTION_ORDER } from './tasks';
 
 const todayKey = '2026-03-29';
 
@@ -31,6 +31,12 @@ describe('task title validation', () => {
     const tasks = [buildTask({ id: '1', title: 'Plan sprint' })];
 
     expect(hasDuplicateTodayTaskTitle(tasks, todayKey, 'Plan sprint', '1')).toBe(false);
+  });
+});
+
+describe('weekday selection order', () => {
+  it('starts from Monday and ends with Sunday for Task Bank weekday selection', () => {
+    expect(WEEKDAY_SELECTION_ORDER).toEqual([1, 2, 3, 4, 5, 6, 0]);
   });
 });
 
