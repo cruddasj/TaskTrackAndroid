@@ -1,4 +1,4 @@
-import { advanceActiveRound, buildNewRound, getDefaultRoundTitle, hasEmptyRoundWithoutTasks, hasRoundsWithAssignedTasks, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
+import { advanceActiveRound, buildNewRound, getDefaultRoundTitle, getRoundEstimatedMinutes, hasEmptyRoundWithoutTasks, hasRoundsWithAssignedTasks, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
 
 describe('round helpers', () => {
   it('detects when a round has no tasks assigned', () => {
@@ -89,5 +89,26 @@ describe('round helpers', () => {
         { id: 'r2', title: 'Round 2', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'upcoming' },
       ]),
     ).toBe(true);
+  });
+
+  it('totals estimated task minutes for the round', () => {
+    expect(
+      getRoundEstimatedMinutes(
+        { id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: ['t1', 't2'], status: 'active' },
+        [
+          { id: 't1', title: 'A', description: '', category: 'Work', estimateMinutes: 15, status: 'todo', plannedDate: '2026-03-29', roundId: 'r1' },
+          { id: 't2', title: 'B', description: '', category: 'Work', estimateMinutes: 20, status: 'todo', plannedDate: '2026-03-29', roundId: 'r1' },
+        ],
+      ),
+    ).toBe(35);
+  });
+
+  it('ignores missing task ids when totaling estimates', () => {
+    expect(
+      getRoundEstimatedMinutes(
+        { id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: ['t1', 'missing'], status: 'active' },
+        [{ id: 't1', title: 'A', description: '', category: 'Work', estimateMinutes: 10, status: 'todo', plannedDate: '2026-03-29', roundId: 'r1' }],
+      ),
+    ).toBe(10);
   });
 });
