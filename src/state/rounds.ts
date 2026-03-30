@@ -70,3 +70,18 @@ export const advanceActiveRound = (rounds: Round[], currentRoundId?: string): { 
     ),
   };
 };
+
+export const getVisibleRoundId = (
+  rounds: Round[],
+  requestedRoundId?: string,
+  activeRoundId?: string,
+): string | undefined => {
+  const roundIds = new Set(rounds.map((round) => round.id));
+  if (activeRoundId && roundIds.has(activeRoundId)) {
+    return activeRoundId;
+  }
+  if (requestedRoundId && roundIds.has(requestedRoundId)) {
+    return requestedRoundId;
+  }
+  return rounds.find((round) => round.status === 'active')?.id;
+};
