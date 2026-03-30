@@ -1,4 +1,5 @@
 import CircleOutlined from '@mui/icons-material/CircleOutlined';
+import CheckCircleOutlineRounded from '@mui/icons-material/CheckCircleOutlineRounded';
 import AddRounded from '@mui/icons-material/AddRounded';
 import ArrowDropDownRounded from '@mui/icons-material/ArrowDropDownRounded';
 import ArrowDropUpRounded from '@mui/icons-material/ArrowDropUpRounded';
@@ -12,6 +13,7 @@ import {
   Card,
   CardContent,
   Checkbox,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -27,7 +29,7 @@ import {
 } from '@mui/material';
 import { useMemo, useState } from 'react';
 import { useAppState } from '../state/AppStateContext';
-import { getDefaultRoundTitle, getRoundEstimatedMinutes, hasEmptyRoundWithoutTasks } from '../state/rounds';
+import { getDefaultRoundTitle, getRoundEstimatedMinutes, hasEmptyRoundWithoutTasks, isRoundCompleted } from '../state/rounds';
 import { getTodayKey } from '../utils';
 
 export const RoundsScreen = () => {
@@ -58,7 +60,7 @@ export const RoundsScreen = () => {
 
   const openRoundAssignment = (roundId: string) => {
     const round = state.rounds.find((item) => item.id === roundId);
-    if (!round) return;
+    if (!round || isRoundCompleted(round)) return;
     setEditingRoundId(roundId);
     setSelectedTaskIds(round.taskIds);
   };
@@ -136,7 +138,7 @@ export const RoundsScreen = () => {
   const handleQuickAssignToRound = (taskId: string, event: SelectChangeEvent<string>) => {
     const roundId = event.target.value;
     const targetRound = state.rounds.find((round) => round.id === roundId);
-    if (!targetRound) return;
+    if (!targetRound || isRoundCompleted(targetRound)) return;
     const nextTaskIds = targetRound.taskIds.includes(taskId) ? targetRound.taskIds : [...targetRound.taskIds, taskId];
     assignTasksToRound(roundId, nextTaskIds);
     showSuccessMessage(`Assigned task to ${targetRound.title}.`);
@@ -208,6 +210,15 @@ export const RoundsScreen = () => {
                 <Typography variant="h5">
                   {round.title} ({roundEstimatedMinutes[round.id] ?? 0} min est)
                 </Typography>
+                {round.status === 'done' && (
+                  <Chip
+                    size="small"
+                    color="success"
+                    icon={<CheckCircleOutlineRounded />}
+                    label="Completed"
+                    aria-label={`completed-round-chip-${round.id}`}
+                  />
+                )}
                 {(roundEstimatedMinutes[round.id] ?? 0) > state.settings.pomodoroMinutes && (
                   <WarningAmberRounded color="warning" fontSize="small" aria-label={`round-overflow-warning-${round.id}`} />
                 )}
