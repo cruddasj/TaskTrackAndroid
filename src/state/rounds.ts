@@ -22,6 +22,26 @@ export const getRoundTaskIdsForDisplay = (round: Round, tasks: Task[]): string[]
   return [...displayTaskIds];
 };
 
+
+type CarryHistory = {
+  carriedFromRoundId?: string;
+  carriedToRoundId?: string;
+};
+
+export const getCarryHistoryForRound = (task: Task, roundId: string): CarryHistory => {
+  const history = task.previousRoundIds ?? [];
+  const displayedRoundIndex = history.indexOf(roundId);
+
+  if (displayedRoundIndex < 0) {
+    return {};
+  }
+
+  const carriedFromRoundId = displayedRoundIndex > 0 ? history[displayedRoundIndex - 1] : undefined;
+  const carriedToRoundId = history[displayedRoundIndex + 1] ?? task.roundId;
+
+  return { carriedFromRoundId, carriedToRoundId };
+};
+
 const getNextRoundSequence = (rounds: Round[]): number => {
   const numberedRoundValues = rounds
     .map((round) => {

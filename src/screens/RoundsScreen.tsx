@@ -31,6 +31,7 @@ import {
 import { useMemo, useState } from 'react';
 import { useAppState } from '../state/AppStateContext';
 import {
+  getCarryHistoryForRound,
   getDefaultRoundTitle,
   getRoundEstimatedMinutes,
   getRoundTaskIdsForDisplay,
@@ -266,11 +267,17 @@ export const RoundsScreen = () => {
                 {displayTaskIds.map((taskId) => {
                 const task = todaysTasks.find((candidate) => candidate.id === taskId);
                 if (!task) return null;
-                const carriedToRound = task.roundId && task.roundId !== round.id
-                  ? state.rounds.find((candidate) => candidate.id === task.roundId)
+                const { carriedFromRoundId, carriedToRoundId } = getCarryHistoryForRound(task, round.id);
+                const carriedFromRound = carriedFromRoundId
+                  ? state.rounds.find((candidate) => candidate.id === carriedFromRoundId)
+                  : undefined;
+                const carriedToRound = carriedToRoundId
+                  ? state.rounds.find((candidate) => candidate.id === carriedToRoundId)
                   : undefined;
                 const carriedMessage = carriedToRound
-                  ? `(Not completed in this round, carried over to ${carriedToRound.title})`
+                  ? carriedFromRound
+                    ? `(Not completed in this round, carried over from ${carriedFromRound.title} to ${carriedToRound.title})`
+                    : `(Not completed in this round, carried over to ${carriedToRound.title})`
                   : null;
                 return (
                   <Stack direction="row" spacing={1} alignItems="center" key={task.id}>
