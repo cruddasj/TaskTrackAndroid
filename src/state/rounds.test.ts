@@ -1,4 +1,4 @@
-import { advanceActiveRound, buildNewRound, getDefaultRoundTitle, getRoundEstimatedMinutes, getVisibleRoundId, hasEmptyRoundWithoutTasks, hasRoundsWithAssignedTasks, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
+import { advanceActiveRound, buildNewRound, getCarryForwardRound, getDefaultRoundTitle, getRoundEstimatedMinutes, getVisibleRoundId, hasEmptyRoundWithoutTasks, hasRoundsWithAssignedTasks, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
 
 describe('round helpers', () => {
   it('detects when a round has no tasks assigned', () => {
@@ -136,5 +136,30 @@ describe('round helpers', () => {
         'also-missing',
       ),
     ).toBe('r1');
+  });
+
+  it('selects the next open round when carrying unfinished tasks forward', () => {
+    expect(
+      getCarryForwardRound(
+        [
+          { id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'upcoming' },
+          { id: 'r2', title: 'Round 2', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'active' },
+        ],
+        'r2',
+      )?.id,
+    ).toBeUndefined();
+  });
+
+  it('does not move unfinished tasks back into an earlier round', () => {
+    expect(
+      getCarryForwardRound(
+        [
+          { id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'upcoming' },
+          { id: 'r2', title: 'Round 2', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'active' },
+          { id: 'r3', title: 'Round 3', scheduledTime: '', durationMinutes: 25, taskIds: ['t3'], status: 'upcoming' },
+        ],
+        'r2',
+      )?.id,
+    ).toBe('r3');
   });
 });

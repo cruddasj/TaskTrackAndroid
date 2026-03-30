@@ -8,7 +8,7 @@ import { Alert, Box, Button, Card, CardContent, Chip, Dialog, DialogActions, Dia
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
-import { getVisibleRoundId } from '../state/rounds';
+import { getCarryForwardRound, getVisibleRoundId } from '../state/rounds';
 import { formatTime, getTodayKey } from '../utils';
 
 export const FocusScreen = () => {
@@ -98,7 +98,7 @@ export const FocusScreen = () => {
 
     const carryForwardIds = roundTasks.filter((task) => !confirmedDoneSet.has(task.id)).map((task) => task.id);
     if (carryForwardIds.length > 0) {
-      const nextRound = state.rounds.find((round) => round.id !== activeRound.id && round.status !== 'done');
+      const nextRound = getCarryForwardRound(state.rounds, activeRound.id);
       const targetRoundId = nextRound?.id ?? createRound();
       const targetRoundTaskIds = nextRound?.taskIds ?? [];
       assignTasksToRound(targetRoundId, Array.from(new Set([...targetRoundTaskIds, ...carryForwardIds])));
