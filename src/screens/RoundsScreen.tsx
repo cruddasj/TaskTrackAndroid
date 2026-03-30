@@ -41,6 +41,7 @@ export const RoundsScreen = () => {
   const [newRoundTaskIds, setNewRoundTaskIds] = useState<string[]>([]);
   const [renameRoundId, setRenameRoundId] = useState<string | null>(null);
   const [renameRoundTitle, setRenameRoundTitle] = useState('');
+  const [roundPendingDelete, setRoundPendingDelete] = useState<{ id: string; title: string } | null>(null);
   const [roundCreationValidationMessage, setRoundCreationValidationMessage] = useState<string | null>(null);
   const todayKey = getTodayKey();
   const todaysTasks = useMemo(() => state.tasks.filter((task) => task.plannedDate === todayKey), [state.tasks, todayKey]);
@@ -133,6 +134,13 @@ export const RoundsScreen = () => {
     setRenameRoundId(null);
     setRenameRoundTitle('');
     showSuccessMessage('Round name updated.');
+  };
+
+  const confirmDeleteRound = () => {
+    if (!roundPendingDelete) return;
+    deleteRound(roundPendingDelete.id);
+    showSuccessMessage(`${roundPendingDelete.title} deleted. Tasks moved to Unassigned today tasks.`);
+    setRoundPendingDelete(null);
   };
 
   const handleQuickAssignToRound = (taskId: string, event: SelectChangeEvent<string>) => {
@@ -230,8 +238,7 @@ export const RoundsScreen = () => {
                       <EditOutlined fontSize="small" />
                     </IconButton>
                     <IconButton size="small" onClick={() => {
-                      deleteRound(round.id);
-                      showSuccessMessage(`${round.title} deleted. Tasks moved to Unassigned today tasks.`);
+                      setRoundPendingDelete({ id: round.id, title: round.title });
                     }} aria-label={`delete-round-${round.id}`}>
                       <DeleteOutlineRounded color="error" />
                     </IconButton>
@@ -398,6 +405,21 @@ export const RoundsScreen = () => {
           <Button onClick={() => setRenameRoundId(null)}>Cancel</Button>
           <Button variant="contained" onClick={saveRename} disabled={!renameRoundTitle.trim()}>
             Save name
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={!!roundPendingDelete} onClose={() => setRoundPendingDelete(null)} fullWidth maxWidth="xs">
+        <DialogTitle>Delete round?</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to delete &quot;{roundPendingDelete?.title}&quot;? Tasks in this round will move to
+            Unassigned today tasks.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setRoundPendingDelete(null)}>Cancel</Button>
+          <Button variant="contained" color="error" onClick={confirmDeleteRound}>
+            Delete round
           </Button>
         </DialogActions>
       </Dialog>
