@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { AlarmTone, dismissNativeAlarmNotifications, notifyPomodoroComplete, requestNotificationPermissions, startRepeatingAlarm } from '../services/notifications';
 import { AppState, PomodoroState, Round, Task, TaskBankItem } from '../types';
-import { advanceActiveRound, buildNewRound, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
+import { advanceActiveRound, buildNewRound, isRoundCompleted, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
 import { createDemoState, loadState, saveState } from './storage';
 import { getTodayKey } from '../utils';
 
@@ -181,6 +181,10 @@ const reducer = (state: AppState, action: Action): AppState => {
     }
     case 'ASSIGN_TASKS_TO_ROUND': {
       const { roundId, taskIds } = action.payload;
+      const targetRound = state.rounds.find((round) => round.id === roundId);
+      if (!targetRound || isRoundCompleted(targetRound)) {
+        return state;
+      }
       const taskIdSet = new Set(taskIds);
       return {
         ...state,
@@ -196,6 +200,8 @@ const reducer = (state: AppState, action: Action): AppState => {
     }
     case 'AUTO_GROUP_TODAY_TASKS': {
       const todayKey = getTodayKey();
+      const openRounds = state.rounds.filter((round) => !isRoundCompleted(round));
+      const completedRounds = state.rounds.filter((round) => isRoundCompleted(round));
       const tasksByCategory = state.tasks
         .filter((task) => task.plannedDate === todayKey)
         .reduce<Record<string, Task[]>>((acc, task) => {
@@ -223,7 +229,7 @@ const reducer = (state: AppState, action: Action): AppState => {
 
       if (groupedTaskIds.length === 0) return state;
 
-      const reusedRounds = state.rounds.slice(0, groupedTaskIds.length).map((round, index) => ({
+      const reusedRounds = openRounds.slice(0, groupedTaskIds.length).map((round, index) => ({
         ...round,
         title: `Round ${index + 1}`,
         status: (index === 0 ? 'active' : 'upcoming') as 'active' | 'upcoming',
@@ -238,14 +244,15 @@ const reducer = (state: AppState, action: Action): AppState => {
         taskIds,
         status: (reusedRounds.length + index === 0 ? 'active' : 'upcoming') as 'active' | 'upcoming',
       }));
-      const roundIdsInUse = new Set([...reusedRounds, ...extraRounds].map((round) => round.id));
+      const nextOpenRounds = [...reusedRounds, ...extraRounds];
+      const roundIdsInUse = new Set([...nextOpenRounds, ...completedRounds].map((round) => round.id));
 
       return {
         ...state,
-        rounds: [...reusedRounds, ...extraRounds],
+        rounds: [...nextOpenRounds, ...completedRounds],
         tasks: state.tasks.map((task) => {
           if (task.plannedDate !== todayKey) return task;
-          const assignedRound = [...reusedRounds, ...extraRounds].find((round) => round.taskIds.includes(task.id));
+          const assignedRound = nextOpenRounds.find((round) => round.taskIds.includes(task.id));
           return { ...task, roundId: assignedRound?.id };
         }).map((task) => (task.roundId && !roundIdsInUse.has(task.roundId) ? { ...task, roundId: undefined } : task)),
       };

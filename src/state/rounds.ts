@@ -1,6 +1,7 @@
 import { Round, Task } from '../types';
 
 export const hasEmptyRoundWithoutTasks = (rounds: Round[]): boolean => rounds.some((round) => round.taskIds.length === 0);
+export const isRoundCompleted = (round?: Round): boolean => round?.status === 'done';
 
 export const hasRoundsWithAssignedTasks = (rounds: Round[]): boolean => rounds.some((round) => round.taskIds.length > 0);
 

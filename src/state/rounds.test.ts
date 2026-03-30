@@ -1,4 +1,4 @@
-import { advanceActiveRound, buildNewRound, getCarryForwardRound, getDefaultRoundTitle, getRoundEstimatedMinutes, getVisibleRoundId, hasEmptyRoundWithoutTasks, hasRoundsWithAssignedTasks, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
+import { advanceActiveRound, buildNewRound, getCarryForwardRound, getDefaultRoundTitle, getRoundEstimatedMinutes, getVisibleRoundId, hasEmptyRoundWithoutTasks, hasRoundsWithAssignedTasks, isRoundCompleted, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
 
 describe('round helpers', () => {
   it('detects when a round has no tasks assigned', () => {
@@ -8,6 +8,11 @@ describe('round helpers', () => {
         { id: 'r2', title: 'Round 2', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'upcoming' },
       ]),
     ).toBe(true);
+  });
+
+  it('recognizes completed rounds for assignment guards', () => {
+    expect(isRoundCompleted({ id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'done' })).toBe(true);
+    expect(isRoundCompleted({ id: 'r2', title: 'Round 2', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'active' })).toBe(false);
   });
 
   it('creates upcoming rounds while an unfinished round exists', () => {
