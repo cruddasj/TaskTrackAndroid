@@ -12,6 +12,16 @@ export const getRoundEstimatedMinutes = (round: Round, tasks: Task[]): number =>
     return total + (task?.estimateMinutes ?? 0);
   }, 0);
 
+export const getRoundTaskIdsForDisplay = (round: Round, tasks: Task[]): string[] => {
+  const displayTaskIds = new Set(round.taskIds);
+  tasks.forEach((task) => {
+    if (task.previousRoundIds?.includes(round.id)) {
+      displayTaskIds.add(task.id);
+    }
+  });
+  return [...displayTaskIds];
+};
+
 const getNextRoundSequence = (rounds: Round[]): number => {
   const numberedRoundValues = rounds
     .map((round) => {

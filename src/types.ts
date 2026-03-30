@@ -10,6 +10,7 @@ export interface Task {
   plannedDate: string;
   completedAt?: string;
   roundId?: string;
+  previousRoundIds?: string[];
 }
 
 export interface TaskBankItem {

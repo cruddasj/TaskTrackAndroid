@@ -1,4 +1,4 @@
-import { advanceActiveRound, buildNewRound, getCarryForwardRound, getDefaultRoundTitle, getRoundEstimatedMinutes, getVisibleRoundId, hasEmptyRoundWithoutTasks, hasRoundsWithAssignedTasks, isRoundCompleted, removeRoundAndNormalizeStatuses, sortRoundsChronologically, unassignTasksFromRound } from './rounds';
+import { advanceActiveRound, buildNewRound, getCarryForwardRound, getDefaultRoundTitle, getRoundEstimatedMinutes, getRoundTaskIdsForDisplay, getVisibleRoundId, hasEmptyRoundWithoutTasks, hasRoundsWithAssignedTasks, isRoundCompleted, removeRoundAndNormalizeStatuses, sortRoundsChronologically, unassignTasksFromRound } from './rounds';
 
 describe('round helpers', () => {
   it('detects when a round has no tasks assigned', () => {
@@ -138,6 +138,48 @@ describe('round helpers', () => {
         [{ id: 't1', title: 'A', description: '', category: 'Work', estimateMinutes: 10, status: 'todo', plannedDate: '2026-03-29', roundId: 'r1' }],
       ),
     ).toBe(10);
+  });
+
+  it('keeps moved tasks visible in their previous completed round', () => {
+    expect(
+      getRoundTaskIdsForDisplay(
+        { id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'done' },
+        [
+          {
+            id: 't1',
+            title: 'Review sprint priorities',
+            description: '',
+            category: 'Work',
+            estimateMinutes: 20,
+            status: 'todo',
+            plannedDate: '2026-03-29',
+            roundId: 'r2',
+            previousRoundIds: ['r1'],
+          },
+        ],
+      ),
+    ).toEqual(['t1']);
+  });
+
+  it('does not duplicate task ids when task is both currently and previously linked to a round', () => {
+    expect(
+      getRoundTaskIdsForDisplay(
+        { id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'done' },
+        [
+          {
+            id: 't1',
+            title: 'Review sprint priorities',
+            description: '',
+            category: 'Work',
+            estimateMinutes: 20,
+            status: 'todo',
+            plannedDate: '2026-03-29',
+            roundId: 'r1',
+            previousRoundIds: ['r1'],
+          },
+        ],
+      ),
+    ).toEqual(['t1']);
   });
 
   it('prefers the active pomodoro round over a requested round id', () => {
