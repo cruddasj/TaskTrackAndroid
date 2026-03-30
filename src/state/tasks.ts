@@ -1,5 +1,7 @@
 import { Task, TaskBankItem } from '../types';
 
+const DAY_IN_MS = 24 * 60 * 60 * 1000;
+
 const normalizeTaskTitle = (title: string): string => title.trim().toLocaleLowerCase();
 const parseDayKeyToUtcMs = (dayKey: string): number => new Date(`${dayKey}T00:00:00.000Z`).getTime();
 
@@ -21,8 +23,6 @@ export const hasDuplicateTodayTaskTitle = (
       && normalizeTaskTitle(task.title) === normalizedTitle,
   );
 };
-
-const DAY_IN_MS = 24 * 60 * 60 * 1000;
 
 const getLastCompletionTimeByTitle = (tasks: Task[]): Map<string, number> => {
   const completionByTitle = new Map<string, number>();

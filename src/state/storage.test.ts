@@ -1,4 +1,5 @@
 import { createDemoState, loadState, saveState, seedState } from './storage';
+import { getTodayKey } from '../utils';
 
 describe('storage', () => {
   beforeEach(() => {
@@ -127,7 +128,7 @@ describe('storage', () => {
 
   it('creates demo data with historical completed tasks', () => {
     const demoState = createDemoState(seedState);
-    const todayKey = new Date().toISOString().slice(0, 10);
+    const todayKey = getTodayKey();
 
     expect(demoState.tasks.length).toBeGreaterThan(3);
     expect(demoState.rounds.length).toBeGreaterThan(0);
