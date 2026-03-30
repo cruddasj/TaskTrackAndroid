@@ -8,12 +8,12 @@ import { Alert, Box, Button, Card, CardContent, Chip, Dialog, DialogActions, Dia
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
-import { formatTime } from '../utils';
+import { formatTime, getTodayKey } from '../utils';
 
 export const FocusScreen = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { state, startPomodoro, pausePomodoro, skipPomodoro, resetPomodoro, toggleTask, assignTasksToRound } = useAppState();
+  const { state, startPomodoro, pausePomodoro, skipPomodoro, resetPomodoro, toggleTask, assignTasksToRound, createRound } = useAppState();
   const [sessionReviewOpen, setSessionReviewOpen] = useState(false);
   const [confirmedDoneIds, setConfirmedDoneIds] = useState<string[]>([]);
   const requestedRoundId = searchParams.get('roundId') ?? undefined;
@@ -45,11 +45,38 @@ export const FocusScreen = () => {
     [roundTasks],
   );
 
+  const todaysTasks = useMemo(
+    () => state.tasks.filter((task) => task.plannedDate === getTodayKey()),
+    [state.tasks],
+  );
+
+  const allTodaysTasksDone = todaysTasks.length > 0 && todaysTasks.every((task) => task.status === 'done');
+
   useEffect(() => {
     if (state.pomodoro.remainingSeconds !== 0 || state.pomodoro.isRunning || unfinishedRoundTasks.length === 0) return;
     setConfirmedDoneIds(roundTasks.filter((task) => task.status === 'done').map((task) => task.id));
     setSessionReviewOpen(true);
   }, [state.pomodoro.remainingSeconds, state.pomodoro.isRunning, unfinishedRoundTasks.length, roundTasks]);
+
+  const handleSkip = () => {
+    if (state.pomodoro.phase !== 'work') {
+      skipPomodoro();
+      return;
+    }
+
+    if (allTodaysTasksDone) {
+      resetPomodoro();
+      return;
+    }
+
+    if (unfinishedRoundTasks.length === 0) {
+      skipPomodoro();
+      return;
+    }
+
+    setConfirmedDoneIds(roundTasks.filter((task) => task.status === 'done').map((task) => task.id));
+    setSessionReviewOpen(true);
+  };
 
   const progress = ((state.pomodoro.totalSeconds - state.pomodoro.remainingSeconds) / state.pomodoro.totalSeconds) * 100;
   const circumference = 2 * Math.PI * 140;
@@ -69,13 +96,16 @@ export const FocusScreen = () => {
       return;
     }
 
-    const nextRound = state.rounds.find((round) => round.id !== activeRound.id && round.status !== 'done');
-    if (nextRound) {
-      const carryForwardIds = roundTasks.filter((task) => !confirmedDoneSet.has(task.id)).map((task) => task.id);
-      assignTasksToRound(nextRound.id, Array.from(new Set([...nextRound.taskIds, ...carryForwardIds])));
+    const carryForwardIds = roundTasks.filter((task) => !confirmedDoneSet.has(task.id)).map((task) => task.id);
+    if (carryForwardIds.length > 0) {
+      const nextRound = state.rounds.find((round) => round.id !== activeRound.id && round.status !== 'done');
+      const targetRoundId = nextRound?.id ?? createRound();
+      const targetRoundTaskIds = nextRound?.taskIds ?? [];
+      assignTasksToRound(targetRoundId, Array.from(new Set([...targetRoundTaskIds, ...carryForwardIds])));
     }
 
     setSessionReviewOpen(false);
+    skipPomodoro();
   };
 
   return (
@@ -179,7 +209,7 @@ export const FocusScreen = () => {
           >
             {state.pomodoro.isRunning ? <PauseRounded fontSize="large" /> : <PlayArrowRounded fontSize="large" />}
           </IconButton>
-          <IconButton sx={{ bgcolor: '#1a1a1a' }} onClick={skipPomodoro}><SkipNextRounded /></IconButton>
+          <IconButton sx={{ bgcolor: '#1a1a1a' }} onClick={handleSkip}><SkipNextRounded /></IconButton>
         </Stack>
       </Stack>
 
@@ -187,7 +217,7 @@ export const FocusScreen = () => {
         <DialogTitle>Session complete: confirm unfinished tasks</DialogTitle>
         <DialogContent>
           <Typography color="text.secondary" mb={2}>
-            Tasks left unchecked will automatically move to your next round. Mark anything you finished before continuing.
+            Mark anything you completed. Tasks left unfinished will move into your next focus round automatically.
           </Typography>
           <Stack spacing={1}>
             {roundTasks.map((task) => {
