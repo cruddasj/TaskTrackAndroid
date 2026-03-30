@@ -21,6 +21,7 @@ describe('storage', () => {
       settings: {
         ...seedState.settings,
         alarmRepeatCount: 5,
+        sessionReviewGraceSeconds: 90,
         showFirstTimeGuidance: false,
       },
     };
@@ -28,6 +29,7 @@ describe('storage', () => {
     saveState(updated);
 
     expect(loadState().settings.alarmRepeatCount).toBe(5);
+    expect(loadState().settings.sessionReviewGraceSeconds).toBe(90);
     expect(loadState().settings.showFirstTimeGuidance).toBe(false);
   });
 
@@ -66,6 +68,30 @@ describe('storage', () => {
     );
 
     expect(loadState().settings.showFirstTimeGuidance).toBe(true);
+  });
+
+  it('normalizes invalid session review timeout values', () => {
+    localStorage.setItem(
+      'tasktrack.state.v2',
+      JSON.stringify({
+        settings: {
+          sessionReviewGraceSeconds: 0,
+        },
+      }),
+    );
+
+    expect(loadState().settings.sessionReviewGraceSeconds).toBe(60);
+
+    localStorage.setItem(
+      'tasktrack.state.v2',
+      JSON.stringify({
+        settings: {
+          sessionReviewGraceSeconds: 9999,
+        },
+      }),
+    );
+
+    expect(loadState().settings.sessionReviewGraceSeconds).toBe(600);
   });
 
   it('falls back to defaults if persisted JSON is invalid', () => {

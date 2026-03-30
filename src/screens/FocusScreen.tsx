@@ -5,7 +5,7 @@ import RadioButtonUncheckedRounded from '@mui/icons-material/RadioButtonUnchecke
 import ReplayRounded from '@mui/icons-material/ReplayRounded';
 import SkipNextRounded from '@mui/icons-material/SkipNextRounded';
 import { Alert, Box, Button, Card, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, Typography } from '@mui/material';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
 import { getCarryForwardRound, getVisibleRoundId } from '../state/rounds';
@@ -79,7 +79,7 @@ export const FocusScreen = () => {
   const circumference = 2 * Math.PI * 140;
   const dashoffset = circumference - (progress / 100) * circumference;
 
-  const confirmSessionRollover = () => {
+  const confirmSessionRollover = useCallback(() => {
     const confirmedDoneSet = new Set(confirmedDoneIds);
     roundTasks.forEach((task) => {
       const shouldBeDone = confirmedDoneSet.has(task.id);
@@ -103,7 +103,15 @@ export const FocusScreen = () => {
 
     setSessionReviewOpen(false);
     skipPomodoro();
-  };
+  }, [roundTasks, confirmedDoneIds, activeRound, state.rounds, assignTasksToRound, createRound, skipPomodoro, toggleTask]);
+
+  useEffect(() => {
+    if (!sessionReviewOpen) return;
+    const timeoutId = window.setTimeout(() => {
+      confirmSessionRollover();
+    }, state.settings.sessionReviewGraceSeconds * 1000);
+    return () => window.clearTimeout(timeoutId);
+  }, [sessionReviewOpen, confirmSessionRollover, state.settings.sessionReviewGraceSeconds]);
 
   return (
     <Box
@@ -215,6 +223,7 @@ export const FocusScreen = () => {
         <DialogContent>
           <Typography color="text.secondary" mb={2}>
             Mark anything you completed. Tasks left unfinished will move into your next focus round automatically.
+            If you do not confirm in time, this step continues automatically based on your Settings timeout.
           </Typography>
           <Stack spacing={1}>
             {roundTasks.map((task) => {
@@ -236,7 +245,7 @@ export const FocusScreen = () => {
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setSessionReviewOpen(false)}>Review later</Button>
+          <Button onClick={confirmSessionRollover}>Continue without changes</Button>
           <Button variant="contained" onClick={confirmSessionRollover}>Confirm and continue</Button>
         </DialogActions>
       </Dialog>

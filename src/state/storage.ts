@@ -5,6 +5,7 @@ const DEFAULT_POMODORO_MINUTES = 25;
 const DEFAULT_SHORT_BREAK_MINUTES = 5;
 const DEFAULT_LONG_BREAK_MINUTES = 15;
 const DEFAULT_SESSIONS_BEFORE_LONG_BREAK = 4;
+const DEFAULT_SESSION_REVIEW_GRACE_SECONDS = 60;
 const DEFAULT_ALARM_REPEAT_COUNT = 3;
 const DEFAULT_SHOW_FIRST_TIME_GUIDANCE = true;
 const getDateKey = (daysAgo = 0): string => {
@@ -39,6 +40,7 @@ const defaultState: AppState = {
     shortBreakMinutes: DEFAULT_SHORT_BREAK_MINUTES,
     longBreakMinutes: DEFAULT_LONG_BREAK_MINUTES,
     sessionsBeforeLongBreak: DEFAULT_SESSIONS_BEFORE_LONG_BREAK,
+    sessionReviewGraceSeconds: DEFAULT_SESSION_REVIEW_GRACE_SECONDS,
     alarmTone: 'bell',
     alarmRepeatCount: DEFAULT_ALARM_REPEAT_COUNT,
     showFirstTimeGuidance: DEFAULT_SHOW_FIRST_TIME_GUIDANCE,
@@ -234,6 +236,10 @@ const normalizeState = (raw: Partial<AppState>): AppState => {
         raw.settings?.sessionsBeforeLongBreak && raw.settings.sessionsBeforeLongBreak > 1
           ? raw.settings.sessionsBeforeLongBreak
           : DEFAULT_SESSIONS_BEFORE_LONG_BREAK,
+      sessionReviewGraceSeconds:
+        raw.settings?.sessionReviewGraceSeconds && raw.settings.sessionReviewGraceSeconds > 0
+          ? Math.min(600, Math.round(raw.settings.sessionReviewGraceSeconds))
+          : DEFAULT_SESSION_REVIEW_GRACE_SECONDS,
       alarmTone: raw.settings?.alarmTone ?? 'bell',
       alarmRepeatCount:
         raw.settings?.alarmRepeatCount && raw.settings.alarmRepeatCount > 0
