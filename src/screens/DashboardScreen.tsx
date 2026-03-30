@@ -42,6 +42,7 @@ export const DashboardScreen = () => {
       .filter((task): task is NonNullable<typeof task> => !!task)
     : [];
   const hasTodayTasks = todaysTasks.length > 0;
+  const allTodaysTasksDone = hasTodayTasks && completed === todaysTasks.length;
   const categoryTotals = recentDayKeys.reduce<Record<string, number>>((acc, dayKey) => {
     state.tasks
       .filter((task) => task.completedAt?.startsWith(dayKey))
@@ -69,10 +70,16 @@ export const DashboardScreen = () => {
           </Typography>
           <Typography variant="h4" mt={1} mb={2}>
             {state.pomodoro.phase === 'work'
-              ? (currentRoundTasks.length > 0 ? 'Your current round tasks' : 'Ready to plan your current round?')
+              ? allTodaysTasksDone
+                ? 'All today tasks are complete'
+                : (currentRoundTasks.length > 0 ? 'Your current round tasks' : 'Ready to plan your current round?')
               : 'Break in progress'}
           </Typography>
-          {currentRoundTasks.length > 0 ? (
+          {allTodaysTasksDone ? (
+            <Typography color="text.secondary" mb={2}>
+              Great job. You finished every planned task for today, so your focus session can end here.
+            </Typography>
+          ) : currentRoundTasks.length > 0 ? (
             <>
               <Typography color="text.secondary" mb={2}>These tasks are queued for your current round.</Typography>
               <Stack spacing={1.25} mb={2.5}>
