@@ -117,32 +117,34 @@ export const DashboardScreen = () => {
           )}
         </CardContent>
       </Card>
-      <Card sx={{ background: 'radial-gradient(circle at 65% 40%, rgba(96,174,255,0.30), rgba(14,14,14,1) 60%)' }}>
-        <CardContent>
-          <Typography variant="overline" color="#60aeff" letterSpacing="0.08em">
-            Next round
-          </Typography>
-          <Typography variant="h5" mt={1} mb={2}>
-            {nextRoundTasks.length > 0 ? 'Planned next round tasks' : 'No tasks planned for the next round yet'}
-          </Typography>
-          {nextRoundTasks.length > 0 ? (
-            <Stack spacing={1.25}>
-              {nextRoundTasks.map((task) => (
-                <Stack key={task.id} direction="row" spacing={1} alignItems="center">
-                  <CheckCircleRounded sx={{ color: '#60aeff' }} fontSize="small" />
-                  <Typography>{task.title}</Typography>
-                </Stack>
-              ))}
-            </Stack>
-          ) : (
-            <Typography color="text.secondary">
-              {hasTodayTasks
-                ? 'Assign tasks to a later round so they are ready when this round ends.'
-                : 'Add tasks to Today\'s Tasks first, then assign them into your next round.'}
+      {!allTodaysTasksDone && (
+        <Card sx={{ background: 'radial-gradient(circle at 65% 40%, rgba(96,174,255,0.30), rgba(14,14,14,1) 60%)' }}>
+          <CardContent>
+            <Typography variant="overline" color="#60aeff" letterSpacing="0.08em">
+              Next round
             </Typography>
-          )}
-        </CardContent>
-      </Card>
+            <Typography variant="h5" mt={1} mb={2}>
+              {nextRoundTasks.length > 0 ? 'Planned next round tasks' : 'No tasks planned for the next round yet'}
+            </Typography>
+            {nextRoundTasks.length > 0 ? (
+              <Stack spacing={1.25}>
+                {nextRoundTasks.map((task) => (
+                  <Stack key={task.id} direction="row" spacing={1} alignItems="center">
+                    <CheckCircleRounded sx={{ color: '#60aeff' }} fontSize="small" />
+                    <Typography>{task.title}</Typography>
+                  </Stack>
+                ))}
+              </Stack>
+            ) : (
+              <Typography color="text.secondary">
+                {hasTodayTasks
+                  ? 'Assign tasks to a later round so they are ready when this round ends.'
+                  : 'Add tasks to Today\'s Tasks first, then assign them into your next round.'}
+              </Typography>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <Card
         onClick={() => navigate('/tasks-today')}
