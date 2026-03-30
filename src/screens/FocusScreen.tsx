@@ -195,6 +195,7 @@ export const FocusScreen = () => {
         ) : (
           <Alert
             severity="success"
+            icon={false}
             sx={{
               width: '100%',
               maxWidth: 780,
