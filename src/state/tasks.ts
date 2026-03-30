@@ -7,6 +7,11 @@ const parseDayKeyToUtcMs = (dayKey: string): number => new Date(`${dayKey}T00:00
 
 export const WEEKDAY_LABELS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] as const;
 
+export const areAllTasksCompletedForDate = (tasks: Task[], plannedDate: string): boolean => {
+  const tasksForDate = tasks.filter((task) => task.plannedDate === plannedDate);
+  return tasksForDate.length > 0 && tasksForDate.every((task) => task.status === 'done');
+};
+
 export const hasDuplicateTodayTaskTitle = (
   tasks: Task[],
   plannedDate: string,

@@ -9,6 +9,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
 import { getCarryForwardRound, getVisibleRoundId } from '../state/rounds';
+import { areAllTasksCompletedForDate } from '../state/tasks';
 import { formatTime, getTodayKey } from '../utils';
 
 export const FocusScreen = () => {
@@ -45,12 +46,7 @@ export const FocusScreen = () => {
     [roundTasks],
   );
 
-  const todaysTasks = useMemo(
-    () => state.tasks.filter((task) => task.plannedDate === getTodayKey()),
-    [state.tasks],
-  );
-
-  const allTodaysTasksDone = todaysTasks.length > 0 && todaysTasks.every((task) => task.status === 'done');
+  const allTodaysTasksDone = areAllTasksCompletedForDate(state.tasks, getTodayKey());
 
   useEffect(() => {
     if (state.pomodoro.remainingSeconds !== 0 || state.pomodoro.isRunning || unfinishedRoundTasks.length === 0) return;
@@ -66,6 +62,7 @@ export const FocusScreen = () => {
 
     if (allTodaysTasksDone) {
       resetPomodoro();
+      navigate('/');
       return;
     }
 
