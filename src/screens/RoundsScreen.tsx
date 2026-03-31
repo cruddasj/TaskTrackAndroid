@@ -223,7 +223,7 @@ export const RoundsScreen = () => {
           }}
           >
             <CardContent>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1} spacing={1}>
               <Stack direction="row" spacing={0.75} alignItems="center">
                 <Stack spacing={0}>
                   <Typography variant="h5">
@@ -233,21 +233,20 @@ export const RoundsScreen = () => {
                     {roundDetails}
                   </Typography>
                 </Stack>
-                {round.status === 'done' && (
-                  <Chip
-                    size="small"
-                    color="success"
-                    icon={<CheckCircleRounded />}
-                    label="Completed"
-                    aria-label={`completed-round-chip-${round.id}`}
-                  />
-                )}
                 {estimatedMinutes > state.settings.pomodoroMinutes && (
                   <WarningAmberRounded color="warning" fontSize="small" aria-label={`round-overflow-warning-${round.id}`} />
                 )}
               </Stack>
-              <Stack direction="row" spacing={0.25}>
-                {round.status !== 'done' && (
+              {round.status === 'done' ? (
+                <Chip
+                  size="small"
+                  color="success"
+                  icon={<CheckCircleRounded />}
+                  label="Completed"
+                  aria-label={`completed-round-chip-${round.id}`}
+                />
+              ) : (
+                <Stack direction="row" spacing={0.25}>
                   <>
                     <IconButton size="small" onClick={() => openRenameDialog(round.id, round.title)} aria-label={`rename-round-${round.id}`}>
                       <EditOutlined fontSize="small" />
@@ -264,8 +263,8 @@ export const RoundsScreen = () => {
                       <ArrowDropDownRounded />
                     </IconButton>
                   </>
-                )}
-              </Stack>
+                </Stack>
+              )}
             </Stack>
               <Stack spacing={1} mb={2}>
                 {displayTaskIds.map((taskId) => {
