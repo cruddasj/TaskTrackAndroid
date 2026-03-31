@@ -36,7 +36,6 @@ import {
   getRoundTaskIdsForDisplay,
   hasEmptyRoundWithoutTasks,
   isRoundCompleted,
-  sortRoundsChronologically,
 } from '../state/rounds';
 import { getTodayKey } from '../utils';
 
@@ -85,7 +84,7 @@ export const RoundsScreen = () => {
   const availableTasks = useMemo(() => {
     return todaysTasks.filter((task) => !task.roundId || task.roundId === editingRound?.id);
   }, [todaysTasks, editingRound]);
-  const orderedRounds = useMemo(() => sortRoundsChronologically(state.rounds), [state.rounds]);
+  const orderedRounds = state.rounds;
   const plannedRounds = useMemo(
     () => orderedRounds.filter((round) => round.status !== 'done'),
     [orderedRounds],
@@ -211,9 +210,10 @@ export const RoundsScreen = () => {
       </Card>
       {orderedRounds.map((round) => {
         const displayTaskIds = getRoundTaskIdsForDisplay(round, todaysTasks);
-        const roundTitle = round.status === 'done'
-          ? `${round.title} (${round.durationMinutes} min completed)`
-          : `${round.title} (${roundEstimatedMinutes[round.id] ?? 0} min est)`;
+        const estimatedMinutes = roundEstimatedMinutes[round.id] ?? 0;
+        const roundDetails = round.status === 'done'
+          ? `${round.durationMinutes} min completed`
+          : `Estimated ${estimatedMinutes} min`;
         return (
           <Card
           key={round.id}
@@ -225,9 +225,14 @@ export const RoundsScreen = () => {
             <CardContent>
             <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
               <Stack direction="row" spacing={0.75} alignItems="center">
-                <Typography variant="h5">
-                  {roundTitle}
-                </Typography>
+                <Stack spacing={0}>
+                  <Typography variant="h5">
+                    {round.title}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {roundDetails}
+                  </Typography>
+                </Stack>
                 {round.status === 'done' && (
                   <Chip
                     size="small"
@@ -237,7 +242,7 @@ export const RoundsScreen = () => {
                     aria-label={`completed-round-chip-${round.id}`}
                   />
                 )}
-                {(roundEstimatedMinutes[round.id] ?? 0) > state.settings.pomodoroMinutes && (
+                {estimatedMinutes > state.settings.pomodoroMinutes && (
                   <WarningAmberRounded color="warning" fontSize="small" aria-label={`round-overflow-warning-${round.id}`} />
                 )}
               </Stack>
