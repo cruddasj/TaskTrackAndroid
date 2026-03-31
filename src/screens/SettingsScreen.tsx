@@ -145,9 +145,11 @@ export const SettingsScreen = () => {
         <CardContent>
           <Stack spacing={2}>
             <Typography variant="h5">Backup and restore</Typography>
-            <Alert severity="success" icon={<InfoOutlined fontSize="inherit" />} sx={guidanceAlertSx}>
-              Export your app data as JSON. Add a password to encrypt the file so task details are not readable as plain text.
-            </Alert>
+            {state.settings.showFirstTimeGuidance && (
+              <Alert severity="success" icon={<InfoOutlined fontSize="inherit" />} sx={guidanceAlertSx}>
+                Save a backup copy of your app data. Add a password to lock the file so other people cannot read your task details.
+              </Alert>
+            )}
             <TextField
               label="Backup password (optional)"
               type="password"
@@ -198,9 +200,11 @@ export const SettingsScreen = () => {
         <CardContent>
           <Stack spacing={2}>
             <Typography variant="h5">Demo data</Typography>
-            <Alert severity="success" icon={<InfoOutlined fontSize="inherit" />} sx={guidanceAlertSx}>
-              Load sample tasks, rounds, and recent completions so dashboard insights show realistic examples.
-            </Alert>
+            {state.settings.showFirstTimeGuidance && (
+              <Alert severity="success" icon={<InfoOutlined fontSize="inherit" />} sx={guidanceAlertSx}>
+                Load sample tasks, rounds, and recent completions to preview how your dashboard insights can look.
+              </Alert>
+            )}
             <Button
               variant="outlined"
               color="secondary"
@@ -232,9 +236,7 @@ export const SettingsScreen = () => {
                   all new rounds.
                 </Typography>
               </Alert>
-            ) : (
-              <Typography color="text.secondary">First-time guidance is currently hidden.</Typography>
-            )}
+            ) : null}
             <TextField
               label="Recommended minutes per round"
               type="number"
