@@ -37,4 +37,38 @@ describe('getTodayRoundMetrics', () => {
 
     expect(metrics).toEqual({ completedRounds: 1, focusedMinutes: 25 });
   });
+
+  it('counts completed rounds that only have carried-over today tasks in history', () => {
+    const metrics = getTodayRoundMetrics(
+      [
+        { id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'done' },
+        { id: 'r2', title: 'Round 2', scheduledTime: '', durationMinutes: 25, taskIds: ['t1', 't2'], status: 'done' },
+      ],
+      [
+        {
+          id: 't1',
+          title: 'Task 1',
+          description: '',
+          category: 'General',
+          estimateMinutes: 25,
+          status: 'done',
+          plannedDate: '2026-03-31',
+          roundId: 'r2',
+          previousRoundIds: ['r1'],
+        },
+        {
+          id: 't2',
+          title: 'Task 2',
+          description: '',
+          category: 'General',
+          estimateMinutes: 15,
+          status: 'done',
+          plannedDate: '2026-03-31',
+          roundId: 'r2',
+        },
+      ],
+    );
+
+    expect(metrics).toEqual({ completedRounds: 2, focusedMinutes: 50 });
+  });
 });
