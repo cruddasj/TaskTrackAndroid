@@ -12,6 +12,7 @@ import { getCarryForwardRound, getVisibleRoundId } from '../state/rounds';
 import { areAllTasksCompletedForDate } from '../state/tasks';
 import type { Task } from '../types';
 import { formatTime, getTodayKey } from '../utils';
+import { canMarkTaskDone } from './focusTaskToggle';
 
 export const FocusScreen = () => {
   const navigate = useNavigate();
@@ -50,6 +51,7 @@ export const FocusScreen = () => {
   );
 
   const allTodaysTasksDone = areAllTasksCompletedForDate(state.tasks, getTodayKey());
+  const canMarkTasksDone = canMarkTaskDone(state.pomodoro.isRunning);
 
   useEffect(() => {
     if (state.pomodoro.remainingSeconds !== 0 || state.pomodoro.isRunning || unfinishedRoundTasks.length === 0) return;
@@ -187,12 +189,19 @@ export const FocusScreen = () => {
                     <Button
                       size="small"
                       startIcon={task.status === 'done' ? <CheckCircleRounded color="success" /> : <CircleOutlined color="disabled" />}
-                      onClick={() => toggleTask(task.id)}
+                      disabled={!canMarkTasksDone}
+                      onClick={() => {
+                        if (!canMarkTasksDone) return;
+                        toggleTask(task.id);
+                      }}
                     >
                       {task.status === 'done' ? 'Done' : 'Mark done'}
                     </Button>
                   </Stack>
                 ))}
+                {!canMarkTasksDone && roundTasks.length > 0 && (
+                  <Typography color="text.secondary">Start or resume the timer to mark tasks as done.</Typography>
+                )}
                 {roundTasks.length === 0 && <Typography color="text.secondary">No tasks assigned to this session yet.</Typography>}
               </Stack>
             </CardContent>
