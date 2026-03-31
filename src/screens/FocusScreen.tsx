@@ -1,7 +1,7 @@
-import CheckCircleOutlineRounded from '@mui/icons-material/CheckCircleOutlineRounded';
+import CheckCircleRounded from '@mui/icons-material/CheckCircleRounded';
 import PauseRounded from '@mui/icons-material/PauseRounded';
 import PlayArrowRounded from '@mui/icons-material/PlayArrowRounded';
-import RadioButtonUncheckedRounded from '@mui/icons-material/RadioButtonUncheckedRounded';
+import CircleOutlined from '@mui/icons-material/CircleOutlined';
 import ReplayRounded from '@mui/icons-material/ReplayRounded';
 import SkipNextRounded from '@mui/icons-material/SkipNextRounded';
 import { Alert, Box, Button, Card, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, Typography } from '@mui/material';
@@ -186,7 +186,7 @@ export const FocusScreen = () => {
                     <Typography>{task.title}</Typography>
                     <Button
                       size="small"
-                      startIcon={task.status === 'done' ? <CheckCircleOutlineRounded /> : <RadioButtonUncheckedRounded />}
+                      startIcon={task.status === 'done' ? <CheckCircleRounded color="success" /> : <CircleOutlined color="disabled" />}
                       onClick={() => toggleTask(task.id)}
                     >
                       {task.status === 'done' ? 'Done' : 'Mark done'}
