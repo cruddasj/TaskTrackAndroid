@@ -7,8 +7,15 @@ export interface TodayRoundMetrics {
 
 export const getTodayRoundMetrics = (rounds: Round[], todaysTasks: Task[]): TodayRoundMetrics => {
   const todaysTaskIds = new Set(todaysTasks.map((task) => task.id));
+  const roundIdsReferencedByTodayTasks = new Set(
+    todaysTasks.flatMap((task) => [task.roundId, ...(task.previousRoundIds ?? [])].filter((roundId): roundId is string => Boolean(roundId))),
+  );
   const completedRoundsToday = rounds.filter((round) =>
-    round.status === 'done' && round.taskIds.some((taskId) => todaysTaskIds.has(taskId)));
+    round.status === 'done'
+    && (
+      round.taskIds.some((taskId) => todaysTaskIds.has(taskId))
+      || roundIdsReferencedByTodayTasks.has(round.id)
+    ));
 
   return {
     completedRounds: completedRoundsToday.length,
