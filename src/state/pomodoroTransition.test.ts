@@ -1,5 +1,8 @@
 import { AppState } from '../types';
-import { getNextPomodoroPhase, getRoundProgressionForPhaseAdvance } from './pomodoroTransition';
+import { applyWorkPhaseRoundAdvance, getNextPomodoroPhase, getRoundProgressionForPhaseAdvance } from './pomodoroTransition';
+import { getTodayKey } from '../utils';
+
+const todayKey = getTodayKey();
 
 const buildState = (overrides: Partial<AppState> = {}): AppState => ({
   userName: '',
@@ -92,5 +95,43 @@ describe('pomodoro transition helpers', () => {
     );
 
     expect(progression).toBeUndefined();
+  });
+
+  it('creates a recovery round with unassigned today tasks when no next round exists', () => {
+    const result = applyWorkPhaseRoundAdvance(
+      buildState({
+        rounds: [
+          { id: 'r1', title: 'Round 1', scheduledTime: '09:00', durationMinutes: 25, taskIds: ['t1'], status: 'active' },
+        ],
+        tasks: [
+          { id: 't1', title: 'Done', description: '', category: 'Work', estimateMinutes: 25, status: 'done', plannedDate: todayKey, roundId: 'r1' },
+          { id: 't2', title: 'Unassigned', description: '', category: 'Work', estimateMinutes: 20, status: 'todo', plannedDate: todayKey },
+        ],
+      }),
+    );
+
+    expect(result).toBeDefined();
+    expect(result?.nextRoundId).toBeDefined();
+    expect(result?.rounds).toHaveLength(2);
+    const recoveryRound = result?.rounds.find((round) => round.id === result?.nextRoundId);
+    expect(recoveryRound?.status).toBe('active');
+    expect(recoveryRound?.taskIds).toEqual(['t2']);
+    expect(result?.tasks.find((task) => task.id === 't2')?.roundId).toBe(result?.nextRoundId);
+  });
+
+  it('does not create a round when no unassigned today tasks remain', () => {
+    const result = applyWorkPhaseRoundAdvance(
+      buildState({
+        rounds: [
+          { id: 'r1', title: 'Round 1', scheduledTime: '09:00', durationMinutes: 25, taskIds: ['t1'], status: 'active' },
+        ],
+        tasks: [
+          { id: 't1', title: 'Done', description: '', category: 'Work', estimateMinutes: 25, status: 'done', plannedDate: todayKey, roundId: 'r1' },
+        ],
+      }),
+    );
+
+    expect(result?.rounds).toHaveLength(1);
+    expect(result?.nextRoundId).toBeUndefined();
   });
 });

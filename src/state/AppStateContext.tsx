@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useReducer, useRef, useS
 import { AlarmTone, dismissNativeAlarmNotifications, notifyPomodoroComplete, requestNotificationPermissions, startRepeatingAlarm } from '../services/notifications';
 import { AppState, PomodoroState, Round, Task, TaskBankItem } from '../types';
 import { buildNewRound, isRoundCompleted, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
-import { getNextPomodoroPhase, getRoundProgressionForPhaseAdvance } from './pomodoroTransition';
+import { applyWorkPhaseRoundAdvance, getNextPomodoroPhase } from './pomodoroTransition';
 import { createDemoState, loadState, saveState } from './storage';
 import { getTodayKey } from '../utils';
 
@@ -405,11 +405,12 @@ const reducer = (state: AppState, action: Action): AppState => {
         state.pomodoro.phase === 'work' ? state.pomodoro.completedWorkSessions + 1 : state.pomodoro.completedWorkSessions;
       const nextPhase = getNextPomodoroPhase(state);
       const totalSeconds = getPhaseSeconds(state, nextPhase);
-      const roundProgression = getRoundProgressionForPhaseAdvance(state);
+      const roundProgression = applyWorkPhaseRoundAdvance(state);
 
       return {
         ...state,
         rounds: roundProgression?.rounds ?? state.rounds,
+        tasks: roundProgression?.tasks ?? state.tasks,
         pomodoro: {
           ...state.pomodoro,
           phase: nextPhase,
@@ -418,7 +419,7 @@ const reducer = (state: AppState, action: Action): AppState => {
           startedAt: Date.now(),
           totalSeconds,
           remainingSeconds: totalSeconds,
-          activeRoundId: roundProgression?.nextRoundId ?? state.pomodoro.activeRoundId,
+          activeRoundId: roundProgression ? roundProgression.nextRoundId : state.pomodoro.activeRoundId,
         },
       };
     }
@@ -442,11 +443,12 @@ const reducer = (state: AppState, action: Action): AppState => {
 
       const nextPhase = getNextPomodoroPhase(state);
       const totalSeconds = getPhaseSeconds(state, nextPhase);
-      const roundProgression = getRoundProgressionForPhaseAdvance(state);
+      const roundProgression = applyWorkPhaseRoundAdvance(state);
 
       return {
         ...state,
         rounds: roundProgression?.rounds ?? state.rounds,
+        tasks: roundProgression?.tasks ?? state.tasks,
         pomodoro: {
           ...state.pomodoro,
           phase: nextPhase,
@@ -455,7 +457,7 @@ const reducer = (state: AppState, action: Action): AppState => {
           startedAt: Date.now(),
           totalSeconds,
           remainingSeconds: totalSeconds,
-          activeRoundId: roundProgression?.nextRoundId ?? state.pomodoro.activeRoundId,
+          activeRoundId: roundProgression ? roundProgression.nextRoundId : state.pomodoro.activeRoundId,
         },
       };
     }
