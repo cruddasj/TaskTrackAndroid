@@ -3,8 +3,9 @@ import CheckCircleOutlineRounded from '@mui/icons-material/CheckCircleOutlineRou
 import DeleteOutlineRounded from '@mui/icons-material/DeleteOutlineRounded';
 import EditOutlined from '@mui/icons-material/EditOutlined';
 import RadioButtonUncheckedRounded from '@mui/icons-material/RadioButtonUncheckedRounded';
-import { Alert, Box, Button, Card, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, Card, CardContent, Checkbox, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
+import { getDefaultSelectedRecurringSuggestionIds, getSelectedRecurringSuggestions } from './todaysTaskSuggestions';
 import { useAppState } from '../state/AppStateContext';
 import { hasDuplicateTodayTaskTitle, suggestRecurringTaskBankItems, WEEKDAY_LABELS } from '../state/tasks';
 import { Task, TaskBankItem } from '../types';
@@ -31,6 +32,7 @@ export const TodaysTasksScreen = () => {
   const [open, setOpen] = useState(false);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const [recurringSuggestions, setRecurringSuggestions] = useState<TaskBankItem[]>([]);
+  const [selectedRecurringSuggestionIds, setSelectedRecurringSuggestionIds] = useState<string[]>([]);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [taskPendingDelete, setTaskPendingDelete] = useState<Task | null>(null);
   const [form, setForm] = useState<TaskFormState>(emptyForm);
@@ -110,19 +112,26 @@ export const TodaysTasksScreen = () => {
   const openRecurringSuggestions = () => {
     const suggestions = suggestRecurringTaskBankItems(state.taskBank, state.tasks, todayKey);
     setRecurringSuggestions(suggestions);
+    setSelectedRecurringSuggestionIds(getDefaultSelectedRecurringSuggestionIds(suggestions));
     setSuggestionsOpen(true);
   };
 
+  const toggleRecurringSuggestion = (taskId: string) => {
+    setSelectedRecurringSuggestionIds((current) =>
+      current.includes(taskId) ? current.filter((id) => id !== taskId) : [...current, taskId]);
+  };
+
   const addRecurringSuggestions = () => {
-    recurringSuggestions.forEach((item) =>
+    const selectedSuggestions = getSelectedRecurringSuggestions(recurringSuggestions, selectedRecurringSuggestionIds);
+    selectedSuggestions.forEach((item) =>
       addTask({
         title: item.title,
         description: item.description,
         category: item.category,
         estimateMinutes: item.estimateMinutes,
       }));
-    if (recurringSuggestions.length > 0) {
-      showSuccessMessage(`${recurringSuggestions.length} recurring task suggestion${recurringSuggestions.length === 1 ? '' : 's'} added.`);
+    if (selectedSuggestions.length > 0) {
+      showSuccessMessage(`${selectedSuggestions.length} recurring task suggestion${selectedSuggestions.length === 1 ? '' : 's'} added.`);
     }
     setSuggestionsOpen(false);
   };
@@ -301,18 +310,26 @@ export const TodaysTasksScreen = () => {
             <Stack spacing={1.5} mt={0.5}>
               <Typography color="text.secondary">Add these due recurring tasks to Today&apos;s Tasks?</Typography>
               {recurringSuggestions.map((task) => (
-                <Box key={task.id}>
-                  <Typography fontWeight={700}>{task.title}</Typography>
-                  <Typography color="text.secondary" variant="body2">{task.description}</Typography>
-                  <Typography color="text.secondary" variant="body2">{task.category} • {task.estimateMinutes} min • {formatRecurrenceLabel(task)}</Typography>
-                </Box>
+                <Stack key={task.id} direction="row" alignItems="flex-start" spacing={1}>
+                  <Checkbox
+                    checked={selectedRecurringSuggestionIds.includes(task.id)}
+                    onChange={() => toggleRecurringSuggestion(task.id)}
+                    inputProps={{ 'aria-label': `select-recurring-task-${task.id}` }}
+                    sx={{ mt: -0.5 }}
+                  />
+                  <Box>
+                    <Typography fontWeight={700}>{task.title}</Typography>
+                    <Typography color="text.secondary" variant="body2">{task.description}</Typography>
+                    <Typography color="text.secondary" variant="body2">{task.category} • {task.estimateMinutes} min • {formatRecurrenceLabel(task)}</Typography>
+                  </Box>
+                </Stack>
               ))}
             </Stack>
           )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setSuggestionsOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={addRecurringSuggestions} disabled={recurringSuggestions.length === 0}>
+          <Button variant="contained" onClick={addRecurringSuggestions} disabled={recurringSuggestions.length === 0 || selectedRecurringSuggestionIds.length === 0}>
             Add suggested tasks
           </Button>
         </DialogActions>
