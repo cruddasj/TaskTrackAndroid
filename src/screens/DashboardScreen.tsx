@@ -184,7 +184,11 @@ export const DashboardScreen = () => {
           <CardContent>
             <Typography
               color="text.secondary"
-              sx={{ fontSize: { xs: '0.82rem', sm: '0.92rem' }, lineHeight: 1.2, whiteSpace: 'nowrap' }}
+              sx={{
+                fontSize: { xs: '0.82rem', sm: '0.92rem' },
+                lineHeight: 1.2,
+                whiteSpace: { xs: 'normal', sm: 'nowrap' },
+              }}
             >
               Focused time spent today
             </Typography>
