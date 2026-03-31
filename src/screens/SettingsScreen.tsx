@@ -1,11 +1,13 @@
 import DeleteOutlineRounded from '@mui/icons-material/DeleteOutlineRounded';
 import InfoOutlined from '@mui/icons-material/InfoOutlined';
 import DownloadRounded from '@mui/icons-material/DownloadRounded';
+import UploadFileRounded from '@mui/icons-material/UploadFileRounded';
 import VolumeUpRounded from '@mui/icons-material/VolumeUpRounded';
 import { Alert, Box, Button, Card, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, MenuItem, Stack, Switch, TextField, Typography } from '@mui/material';
-import { useMemo, useState } from 'react';
+import { ChangeEvent, useMemo, useRef, useState } from 'react';
 import { playAlarmTone } from '../services/notifications';
 import { useAppState } from '../state/AppStateContext';
+import { createBackupJson, importBackupJson } from '../state/backup';
 
 export const SettingsScreen = () => {
   const {
@@ -22,6 +24,7 @@ export const SettingsScreen = () => {
     setAlarmRepeatCount,
     setShowFirstTimeGuidance,
     loadDemoData,
+    importState,
     showSuccessMessage,
   } = useAppState();
   const [name, setName] = useState(state.userName);
@@ -33,6 +36,9 @@ export const SettingsScreen = () => {
   const [sessionReviewGraceSeconds, setSessionReviewGraceSecondsInput] = useState(state.settings.sessionReviewGraceSeconds.toString());
   const [alarmRepeatCount, setAlarmRepeatCountInput] = useState(state.settings.alarmRepeatCount.toString());
   const [categoryPendingDelete, setCategoryPendingDelete] = useState<string | null>(null);
+  const [backupPassword, setBackupPassword] = useState('');
+  const [importError, setImportError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const needsName = !state.userName.trim();
   const categoryExists = useMemo(
@@ -40,6 +46,36 @@ export const SettingsScreen = () => {
     [newCategory, state.categories],
   );
   const guidanceAlertSx = { bgcolor: 'rgba(145,247,142,0.12)', color: 'primary.main', '& .MuiAlert-icon': { color: 'primary.main' } };
+  const hasBackupPassword = !!backupPassword.trim();
+
+  const handleExportBackup = async () => {
+    const backupJson = await createBackupJson(state, backupPassword);
+    const blob = new Blob([backupJson], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `tasktrack-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+    showSuccessMessage(hasBackupPassword ? 'Encrypted backup exported.' : 'Backup exported.');
+  };
+
+  const handleImportBackup = async (event: ChangeEvent<HTMLInputElement>) => {
+    const [file] = Array.from(event.target.files ?? []);
+    if (!file) return;
+
+    setImportError(null);
+    try {
+      const content = await file.text();
+      const importedState = await importBackupJson(content, backupPassword);
+      importState(importedState);
+      showSuccessMessage('Backup imported.');
+    } catch (error) {
+      setImportError(error instanceof Error ? error.message : 'Backup import failed.');
+    } finally {
+      event.target.value = '';
+    }
+  };
 
   return (
     <Stack spacing={3} pb={2}>
@@ -101,6 +137,59 @@ export const SettingsScreen = () => {
               }
               label="Show first-time guidance across the app"
             />
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent>
+          <Stack spacing={2}>
+            <Typography variant="h5">Backup and restore</Typography>
+            <Alert severity="success" icon={<InfoOutlined fontSize="inherit" />} sx={guidanceAlertSx}>
+              Export your app data as JSON. Add a password to encrypt the file so task details are not readable as plain text.
+            </Alert>
+            <TextField
+              label="Backup password (optional)"
+              type="password"
+              value={backupPassword}
+              onChange={(event) => setBackupPassword(event.target.value)}
+              helperText="Use this same password when importing encrypted backups."
+            />
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+              <Button
+                variant="outlined"
+                color="secondary"
+                startIcon={<DownloadRounded />}
+                onClick={() => {
+                  handleExportBackup().catch(() => {
+                    setImportError('Backup export failed.');
+                  });
+                }}
+              >
+                Export data
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<UploadFileRounded />}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                Import data
+              </Button>
+            </Stack>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="application/json,.json"
+              onChange={(event) => {
+                handleImportBackup(event).catch(() => {
+                  setImportError('Backup import failed.');
+                });
+              }}
+              hidden
+            />
+            {importError && (
+              <Alert severity="error">{importError}</Alert>
+            )}
           </Stack>
         </CardContent>
       </Card>

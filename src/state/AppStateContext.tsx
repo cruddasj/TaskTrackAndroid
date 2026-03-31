@@ -40,6 +40,7 @@ type Action =
   | { type: 'SET_ALARM_REPEAT_COUNT'; payload: { count: number } }
   | { type: 'SET_SHOW_FIRST_TIME_GUIDANCE'; payload: { enabled: boolean } }
   | { type: 'LOAD_DEMO_DATA' }
+  | { type: 'IMPORT_STATE'; payload: { state: AppState } }
   | { type: 'START_POMODORO'; payload: { taskId: string; roundId?: string; minutes?: number } }
   | { type: 'PAUSE_POMODORO' }
   | { type: 'COMPLETE_POMODORO' }
@@ -373,6 +374,8 @@ const reducer = (state: AppState, action: Action): AppState => {
       };
     case 'LOAD_DEMO_DATA':
       return createDemoState(state);
+    case 'IMPORT_STATE':
+      return action.payload.state;
     case 'START_POMODORO': {
       const phase = state.pomodoro.phase;
       const totalSeconds = action.payload.minutes ? action.payload.minutes * 60 : getPhaseSeconds(state, phase);
@@ -491,6 +494,7 @@ interface AppStateContextValue {
   setAlarmRepeatCount: (count: number) => void;
   setShowFirstTimeGuidance: (enabled: boolean) => void;
   loadDemoData: () => void;
+  importState: (nextState: AppState) => void;
   startPomodoro: (taskId: string, roundId?: string, minutes?: number) => void;
   pausePomodoro: () => void;
   completePomodoro: () => void;
@@ -635,6 +639,7 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
       setAlarmRepeatCount: (count) => dispatch({ type: 'SET_ALARM_REPEAT_COUNT', payload: { count } }),
       setShowFirstTimeGuidance: (enabled) => dispatch({ type: 'SET_SHOW_FIRST_TIME_GUIDANCE', payload: { enabled } }),
       loadDemoData: () => dispatch({ type: 'LOAD_DEMO_DATA' }),
+      importState: (nextState) => dispatch({ type: 'IMPORT_STATE', payload: { state: nextState } }),
       startPomodoro: (taskId, roundId, minutes) => dispatch({ type: 'START_POMODORO', payload: { taskId, roundId, minutes } }),
       pausePomodoro: () => dispatch({ type: 'PAUSE_POMODORO' }),
       completePomodoro: () => dispatch({ type: 'COMPLETE_POMODORO' }),

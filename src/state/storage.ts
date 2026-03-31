@@ -181,7 +181,7 @@ export const createDemoState = (state: AppState): AppState => {
   };
 };
 
-const normalizeState = (raw: Partial<AppState>): AppState => {
+export const normalizeState = (raw: Partial<AppState>): AppState => {
   const categories = raw.categories && raw.categories.length > 0 ? raw.categories : defaultCategories;
   const taskBank =
     raw.taskBank ??
