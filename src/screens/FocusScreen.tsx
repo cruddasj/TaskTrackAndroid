@@ -10,6 +10,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
 import { getCarryForwardRound, getVisibleRoundId } from '../state/rounds';
 import { areAllTasksCompletedForDate } from '../state/tasks';
+import type { Task } from '../types';
 import { formatTime, getTodayKey } from '../utils';
 
 export const FocusScreen = () => {
