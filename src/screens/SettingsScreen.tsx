@@ -26,12 +26,12 @@ export const SettingsScreen = () => {
   } = useAppState();
   const [name, setName] = useState(state.userName);
   const [newCategory, setNewCategory] = useState('');
-  const [pomodoroMinutes, setPomodoroMinutesInput] = useState(String(state.settings.pomodoroMinutes));
-  const [shortBreakMinutes, setShortBreakMinutesInput] = useState(String(state.settings.shortBreakMinutes));
-  const [longBreakMinutes, setLongBreakMinutesInput] = useState(String(state.settings.longBreakMinutes));
-  const [sessionsBeforeLongBreak, setSessionsBeforeLongBreakInput] = useState(String(state.settings.sessionsBeforeLongBreak));
-  const [sessionReviewGraceSeconds, setSessionReviewGraceSecondsInput] = useState(String(state.settings.sessionReviewGraceSeconds));
-  const [alarmRepeatCount, setAlarmRepeatCountInput] = useState(String(state.settings.alarmRepeatCount));
+  const [pomodoroMinutes, setPomodoroMinutesInput] = useState(state.settings.pomodoroMinutes.toString());
+  const [shortBreakMinutes, setShortBreakMinutesInput] = useState(state.settings.shortBreakMinutes.toString());
+  const [longBreakMinutes, setLongBreakMinutesInput] = useState(state.settings.longBreakMinutes.toString());
+  const [sessionsBeforeLongBreak, setSessionsBeforeLongBreakInput] = useState(state.settings.sessionsBeforeLongBreak.toString());
+  const [sessionReviewGraceSeconds, setSessionReviewGraceSecondsInput] = useState(state.settings.sessionReviewGraceSeconds.toString());
+  const [alarmRepeatCount, setAlarmRepeatCountInput] = useState(state.settings.alarmRepeatCount.toString());
   const [categoryPendingDelete, setCategoryPendingDelete] = useState<string | null>(null);
 
   const needsName = !state.userName.trim();

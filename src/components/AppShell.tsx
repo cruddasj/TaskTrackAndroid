@@ -28,7 +28,7 @@ export const AppShell = () => {
   const allTodaysTasksDone = areAllTasksCompletedForDate(state.tasks, getTodayKey());
   const showTimerButton = !allTodaysTasksDone && (state.pomodoro.isRunning || hasTrackableRound);
   const visibleTabs = useMemo(() => isFirstTimeUser ? tabs.filter((tab) => tab.path === '/settings') : tabs, [isFirstTimeUser]);
-  const current = useMemo(() => visibleTabs.find((tab) => tab.path === location.pathname)?.path ?? false, [visibleTabs, location.pathname]);
+  const current = useMemo(() => visibleTabs.find((tab) => tab.path === location.pathname)?.path || false, [visibleTabs, location.pathname]);
   const topPadding = Capacitor.isNativePlatform()
     ? 'calc(max(env(safe-area-inset-top, 0px), 24px) + 12px)'
     : '16px';

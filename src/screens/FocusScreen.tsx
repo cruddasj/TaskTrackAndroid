@@ -28,16 +28,18 @@ export const FocusScreen = () => {
 
   const roundTasks = useMemo(() => {
     if (activeRound) {
-      return activeRound.taskIds
-        .map((taskId) => state.tasks.find((task) => task.id === taskId))
-        .filter((task): task is NonNullable<typeof task> => !!task);
+      return activeRound.taskIds.reduce<Task[]>((acc, taskId) => {
+        const task = state.tasks.find((t) => t.id === taskId);
+        if (task) acc.push(task);
+        return acc;
+      }, []);
     }
 
     return [];
   }, [activeRound, state.tasks]);
 
   const activeTask = useMemo(
-    () => state.tasks.find((task) => task.id === state.pomodoro.activeTaskId) ?? roundTasks[0],
+    () => (state.pomodoro.activeTaskId ? state.tasks.find((task) => task.id === state.pomodoro.activeTaskId) : undefined) ?? roundTasks[0],
     [state.tasks, state.pomodoro.activeTaskId, roundTasks],
   );
 

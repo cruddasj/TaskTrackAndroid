@@ -15,8 +15,8 @@ export const DashboardScreen = () => {
   const { state } = useAppState();
   const todayKey = getTodayKey();
   const todaysTasks = state.tasks.filter((task) => task.plannedDate === todayKey);
-  const completed = todaysTasks.filter((task) => task.status === 'done').length;
-  const progress = todaysTasks.length ? Math.round((completed / todaysTasks.length) * 100) : 0;
+  const completed = todaysTasks.reduce((acc, task) => acc + (task.status === 'done' ? 1 : 0), 0);
+  const progress = todaysTasks.length > 0 ? Math.round((completed / todaysTasks.length) * 100) : 0;
   const totalFocusMinutes = state.pomodoro.completedWorkSessions * state.settings.pomodoroMinutes;
   const formattedFocusTimeSpent = formatFocusTimeSpent(totalFocusMinutes);
   const currentRound = state.rounds.find((round) => round.id === state.pomodoro.activeRoundId)
@@ -40,7 +40,7 @@ export const DashboardScreen = () => {
   const allTodaysTasksDone = hasTodayTasks && completed === todaysTasks.length;
 
   const categoryTotals = useMemo(() => {
-    const recentDayKeys = Array.from({ length: HISTORY_WINDOW_DAYS }, (_, index) => {
+    const recentDayKeys = Array.from(new Array(HISTORY_WINDOW_DAYS), (_, index) => {
       const date = new Date();
       date.setDate(date.getDate() - index);
       return date.toISOString().slice(0, 10);
