@@ -1,6 +1,5 @@
 import CircleOutlined from '@mui/icons-material/CircleOutlined';
 import CheckCircleRounded from '@mui/icons-material/CheckCircleRounded';
-import CheckCircleOutlineRounded from '@mui/icons-material/CheckCircleOutlineRounded';
 import AddRounded from '@mui/icons-material/AddRounded';
 import ArrowDropDownRounded from '@mui/icons-material/ArrowDropDownRounded';
 import ArrowDropUpRounded from '@mui/icons-material/ArrowDropUpRounded';
@@ -233,7 +232,7 @@ export const RoundsScreen = () => {
                   <Chip
                     size="small"
                     color="success"
-                    icon={<CheckCircleOutlineRounded />}
+                    icon={<CheckCircleRounded />}
                     label="Completed"
                     aria-label={`completed-round-chip-${round.id}`}
                   />

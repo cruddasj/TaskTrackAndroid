@@ -1,8 +1,8 @@
 import AddRounded from '@mui/icons-material/AddRounded';
-import CheckCircleOutlineRounded from '@mui/icons-material/CheckCircleOutlineRounded';
+import CheckCircleRounded from '@mui/icons-material/CheckCircleRounded';
 import DeleteOutlineRounded from '@mui/icons-material/DeleteOutlineRounded';
 import EditOutlined from '@mui/icons-material/EditOutlined';
-import RadioButtonUncheckedRounded from '@mui/icons-material/RadioButtonUncheckedRounded';
+import CircleOutlined from '@mui/icons-material/CircleOutlined';
 import { Alert, Box, Button, Card, CardContent, Checkbox, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { getDefaultSelectedRecurringSuggestionIds, getSelectedRecurringSuggestions } from './todaysTaskSuggestions';
@@ -187,7 +187,7 @@ export const TodaysTasksScreen = () => {
                   <DeleteOutlineRounded sx={{ fontSize: 18 }} color="error" />
                 </IconButton>
               </Stack>
-              {task.status === 'done' ? <CheckCircleOutlineRounded color="primary" /> : <RadioButtonUncheckedRounded color="primary" />}
+              {task.status === 'done' ? <CheckCircleRounded color="success" /> : <CircleOutlined color="disabled" />}
             </Stack>
             {task.description && <Typography color="text.secondary" mb={2}>{task.description}</Typography>}
             <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
