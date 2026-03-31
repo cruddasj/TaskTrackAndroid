@@ -42,16 +42,18 @@ export const getCarryHistoryForRound = (task: Task, roundId: string): CarryHisto
   return { carriedFromRoundId, carriedToRoundId };
 };
 
-const getNextRoundSequence = (rounds: Round[]): number => {
+export const getHighestRoundSequence = (rounds: Round[]): number => {
   const numberedRoundValues = rounds
     .map((round) => {
       const matched = /^Round (\d+)$/.exec(round.title.trim());
       return matched ? Number(matched[1]) : 0;
     })
     .filter((value) => Number.isFinite(value) && value > 0);
-  const highestNamedRound = numberedRoundValues.length > 0 ? Math.max(...numberedRoundValues) : 0;
-  return Math.max(rounds.length, highestNamedRound) + 1;
+  return numberedRoundValues.length > 0 ? Math.max(...numberedRoundValues) : 0;
 };
+
+const getNextRoundSequence = (rounds: Round[]): number =>
+  Math.max(rounds.length, getHighestRoundSequence(rounds)) + 1;
 
 export const getDefaultRoundTitle = (rounds: Round[]): string => `Round ${getNextRoundSequence(rounds)}`;
 
