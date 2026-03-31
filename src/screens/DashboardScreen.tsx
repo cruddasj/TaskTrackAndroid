@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
 import { formatFocusTimeSpent, getGreeting } from './greeting';
 import { getTodayKey } from '../utils';
+import { getTodayRoundMetrics } from './dashboardMetrics';
 
 const HISTORY_WINDOW_DAYS = 30;
 
@@ -17,7 +18,7 @@ export const DashboardScreen = () => {
   const todaysTasks = state.tasks.filter((task) => task.plannedDate === todayKey);
   const completed = todaysTasks.reduce((acc, task) => acc + (task.status === 'done' ? 1 : 0), 0);
   const progress = todaysTasks.length > 0 ? Math.round((completed / todaysTasks.length) * 100) : 0;
-  const totalFocusMinutes = state.pomodoro.completedWorkSessions * state.settings.pomodoroMinutes;
+  const { completedRounds: sessionsCompletedToday, focusedMinutes: totalFocusMinutes } = getTodayRoundMetrics(state.rounds, todaysTasks);
   const formattedFocusTimeSpent = formatFocusTimeSpent(totalFocusMinutes);
   const currentRound = state.rounds.find((round) => round.id === state.pomodoro.activeRoundId)
     ?? state.rounds.find((round) => round.status === 'active');
@@ -206,7 +207,7 @@ export const DashboardScreen = () => {
             >
               Sessions completed today
             </Typography>
-            <Typography variant="h4" sx={{ fontSize: { xs: '1.55rem', sm: '2.125rem' } }}>{state.pomodoro.completedWorkSessions}</Typography>
+            <Typography variant="h4" sx={{ fontSize: { xs: '1.55rem', sm: '2.125rem' } }}>{sessionsCompletedToday}</Typography>
           </CardContent>
         </Card>
       </Stack>
