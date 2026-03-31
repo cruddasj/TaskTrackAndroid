@@ -38,6 +38,7 @@ export const TodaysTasksScreen = () => {
   const [form, setForm] = useState<TaskFormState>(emptyForm);
   const [validationMessage, setValidationMessage] = useState<string | null>(null);
   const taskActionButtonSx = { p: 0.625 };
+  const taskActionRowSx = { flexShrink: 0, alignSelf: 'flex-start' } as const;
 
   const formatRecurrenceLabel = (task: TaskBankItem): string => {
     if (task.recurrenceWeekdays && task.recurrenceWeekdays.length > 0) {
@@ -172,9 +173,9 @@ export const TodaysTasksScreen = () => {
       {todaysTasks.map((task) => (
         <Card key={task.id}>
           <CardContent>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
-              <Stack direction="row" spacing={1} alignItems="center">
-                <Typography variant="h5">{task.title}</Typography>
+            <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={1} spacing={1.5}>
+              <Typography variant="h5">{task.title}</Typography>
+              <Stack direction="row" spacing={0.5} sx={taskActionRowSx}>
                 <IconButton size="small" onClick={() => openEditDialog(task)} aria-label={`edit-${task.id}`} sx={taskActionButtonSx}>
                   <EditOutlined fontSize="small" />
                 </IconButton>
@@ -186,24 +187,35 @@ export const TodaysTasksScreen = () => {
                 >
                   <DeleteOutlineRounded sx={{ fontSize: 18 }} color="error" />
                 </IconButton>
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    toggleTask(task.id);
+                    showSuccessMessage(task.status === 'done' ? 'Task marked as todo.' : 'Task marked as done.');
+                  }}
+                  aria-label={`toggle-${task.id}`}
+                  sx={taskActionButtonSx}
+                >
+                  {task.status === 'done' ? <CheckCircleRounded color="success" /> : <CircleOutlined color="disabled" />}
+                </IconButton>
               </Stack>
-              {task.status === 'done' ? <CheckCircleRounded color="success" /> : <CircleOutlined color="disabled" />}
             </Stack>
             {task.description && <Typography color="text.secondary" mb={2}>{task.description}</Typography>}
             <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
               <Chip label={task.category} />
               <Chip label={`${task.estimateMinutes} min`} variant="outlined" />
               {task.roundId && <Chip label="Assigned to round" color="secondary" variant="outlined" />}
-              <Button
-                size="small"
-                onClick={() => {
-                  toggleTask(task.id);
-                  showSuccessMessage(task.status === 'done' ? 'Task marked as todo.' : 'Task marked as done.');
-                }}
-              >
-                {task.status === 'done' ? 'Mark as to-do' : 'Mark as done'}
-              </Button>
             </Stack>
+            <Button
+              size="small"
+              sx={{ mt: 1.25, alignSelf: 'flex-start' }}
+              onClick={() => {
+                toggleTask(task.id);
+                showSuccessMessage(task.status === 'done' ? 'Task marked as todo.' : 'Task marked as done.');
+              }}
+            >
+              {task.status === 'done' ? 'Mark as to-do' : 'Mark as done'}
+            </Button>
           </CardContent>
         </Card>
       ))}
