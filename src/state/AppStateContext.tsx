@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { AlarmTone, dismissNativeAlarmNotifications, notifyPomodoroComplete, requestNotificationPermissions, startRepeatingAlarm } from '../services/notifications';
 import { AppState, PomodoroState, Round, Task, TaskBankItem } from '../types';
-import { buildNewRound, isRoundCompleted, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
+import { buildNewRound, getHighestRoundSequence, isRoundCompleted, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
 import { applyWorkPhaseRoundAdvance, getNextPomodoroPhase } from './pomodoroTransition';
 import { createDemoState, loadState, saveState } from './storage';
 import { getTodayKey } from '../utils';
@@ -216,8 +216,13 @@ const reducer = (state: AppState, action: Action): AppState => {
       const todayKey = getTodayKey();
       const openRounds = state.rounds.filter((round) => !isRoundCompleted(round));
       const completedRounds = state.rounds.filter((round) => isRoundCompleted(round));
+      const completedRoundIds = new Set(completedRounds.map((round) => round.id));
+      const regroupableTodayTasks = state.tasks.filter((task) =>
+        task.plannedDate === todayKey && !(task.status === 'done' && task.roundId && completedRoundIds.has(task.roundId)),
+      );
+      const regroupableTaskIds = new Set(regroupableTodayTasks.map((task) => task.id));
       const tasksByCategory = state.tasks
-        .filter((task) => task.plannedDate === todayKey)
+        .filter((task) => regroupableTaskIds.has(task.id))
         .reduce<Record<string, Task[]>>((acc, task) => {
           acc[task.category] = [...(acc[task.category] ?? []), task];
           return acc;
@@ -243,16 +248,17 @@ const reducer = (state: AppState, action: Action): AppState => {
 
       if (groupedTaskIds.length === 0) return state;
 
+      const startingRoundSequence = getHighestRoundSequence(state.rounds);
       const reusedRounds = openRounds.slice(0, groupedTaskIds.length).map((round, index) => ({
         ...round,
-        title: `Round ${index + 1}`,
+        title: `Round ${startingRoundSequence + index + 1}`,
         status: (index === 0 ? 'active' : 'upcoming') as 'active' | 'upcoming',
         durationMinutes: pomodoroLimit,
         taskIds: groupedTaskIds[index],
       }));
       const extraRounds = groupedTaskIds.slice(reusedRounds.length).map((taskIds, index) => ({
         id: crypto.randomUUID(),
-        title: `Round ${reusedRounds.length + index + 1}`,
+        title: `Round ${startingRoundSequence + reusedRounds.length + index + 1}`,
         scheduledTime: '',
         durationMinutes: pomodoroLimit,
         taskIds,
@@ -265,6 +271,7 @@ const reducer = (state: AppState, action: Action): AppState => {
         ...state,
         rounds: [...nextOpenRounds, ...completedRounds],
         tasks: state.tasks.map((task) => {
+          if (!regroupableTaskIds.has(task.id)) return task;
           if (task.plannedDate !== todayKey) return task;
           const assignedRound = nextOpenRounds.find((round) => round.taskIds.includes(task.id));
           return { ...task, roundId: assignedRound?.id };

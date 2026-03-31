@@ -1,4 +1,4 @@
-import { advanceActiveRound, buildNewRound, getCarryForwardRound, getCarryHistoryForRound, getDefaultRoundTitle, getRoundEstimatedMinutes, getRoundTaskIdsForDisplay, getVisibleRoundId, hasEmptyRoundWithoutTasks, hasRoundsWithAssignedTasks, isRoundCompleted, removeRoundAndNormalizeStatuses, sortRoundsChronologically, unassignTasksFromRound } from './rounds';
+import { advanceActiveRound, buildNewRound, getCarryForwardRound, getCarryHistoryForRound, getDefaultRoundTitle, getHighestRoundSequence, getRoundEstimatedMinutes, getRoundTaskIdsForDisplay, getVisibleRoundId, hasEmptyRoundWithoutTasks, hasRoundsWithAssignedTasks, isRoundCompleted, removeRoundAndNormalizeStatuses, sortRoundsChronologically, unassignTasksFromRound } from './rounds';
 
 describe('round helpers', () => {
   it('detects when a round has no tasks assigned', () => {
@@ -42,6 +42,16 @@ describe('round helpers', () => {
         { id: 'r2', title: 'Morning', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'upcoming' },
       ]),
     ).toBe('Round 4');
+  });
+
+  it('finds the highest titled round number without relying on list order', () => {
+    expect(
+      getHighestRoundSequence([
+        { id: 'r1', title: 'Round 12', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'done' },
+        { id: 'r2', title: 'Planning', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'active' },
+        { id: 'r3', title: 'Round 7', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'upcoming' },
+      ]),
+    ).toBe(12);
   });
 
   it('creates an active round when all existing rounds are done', () => {
