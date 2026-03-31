@@ -19,7 +19,7 @@ export const getRoundTaskIdsForDisplay = (round: Round, tasks: Task[]): string[]
       displayTaskIds.add(task.id);
     }
   });
-  return [...displayTaskIds];
+  return Array.from(displayTaskIds);
 };
 
 
@@ -58,8 +58,8 @@ export const getDefaultRoundTitle = (rounds: Round[]): string => `Round ${getNex
 const getRoundTitleSequence = (title: string): number | undefined => {
   const matched = /^Round (\d+)\b/.exec(title.trim());
   if (!matched) return undefined;
-  const sequence = Number(matched[1]);
-  return Number.isFinite(sequence) ? sequence : undefined;
+  const sequence = parseInt(matched[1], 10);
+  return Number.isNaN(sequence) ? undefined : sequence;
 };
 
 export const sortRoundsChronologically = (rounds: Round[]): Round[] =>

@@ -1,13 +1,13 @@
-export function formatTime(seconds: number): string {
+export const formatTime = (seconds: number): string => {
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = seconds % 60;
-  return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-}
+  return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+};
 
-export function getTodayKey(): string {
+export const getTodayKey = (): string => {
   return new Date().toISOString().slice(0, 10);
-}
+};
 
-export function normalizeOptionalDescription(description: string): string {
+export const normalizeOptionalDescription = (description: string): string => {
   return description.trim();
-}
+};
