@@ -13,6 +13,7 @@ import { areAllTasksCompletedForDate } from '../state/tasks';
 import type { Task } from '../types';
 import { formatTime, getTodayKey } from '../utils';
 import { canMarkTaskDone } from './focusTaskToggle';
+import { getWorkSkipOutcome } from './focusSkip';
 
 export const FocusScreen = () => {
   const navigate = useNavigate();
@@ -65,14 +66,20 @@ export const FocusScreen = () => {
       return;
     }
 
-    if (allTodaysTasksDone) {
-      resetPomodoro();
-      navigate('/');
+    const workSkipOutcome = getWorkSkipOutcome({
+      allTodaysTasksDone,
+      unfinishedRoundTaskCount: unfinishedRoundTasks.length,
+    });
+
+    if (workSkipOutcome === 'advance_only') {
+      skipPomodoro();
       return;
     }
 
-    if (unfinishedRoundTasks.length === 0) {
+    if (workSkipOutcome === 'advance_then_reset') {
       skipPomodoro();
+      resetPomodoro();
+      navigate('/');
       return;
     }
 
