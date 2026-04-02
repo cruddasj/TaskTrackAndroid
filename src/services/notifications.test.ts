@@ -6,10 +6,22 @@ const getPendingMock = jest.fn();
 const cancelMock = jest.fn();
 const removeAllDeliveredNotificationsMock = jest.fn();
 const isNativePlatformMock = jest.fn();
+const hapticsNotificationMock = jest.fn();
+const hapticsVibrateMock = jest.fn();
 
 jest.mock('@capacitor/core', () => ({
   Capacitor: {
     isNativePlatform: isNativePlatformMock,
+  },
+}));
+
+jest.mock('@capacitor/haptics', () => ({
+  Haptics: {
+    notification: hapticsNotificationMock,
+    vibrate: hapticsVibrateMock,
+  },
+  NotificationType: {
+    Success: 'SUCCESS',
   },
 }));
 
@@ -42,6 +54,8 @@ describe('notifications service', () => {
     isNativePlatformMock.mockReturnValue(false);
     checkPermissionsMock.mockResolvedValue({ display: 'granted' });
     requestPermissionsMock.mockResolvedValue({ display: 'granted' });
+    hapticsNotificationMock.mockResolvedValue(undefined);
+    hapticsVibrateMock.mockResolvedValue(undefined);
   });
 
   it('requests native permissions on native platforms when needed', async () => {
@@ -140,6 +154,18 @@ describe('notifications service', () => {
     expect(cancelMock).toHaveBeenCalledWith({ notifications: [{ id: 424242 }] });
   });
 
+  it('falls back to vibrate when haptics notification feedback fails', async () => {
+    jest.useFakeTimers();
+    const player = jest.fn();
+    hapticsNotificationMock.mockRejectedValueOnce(new Error('unsupported'));
+
+    startRepeatingAlarm('bell', 1, undefined, player);
+    await Promise.resolve();
+
+    expect(hapticsNotificationMock).toHaveBeenCalledTimes(1);
+    expect(hapticsVibrateMock).toHaveBeenCalledWith({ duration: 300 });
+  });
+
   it('plays all alarm tone variants through AudioContext', () => {
     const createOscillator = () => ({
       type: 'triangle',
@@ -179,6 +205,7 @@ describe('notifications service', () => {
     jest.advanceTimersByTime(5000);
 
     expect(player).toHaveBeenCalledTimes(3);
+    expect(hapticsNotificationMock).toHaveBeenCalledTimes(3);
     expect(onComplete).toHaveBeenCalledTimes(1);
   });
 
