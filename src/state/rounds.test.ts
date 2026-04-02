@@ -44,6 +44,15 @@ describe('round helpers', () => {
     ).toBe('Round 4');
   });
 
+  it('starts default round numbering at 1 when no default round titles exist', () => {
+    expect(
+      getDefaultRoundTitle([
+        { id: 'r1', title: 'Morning Sprint', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'active' },
+        { id: 'r2', title: 'Deep Work', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'upcoming' },
+      ]),
+    ).toBe('Round 1');
+  });
+
   it('finds the highest titled round number without relying on list order', () => {
     expect(
       getHighestRoundSequence([
