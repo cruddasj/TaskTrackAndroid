@@ -1,5 +1,5 @@
 import { formatFocusTimeSpent, getGreeting } from './greeting';
-import { getTodayRoundMetrics } from './dashboardMetrics';
+import { getDashboardHeroCopy, getTodayRoundMetrics } from './dashboardMetrics';
 
 describe('getGreeting', () => {
   it('returns afternoon at 6pm', () => {
@@ -70,5 +70,33 @@ describe('getTodayRoundMetrics', () => {
     );
 
     expect(metrics).toEqual({ completedRounds: 2, focusedMinutes: 50 });
+  });
+});
+
+describe('getDashboardHeroCopy', () => {
+  it('prioritizes all tasks complete copy even during break phases', () => {
+    const heroCopy = getDashboardHeroCopy({
+      phase: 'short_break',
+      allTodaysTasksDone: true,
+      currentRoundTaskCount: 0,
+    });
+
+    expect(heroCopy).toEqual({
+      overline: 'All tasks complete',
+      title: 'All today tasks are complete',
+    });
+  });
+
+  it('shows break copy when tasks are not complete and a break is in progress', () => {
+    const heroCopy = getDashboardHeroCopy({
+      phase: 'long_break',
+      allTodaysTasksDone: false,
+      currentRoundTaskCount: 2,
+    });
+
+    expect(heroCopy).toEqual({
+      overline: 'Break in progress',
+      title: 'Break in progress',
+    });
   });
 });

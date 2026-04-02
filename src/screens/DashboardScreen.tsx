@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
 import { formatFocusTimeSpent, getGreeting } from './greeting';
 import { getTodayKey } from '../utils';
-import { getTodayRoundMetrics } from './dashboardMetrics';
+import { getDashboardHeroCopy, getTodayRoundMetrics } from './dashboardMetrics';
 
 const HISTORY_WINDOW_DAYS = 30;
 
@@ -39,6 +39,11 @@ export const DashboardScreen = () => {
     : [];
   const hasTodayTasks = todaysTasks.length > 0;
   const allTodaysTasksDone = hasTodayTasks && completed === todaysTasks.length;
+  const heroCopy = getDashboardHeroCopy({
+    phase: state.pomodoro.phase,
+    allTodaysTasksDone,
+    currentRoundTaskCount: currentRoundTasks.length,
+  });
 
   const categoryTotals = useMemo(() => {
     const recentDayKeys = Array.from(new Array(HISTORY_WINDOW_DAYS), (_, index) => {
@@ -72,14 +77,10 @@ export const DashboardScreen = () => {
       <Card sx={{ background: 'radial-gradient(circle at 65% 40%, rgba(145,247,142,0.28), rgba(14,14,14,1) 60%)' }}>
         <CardContent>
           <Typography variant="overline" color="primary.main" letterSpacing="0.08em">
-            {state.pomodoro.phase === 'work' ? 'Active focus session' : 'Break in progress'}
+            {heroCopy.overline}
           </Typography>
           <Typography variant="h4" mt={1} mb={2}>
-            {state.pomodoro.phase === 'work'
-              ? allTodaysTasksDone
-                ? 'All today tasks are complete'
-                : (currentRoundTasks.length > 0 ? 'Your current round tasks' : 'Ready to plan your current round?')
-              : 'Break in progress'}
+            {heroCopy.title}
           </Typography>
           {allTodaysTasksDone ? (
             <Typography color="text.secondary" mb={2}>
