@@ -1,4 +1,5 @@
 import { Capacitor } from '@capacitor/core';
+import { Haptics, NotificationType } from '@capacitor/haptics';
 import { LocalNotifications } from '@capacitor/local-notifications';
 
 export type AlarmTone = 'bell' | 'chime' | 'digital';
@@ -6,6 +7,19 @@ export type AlarmTone = 'bell' | 'chime' | 'digital';
 const ALARM_REPEAT_INTERVAL_MS = 2500;
 const ANDROID_CHANNEL_VERSION = 'v2';
 const POMODORO_PHASE_END_NOTIFICATION_ID = 424242;
+
+
+const triggerCompletionHaptic = async (): Promise<void> => {
+  try {
+    await Haptics.notification({ type: NotificationType.Success });
+  } catch {
+    try {
+      await Haptics.vibrate({ duration: 300 });
+    } catch {
+      // Devices without haptics support resolve with no effect or may throw depending on implementation.
+    }
+  }
+};
 
 const getAndroidAlarmChannelId = (tone: AlarmTone): string => `round-finish-${tone}-${ANDROID_CHANNEL_VERSION}`;
 
@@ -169,6 +183,7 @@ export const startRepeatingAlarm = (
   const playOnce = () => {
     playCount += 1;
     player(tone);
+    void triggerCompletionHaptic();
     if (playCount >= safeRepeatCount) {
       finish();
       return true;
