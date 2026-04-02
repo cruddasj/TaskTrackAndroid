@@ -369,7 +369,7 @@ export const SettingsScreen = () => {
                 </IconButton>
               </Stack>
             ))}
-            <Stack direction="row" spacing={1} alignItems="flex-start">
+            <Stack direction="row" spacing={1} alignItems="stretch">
               <TextField
                 fullWidth
                 label="New category"
@@ -379,8 +379,8 @@ export const SettingsScreen = () => {
                 helperText={categoryExists ? 'Category already exists' : undefined}
               />
               <Button
-                variant="outlined"
-                sx={{ alignSelf: 'center' }}
+                variant="contained"
+                sx={{ minHeight: 56 }}
                 onClick={() => {
                   const category = newCategory.trim();
                   if (!category || categoryExists) return;
