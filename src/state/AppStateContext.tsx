@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { AlarmTone, dismissNativeAlarmNotifications, notifyPomodoroComplete, requestNotificationPermissions, startRepeatingAlarm } from '../services/notifications';
 import { AppState, PomodoroState, Round, Task, TaskBankItem } from '../types';
-import { buildNewRound, getHighestRoundSequence, isRoundCompleted, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
+import { buildNewRound, getDefaultRoundTitle, isRoundCompleted, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
 import { applyWorkPhaseRoundAdvance, getNextPomodoroPhase } from './pomodoroTransition';
 import { createDemoState, loadState, saveState } from './storage';
 import { getTodayKey } from '../utils';
@@ -248,22 +248,23 @@ const reducer = (state: AppState, action: Action): AppState => {
 
       if (groupedTaskIds.length === 0) return state;
 
-      const startingRoundSequence = getHighestRoundSequence(state.rounds);
       const reusedRounds = openRounds.slice(0, groupedTaskIds.length).map((round, index) => ({
         ...round,
-        title: `Round ${startingRoundSequence + index + 1}`,
         status: (index === 0 ? 'active' : 'upcoming') as 'active' | 'upcoming',
         durationMinutes: pomodoroLimit,
         taskIds: groupedTaskIds[index],
       }));
-      const extraRounds = groupedTaskIds.slice(reusedRounds.length).map((taskIds, index) => ({
-        id: crypto.randomUUID(),
-        title: `Round ${startingRoundSequence + reusedRounds.length + index + 1}`,
-        scheduledTime: '',
-        durationMinutes: pomodoroLimit,
-        taskIds,
-        status: (reusedRounds.length + index === 0 ? 'active' : 'upcoming') as 'active' | 'upcoming',
-      }));
+      const extraRounds: Round[] = [];
+      groupedTaskIds.slice(reusedRounds.length).forEach((taskIds, index) => {
+        extraRounds.push({
+          id: crypto.randomUUID(),
+          title: getDefaultRoundTitle([...state.rounds, ...extraRounds]),
+          scheduledTime: '',
+          durationMinutes: pomodoroLimit,
+          taskIds,
+          status: (reusedRounds.length + index === 0 ? 'active' : 'upcoming') as 'active' | 'upcoming',
+        });
+      });
       const nextOpenRounds = [...reusedRounds, ...extraRounds];
       const roundIdsInUse = new Set([...nextOpenRounds, ...completedRounds].map((round) => round.id));
 

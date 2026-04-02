@@ -52,8 +52,7 @@ export const getHighestRoundSequence = (rounds: Round[]): number => {
   return numberedRoundValues.length > 0 ? Math.max(...numberedRoundValues) : 0;
 };
 
-const getNextRoundSequence = (rounds: Round[]): number =>
-  Math.max(rounds.length, getHighestRoundSequence(rounds)) + 1;
+const getNextRoundSequence = (rounds: Round[]): number => getHighestRoundSequence(rounds) + 1;
 
 export const getDefaultRoundTitle = (rounds: Round[]): string => `Round ${getNextRoundSequence(rounds)}`;
 
