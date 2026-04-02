@@ -5,6 +5,7 @@ export type AlarmTone = 'bell' | 'chime' | 'digital';
 
 const ALARM_REPEAT_INTERVAL_MS = 2500;
 const ANDROID_CHANNEL_VERSION = 'v2';
+const POMODORO_PHASE_END_NOTIFICATION_ID = 424242;
 
 const getAndroidAlarmChannelId = (tone: AlarmTone): string => `round-finish-${tone}-${ANDROID_CHANNEL_VERSION}`;
 
@@ -43,43 +44,60 @@ export const requestNotificationPermissions = async (): Promise<void> => {
 export const notifyPomodoroComplete = async (
   title: string,
   body: string,
-  tone: AlarmTone,
-  repeatCount: number,
+  _tone: AlarmTone,
+  _repeatCount: number,
 ): Promise<void> => {
-  const safeRepeatCount = Math.max(1, Math.round(repeatCount));
+  void _tone;
+  void _repeatCount;
+  if (Capacitor.isNativePlatform()) return;
 
-  if (Capacitor.isNativePlatform()) {
-    const hasPermission = await ensureNativeNotificationPermission();
-    if (!hasPermission) return;
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification(title, { body });
+  }
+};
 
-    let channelId: string | undefined;
-    try {
-      channelId = await ensureAndroidAlarmChannel(tone);
-    } catch {
-      channelId = undefined;
-    }
+export const schedulePomodoroPhaseEndNotification = async (
+  title: string,
+  body: string,
+  tone: AlarmTone,
+  remainingSeconds: number,
+): Promise<void> => {
+  if (!Capacitor.isNativePlatform() || remainingSeconds <= 0) return;
 
-    const now = Date.now();
-    await LocalNotifications.schedule({
-      notifications: Array.from({ length: safeRepeatCount }, (_, index) => ({
-        id: now + index,
+  const hasPermission = await ensureNativeNotificationPermission();
+  if (!hasPermission) return;
+
+  let channelId: string | undefined;
+  try {
+    channelId = await ensureAndroidAlarmChannel(tone);
+  } catch {
+    channelId = undefined;
+  }
+
+  const fireAt = new Date(Date.now() + Math.max(1, Math.round(remainingSeconds)) * 1000);
+
+  await LocalNotifications.cancel({ notifications: [{ id: POMODORO_PHASE_END_NOTIFICATION_ID }] });
+  await LocalNotifications.schedule({
+    notifications: [
+      {
+        id: POMODORO_PHASE_END_NOTIFICATION_ID,
         title,
         body,
-        schedule: { at: new Date(now + 200 + index * ALARM_REPEAT_INTERVAL_MS) },
+        schedule: { at: fireAt },
         ...(channelId
           ? {
             channelId,
             sound: `res://raw/alarm_${tone}`,
           }
           : undefined),
-      })),
-    });
-    return;
-  }
+      },
+    ],
+  });
+};
 
-  if ('Notification' in window && Notification.permission === 'granted') {
-    new Notification(title, { body });
-  }
+export const clearScheduledPomodoroPhaseEndNotification = async (): Promise<void> => {
+  if (!Capacitor.isNativePlatform()) return;
+  await LocalNotifications.cancel({ notifications: [{ id: POMODORO_PHASE_END_NOTIFICATION_ID }] });
 };
 
 export const dismissNativeAlarmNotifications = async (): Promise<void> => {
