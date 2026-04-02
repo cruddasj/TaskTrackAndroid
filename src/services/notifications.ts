@@ -22,9 +22,16 @@ const ensureAndroidAlarmChannel = async (tone: AlarmTone): Promise<string> => {
   return channelId;
 };
 
+const ensureNativeNotificationPermission = async (): Promise<boolean> => {
+  const current = await LocalNotifications.checkPermissions();
+  if (current.display === 'granted') return true;
+  const requested = await LocalNotifications.requestPermissions();
+  return requested.display === 'granted';
+};
+
 export const requestNotificationPermissions = async (): Promise<void> => {
   if (Capacitor.isNativePlatform()) {
-    await LocalNotifications.requestPermissions();
+    await ensureNativeNotificationPermission();
     return;
   }
 
@@ -42,7 +49,16 @@ export const notifyPomodoroComplete = async (
   const safeRepeatCount = Math.max(1, Math.round(repeatCount));
 
   if (Capacitor.isNativePlatform()) {
-    const channelId = await ensureAndroidAlarmChannel(tone);
+    const hasPermission = await ensureNativeNotificationPermission();
+    if (!hasPermission) return;
+
+    let channelId: string | undefined;
+    try {
+      channelId = await ensureAndroidAlarmChannel(tone);
+    } catch {
+      channelId = undefined;
+    }
+
     const now = Date.now();
     await LocalNotifications.schedule({
       notifications: Array.from({ length: safeRepeatCount }, (_, index) => ({
@@ -50,8 +66,12 @@ export const notifyPomodoroComplete = async (
         title,
         body,
         schedule: { at: new Date(now + 200 + index * ALARM_REPEAT_INTERVAL_MS) },
-        channelId,
-        sound: `res://raw/alarm_${tone}`,
+        ...(channelId
+          ? {
+            channelId,
+            sound: `res://raw/alarm_${tone}`,
+          }
+          : undefined),
       })),
     });
     return;

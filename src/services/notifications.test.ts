@@ -1,6 +1,7 @@
 const scheduleMock = jest.fn();
 const createChannelMock = jest.fn();
 const requestPermissionsMock = jest.fn();
+const checkPermissionsMock = jest.fn();
 const getPendingMock = jest.fn();
 const cancelMock = jest.fn();
 const removeAllDeliveredNotificationsMock = jest.fn();
@@ -17,6 +18,7 @@ jest.mock('@capacitor/local-notifications', () => ({
     schedule: scheduleMock,
     createChannel: createChannelMock,
     requestPermissions: requestPermissionsMock,
+    checkPermissions: checkPermissionsMock,
     getPending: getPendingMock,
     cancel: cancelMock,
     removeAllDeliveredNotifications: removeAllDeliveredNotificationsMock,
@@ -36,13 +38,17 @@ describe('notifications service', () => {
     jest.clearAllMocks();
     jest.useRealTimers();
     isNativePlatformMock.mockReturnValue(false);
+    checkPermissionsMock.mockResolvedValue({ display: 'granted' });
+    requestPermissionsMock.mockResolvedValue({ display: 'granted' });
   });
 
-  it('requests native permissions on native platforms', async () => {
+  it('requests native permissions on native platforms when needed', async () => {
     isNativePlatformMock.mockReturnValue(true);
+    checkPermissionsMock.mockResolvedValue({ display: 'denied' });
 
     await requestNotificationPermissions();
 
+    expect(checkPermissionsMock).toHaveBeenCalledTimes(1);
     expect(requestPermissionsMock).toHaveBeenCalledTimes(1);
   });
 
@@ -59,6 +65,17 @@ describe('notifications service', () => {
     }));
     expect(payload.notifications).toHaveLength(3);
     expect(payload.notifications[0]).toEqual(expect.objectContaining({ channelId: 'round-finish-bell-v2' }));
+  });
+
+
+  it('does not schedule native notifications when notification permission is denied', async () => {
+    isNativePlatformMock.mockReturnValue(true);
+    checkPermissionsMock.mockResolvedValue({ display: 'denied' });
+    requestPermissionsMock.mockResolvedValue({ display: 'denied' });
+
+    await notifyPomodoroComplete('Done', 'Body', 'bell', 3);
+
+    expect(scheduleMock).not.toHaveBeenCalled();
   });
 
   it('requests browser notification permission on web when permission is default', async () => {
