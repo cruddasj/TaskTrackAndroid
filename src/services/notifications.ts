@@ -58,12 +58,40 @@ export const requestNotificationPermissions = async (): Promise<void> => {
 export const notifyPomodoroComplete = async (
   title: string,
   body: string,
-  _tone: AlarmTone,
+  tone: AlarmTone,
   _repeatCount: number,
 ): Promise<void> => {
-  void _tone;
   void _repeatCount;
-  if (Capacitor.isNativePlatform()) return;
+  if (Capacitor.isNativePlatform()) {
+    const hasPermission = await ensureNativeNotificationPermission();
+    if (!hasPermission) return;
+
+    let channelId: string | undefined;
+    try {
+      channelId = await ensureAndroidAlarmChannel(tone);
+    } catch {
+      channelId = undefined;
+    }
+
+    await triggerCompletionHaptic();
+
+    await LocalNotifications.schedule({
+      notifications: [
+        {
+          id: Math.floor(Math.random() * 100000),
+          title,
+          body,
+          ...(channelId
+            ? {
+              channelId,
+              sound: `res://raw/alarm_${tone}`,
+            }
+            : undefined),
+        },
+      ],
+    });
+    return;
+  }
 
   if ('Notification' in window && Notification.permission === 'granted') {
     new Notification(title, { body });
