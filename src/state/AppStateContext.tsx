@@ -1,5 +1,14 @@
 import { createContext, useContext, useEffect, useMemo, useReducer, useRef, useState } from 'react';
-import { AlarmTone, dismissNativeAlarmNotifications, notifyPomodoroComplete, requestNotificationPermissions, startRepeatingAlarm } from '../services/notifications';
+import {
+  AlarmTone,
+  clearScheduledPomodoroPhaseEndNotification,
+  dismissNativeAlarmNotifications,
+  notifyPomodoroComplete,
+  requestNotificationPermissions,
+  schedulePomodoroPhaseEndNotification,
+  startRepeatingAlarm,
+} from '../services/notifications';
+import { initializePushNotifications } from '../services/pushNotifications';
 import { AppState, PomodoroState, Round, Task, TaskBankItem } from '../types';
 import { buildNewRound, getDefaultRoundTitle, isRoundCompleted, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
 import { applyWorkPhaseRoundAdvance, getNextPomodoroPhase } from './pomodoroTransition';
@@ -540,6 +549,7 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
 
   useEffect(() => {
     requestNotificationPermissions().catch(() => undefined);
+    initializePushNotifications().catch(() => undefined);
   }, []);
 
   useEffect(() => {
@@ -553,6 +563,42 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
     }, 1000);
     return () => window.clearInterval(timer);
   }, [state.pomodoro.isRunning]);
+
+  useEffect(() => {
+    const titleByPhase: Record<PomodoroState['phase'], string> = {
+      work: 'Focus session complete',
+      short_break: 'Short break complete',
+      long_break: 'Long break complete',
+    };
+    const bodyByPhase: Record<PomodoroState['phase'], string> = {
+      work: 'Round complete. Your break is ready to start.',
+      short_break: 'Back to focus mode.',
+      long_break: 'Great work. Start your next focus session.',
+    };
+
+    if (!state.pomodoro.isRunning || !state.pomodoro.startedAt) {
+      clearScheduledPomodoroPhaseEndNotification().catch(() => undefined);
+      return;
+    }
+
+    const secondsUntilPhaseEnd = Math.max(
+      1,
+      Math.ceil((state.pomodoro.startedAt + state.pomodoro.totalSeconds * 1000 - Date.now()) / 1000),
+    );
+
+    schedulePomodoroPhaseEndNotification(
+      titleByPhase[state.pomodoro.phase],
+      bodyByPhase[state.pomodoro.phase],
+      state.settings.alarmTone,
+      secondsUntilPhaseEnd,
+    ).catch(() => undefined);
+  }, [
+    state.pomodoro.isRunning,
+    state.pomodoro.startedAt,
+    state.pomodoro.phase,
+    state.pomodoro.totalSeconds,
+    state.settings.alarmTone,
+  ]);
 
   useEffect(() => {
     if (state.pomodoro.remainingSeconds !== 0 || !state.pomodoro.isRunning) return;
@@ -574,6 +620,7 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
       state.settings.alarmTone,
       state.settings.alarmRepeatCount,
     ).catch(() => undefined);
+    clearScheduledPomodoroPhaseEndNotification().catch(() => undefined);
 
     stopAlarmRef.current?.();
     setAlarmActive(true);

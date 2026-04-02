@@ -26,10 +26,12 @@ jest.mock('@capacitor/local-notifications', () => ({
 }));
 
 import {
+  clearScheduledPomodoroPhaseEndNotification,
   dismissNativeAlarmNotifications,
   notifyPomodoroComplete,
   playAlarmTone,
   requestNotificationPermissions,
+  schedulePomodoroPhaseEndNotification,
   startRepeatingAlarm,
 } from './notifications';
 
@@ -52,10 +54,10 @@ describe('notifications service', () => {
     expect(requestPermissionsMock).toHaveBeenCalledTimes(1);
   });
 
-  it('schedules repeated native notifications', async () => {
+  it('schedules a native phase-end notification', async () => {
     isNativePlatformMock.mockReturnValue(true);
 
-    await notifyPomodoroComplete('Done', 'Body', 'bell', 3);
+    await schedulePomodoroPhaseEndNotification('Done', 'Body', 'bell', 75);
 
     expect(scheduleMock).toHaveBeenCalledTimes(1);
     const payload = scheduleMock.mock.calls[0][0];
@@ -63,15 +65,28 @@ describe('notifications service', () => {
       id: 'round-finish-bell-v2',
       vibration: true,
     }));
-    expect(payload.notifications).toHaveLength(3);
-    expect(payload.notifications[0]).toEqual(expect.objectContaining({ channelId: 'round-finish-bell-v2' }));
+    expect(payload.notifications).toHaveLength(1);
+    expect(payload.notifications[0]).toEqual(expect.objectContaining({
+      id: 424242,
+      channelId: 'round-finish-bell-v2',
+      title: 'Done',
+      body: 'Body',
+    }));
   });
 
 
-  it('does not schedule native notifications when notification permission is denied', async () => {
+  it('does not schedule native phase-end notifications when notification permission is denied', async () => {
     isNativePlatformMock.mockReturnValue(true);
     checkPermissionsMock.mockResolvedValue({ display: 'denied' });
     requestPermissionsMock.mockResolvedValue({ display: 'denied' });
+
+    await schedulePomodoroPhaseEndNotification('Done', 'Body', 'bell', 30);
+
+    expect(scheduleMock).not.toHaveBeenCalled();
+  });
+
+  it('does not schedule immediate native notification on completion', async () => {
+    isNativePlatformMock.mockReturnValue(true);
 
     await notifyPomodoroComplete('Done', 'Body', 'bell', 3);
 
@@ -115,6 +130,14 @@ describe('notifications service', () => {
   it('returns early when dismissing notifications on web', async () => {
     await dismissNativeAlarmNotifications();
     expect(getPendingMock).not.toHaveBeenCalled();
+  });
+
+  it('clears the scheduled native phase-end notification', async () => {
+    isNativePlatformMock.mockReturnValue(true);
+
+    await clearScheduledPomodoroPhaseEndNotification();
+
+    expect(cancelMock).toHaveBeenCalledWith({ notifications: [{ id: 424242 }] });
   });
 
   it('plays all alarm tone variants through AudioContext', () => {
