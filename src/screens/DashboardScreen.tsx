@@ -1,13 +1,18 @@
 import PlayArrowRounded from '@mui/icons-material/PlayArrowRounded';
 import CheckCircleRounded from '@mui/icons-material/CheckCircleRounded';
 import InsightsOutlined from '@mui/icons-material/InsightsOutlined';
-import { Box, Button, Card, CardContent, LinearProgress, Stack, Typography } from '@mui/material';
-import { useMemo } from 'react';
+import ChevronRightRounded from '@mui/icons-material/ChevronRightRounded';
+import KeyboardArrowLeftRounded from '@mui/icons-material/KeyboardArrowLeftRounded';
+import KeyboardArrowRightRounded from '@mui/icons-material/KeyboardArrowRightRounded';
+import ExpandMoreRounded from '@mui/icons-material/ExpandMoreRounded';
+import { Box, Button, Card, CardContent, IconButton, LinearProgress, Stack, Typography } from '@mui/material';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
 import { formatFocusTimeSpent, getGreeting } from './greeting';
 import { getTodayKey } from '../utils';
 import { getDashboardHeroCopy, getTodayRoundMetrics } from './dashboardMetrics';
+import { formatHistoryDayLabel, getCategoryTotals, getCompletedTaskHistory } from './dashboardInsights';
 
 const HISTORY_WINDOW_DAYS = 30;
 
@@ -45,27 +50,36 @@ export const DashboardScreen = () => {
     currentRoundTaskCount: currentRoundTasks.length,
   });
 
-  const categoryTotals = useMemo(() => {
-    const recentDayKeys = Array.from(new Array(HISTORY_WINDOW_DAYS), (_, index) => {
-      const date = new Date();
-      date.setDate(date.getDate() - index);
-      return date.toISOString().slice(0, 10);
-    });
+  const [isInsightsExpanded, setIsInsightsExpanded] = useState(false);
+  const [completedHistoryIndex, setCompletedHistoryIndex] = useState(0);
 
-    return recentDayKeys.reduce<Record<string, number>>((acc, dayKey) => {
-      state.tasks
-        .filter((task) => task.completedAt?.startsWith(dayKey))
-        .forEach((task) => {
-          acc[task.category] = (acc[task.category] ?? 0) + task.estimateMinutes;
-        });
-      return acc;
-    }, {});
-  }, [state.tasks]);
+  const categoryTotals = useMemo(() => getCategoryTotals(state.tasks, HISTORY_WINDOW_DAYS), [state.tasks]);
+
+  const completedTaskHistory = useMemo(() => getCompletedTaskHistory(state.tasks, HISTORY_WINDOW_DAYS), [state.tasks]);
+
+  useEffect(() => {
+    if (completedHistoryIndex > completedTaskHistory.length - 1) {
+      setCompletedHistoryIndex(0);
+    }
+  }, [completedHistoryIndex, completedTaskHistory.length]);
+
+  const selectedHistoryDay = completedTaskHistory[completedHistoryIndex] ?? null;
 
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
     return getGreeting(hour);
   }, []);
+
+  const isOnOldestHistoryDay = completedHistoryIndex >= completedTaskHistory.length - 1;
+  const isOnMostRecentHistoryDay = completedHistoryIndex === 0;
+
+  const handleOpenOlderHistoryDay = () => {
+    setCompletedHistoryIndex((current) => Math.min(current + 1, completedTaskHistory.length - 1));
+  };
+
+  const handleOpenNewerHistoryDay = () => {
+    setCompletedHistoryIndex((current) => Math.max(current - 1, 0));
+  };
 
   return (
     <Stack spacing={3}>
@@ -213,26 +227,83 @@ export const DashboardScreen = () => {
         </Card>
       </Stack>
 
-      <Stack direction="row" alignItems="center" spacing={1}>
-        <InsightsOutlined color="primary" />
-        <Typography variant="h5">Insights</Typography>
-      </Stack>
-      <Card>
+      <Card sx={{ border: '1px solid', borderColor: isInsightsExpanded ? 'primary.main' : 'divider' }}>
         <CardContent>
-          <Typography variant="h6" mb={1}>Completed tasks split by category (last 30 days)</Typography>
-          <Stack spacing={0.75}>
-            {Object.entries(categoryTotals)
-              .sort((a, b) => b[1] - a[1])
-              .map(([category, minutes]) => (
-                <Stack key={category} direction="row" justifyContent="space-between">
-                  <Typography color="text.secondary">{category}</Typography>
-                  <Typography>{minutes} min</Typography>
-                </Stack>
-              ))}
-            {Object.keys(categoryTotals).length === 0 && (
-              <Typography color="text.secondary">No completed tasks in the last 30 days yet.</Typography>
-            )}
+          <Stack direction="row" alignItems="flex-start" justifyContent="space-between" spacing={1}>
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <InsightsOutlined color="primary" />
+              <Box>
+                <Typography variant="h5">Insights</Typography>
+                <Typography color="text.secondary">Review completed task history by day.</Typography>
+              </Box>
+            </Stack>
+            <IconButton aria-label={isInsightsExpanded ? 'Collapse insights' : 'Expand insights'} onClick={() => setIsInsightsExpanded((current) => !current)}>
+              {isInsightsExpanded ? <ExpandMoreRounded /> : <ChevronRightRounded />}
+            </IconButton>
           </Stack>
+
+          {isInsightsExpanded && (
+            <Stack spacing={2.5} mt={2.5}>
+              <Card variant="outlined" sx={{ borderColor: 'primary.main', backgroundColor: 'rgba(145,247,142,0.08)' }}>
+                <CardContent>
+                  <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1.5}>
+                    <Typography variant="h6">Completed tasks by day</Typography>
+                    <Stack direction="row" spacing={0.5}>
+                      <IconButton
+                        aria-label="Show older completed tasks"
+                        size="small"
+                        disabled={completedTaskHistory.length === 0 || isOnOldestHistoryDay}
+                        onClick={handleOpenOlderHistoryDay}
+                      >
+                        <KeyboardArrowLeftRounded />
+                      </IconButton>
+                      <IconButton
+                        aria-label="Show newer completed tasks"
+                        size="small"
+                        disabled={completedTaskHistory.length === 0 || isOnMostRecentHistoryDay}
+                        onClick={handleOpenNewerHistoryDay}
+                      >
+                        <KeyboardArrowRightRounded />
+                      </IconButton>
+                    </Stack>
+                  </Stack>
+
+                  {selectedHistoryDay ? (
+                    <>
+                      <Typography color="text.secondary" mb={1.5}>{formatHistoryDayLabel(selectedHistoryDay.dayKey)}</Typography>
+                      <Stack spacing={1}>
+                        {selectedHistoryDay.tasks.map((task) => (
+                          <Stack key={task.id} direction="row" spacing={1} alignItems="center">
+                            <CheckCircleRounded color="primary" fontSize="small" />
+                            <Typography>{task.title}</Typography>
+                          </Stack>
+                        ))}
+                      </Stack>
+                    </>
+                  ) : (
+                    <Typography color="text.secondary">No completed tasks in the last 30 days yet.</Typography>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Box>
+                <Typography variant="h6" mb={1}>Completed tasks split by category (last 30 days)</Typography>
+                <Stack spacing={0.75}>
+                  {Object.entries(categoryTotals)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([category, minutes]) => (
+                      <Stack key={category} direction="row" justifyContent="space-between">
+                        <Typography color="text.secondary">{category}</Typography>
+                        <Typography>{minutes} min</Typography>
+                      </Stack>
+                    ))}
+                  {Object.keys(categoryTotals).length === 0 && (
+                    <Typography color="text.secondary">No completed tasks in the last 30 days yet.</Typography>
+                  )}
+                </Stack>
+              </Box>
+            </Stack>
+          )}
         </CardContent>
       </Card>
     </Stack>
