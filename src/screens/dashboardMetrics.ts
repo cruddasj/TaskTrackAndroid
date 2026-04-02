@@ -22,3 +22,30 @@ export const getTodayRoundMetrics = (rounds: Round[], todaysTasks: Task[]): Toda
     focusedMinutes: completedRoundsToday.reduce((total, round) => total + round.durationMinutes, 0),
   };
 };
+
+export const getDashboardHeroCopy = (options: {
+  phase: 'work' | 'short_break' | 'long_break';
+  allTodaysTasksDone: boolean;
+  currentRoundTaskCount: number;
+}) => {
+  const { phase, allTodaysTasksDone, currentRoundTaskCount } = options;
+
+  if (allTodaysTasksDone) {
+    return {
+      overline: 'All tasks complete',
+      title: 'All today tasks are complete',
+    };
+  }
+
+  if (phase !== 'work') {
+    return {
+      overline: 'Break in progress',
+      title: 'Break in progress',
+    };
+  }
+
+  return {
+    overline: 'Active focus session',
+    title: currentRoundTaskCount > 0 ? 'Your current round tasks' : 'Ready to plan your current round?',
+  };
+};
