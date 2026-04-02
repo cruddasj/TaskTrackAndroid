@@ -8,6 +8,7 @@ import {
   schedulePomodoroPhaseEndNotification,
   startRepeatingAlarm,
 } from '../services/notifications';
+import { initializePushNotifications } from '../services/pushNotifications';
 import { AppState, PomodoroState, Round, Task, TaskBankItem } from '../types';
 import { buildNewRound, getDefaultRoundTitle, isRoundCompleted, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
 import { applyWorkPhaseRoundAdvance, getNextPomodoroPhase } from './pomodoroTransition';
@@ -548,6 +549,7 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
 
   useEffect(() => {
     requestNotificationPermissions().catch(() => undefined);
+    initializePushNotifications().catch(() => undefined);
   }, []);
 
   useEffect(() => {
