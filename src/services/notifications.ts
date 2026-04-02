@@ -4,6 +4,23 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 export type AlarmTone = 'bell' | 'chime' | 'digital';
 
 const ALARM_REPEAT_INTERVAL_MS = 2500;
+const ANDROID_CHANNEL_VERSION = 'v2';
+
+const getAndroidAlarmChannelId = (tone: AlarmTone): string => `round-finish-${tone}-${ANDROID_CHANNEL_VERSION}`;
+
+const ensureAndroidAlarmChannel = async (tone: AlarmTone): Promise<string> => {
+  const channelId = getAndroidAlarmChannelId(tone);
+  await LocalNotifications.createChannel({
+    id: channelId,
+    name: 'Round completion alerts',
+    description: 'Alerts when a focus round or break completes.',
+    sound: `raw/alarm_${tone}`,
+    importance: 5,
+    visibility: 1,
+    vibration: true,
+  });
+  return channelId;
+};
 
 export const requestNotificationPermissions = async (): Promise<void> => {
   if (Capacitor.isNativePlatform()) {
@@ -25,6 +42,7 @@ export const notifyPomodoroComplete = async (
   const safeRepeatCount = Math.max(1, Math.round(repeatCount));
 
   if (Capacitor.isNativePlatform()) {
+    const channelId = await ensureAndroidAlarmChannel(tone);
     const now = Date.now();
     await LocalNotifications.schedule({
       notifications: Array.from({ length: safeRepeatCount }, (_, index) => ({
@@ -32,6 +50,7 @@ export const notifyPomodoroComplete = async (
         title,
         body,
         schedule: { at: new Date(now + 200 + index * ALARM_REPEAT_INTERVAL_MS) },
+        channelId,
         sound: `res://raw/alarm_${tone}`,
       })),
     });

@@ -1,4 +1,5 @@
 const scheduleMock = jest.fn();
+const createChannelMock = jest.fn();
 const requestPermissionsMock = jest.fn();
 const getPendingMock = jest.fn();
 const cancelMock = jest.fn();
@@ -14,6 +15,7 @@ jest.mock('@capacitor/core', () => ({
 jest.mock('@capacitor/local-notifications', () => ({
   LocalNotifications: {
     schedule: scheduleMock,
+    createChannel: createChannelMock,
     requestPermissions: requestPermissionsMock,
     getPending: getPendingMock,
     cancel: cancelMock,
@@ -51,7 +53,12 @@ describe('notifications service', () => {
 
     expect(scheduleMock).toHaveBeenCalledTimes(1);
     const payload = scheduleMock.mock.calls[0][0];
+    expect(createChannelMock).toHaveBeenCalledWith(expect.objectContaining({
+      id: 'round-finish-bell-v2',
+      vibration: true,
+    }));
     expect(payload.notifications).toHaveLength(3);
+    expect(payload.notifications[0]).toEqual(expect.objectContaining({ channelId: 'round-finish-bell-v2' }));
   });
 
   it('requests browser notification permission on web when permission is default', async () => {
