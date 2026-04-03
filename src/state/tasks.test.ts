@@ -1,5 +1,5 @@
 import { Task } from '../types';
-import { areAllTasksCompletedForDate, hasDuplicateTodayTaskTitle, suggestRecurringTaskBankItems, WEEKDAY_SELECTION_ORDER } from './tasks';
+import { areAllTasksCompletedForDate, hasDuplicateTodayTaskTitle, sortTaskBankItemsAlphabetically, suggestRecurringTaskBankItems, WEEKDAY_SELECTION_ORDER } from './tasks';
 
 const todayKey = '2026-03-29';
 
@@ -37,6 +37,23 @@ describe('task title validation', () => {
 describe('weekday selection order', () => {
   it('starts from Monday and ends with Sunday for Task Bank weekday selection', () => {
     expect(WEEKDAY_SELECTION_ORDER).toEqual([1, 2, 3, 4, 5, 6, 0]);
+  });
+});
+
+
+describe('sortTaskBankItemsAlphabetically', () => {
+  it('sorts task bank items by title regardless of case and whitespace', () => {
+    const taskBank = [
+      { id: '2', title: ' zebra cleanup', description: '', category: 'Home', estimateMinutes: 15 },
+      { id: '3', title: 'Alpha plan', description: '', category: 'Work', estimateMinutes: 30 },
+      { id: '1', title: 'beta review', description: '', category: 'Work', estimateMinutes: 25 },
+      { id: '4', title: '  alpha plan', description: '', category: 'Work', estimateMinutes: 10 },
+    ];
+
+    const sorted = sortTaskBankItemsAlphabetically(taskBank);
+
+    expect(sorted.map((item) => item.id)).toEqual(['3', '4', '1', '2']);
+    expect(taskBank.map((item) => item.id)).toEqual(['2', '3', '1', '4']);
   });
 });
 

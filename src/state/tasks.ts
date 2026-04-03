@@ -46,6 +46,16 @@ const getLastCompletionTimeByTitle = (tasks: Task[]): Map<string, number> => {
   return completionByTitle;
 };
 
+
+export const sortTaskBankItemsAlphabetically = (taskBank: TaskBankItem[]): TaskBankItem[] => {
+  const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
+  return [...taskBank].sort((a, b) => {
+    const titleComparison = collator.compare(a.title.trim(), b.title.trim());
+    if (titleComparison !== 0) return titleComparison;
+    return collator.compare(a.id, b.id);
+  });
+};
+
 export const suggestRecurringTaskBankItems = (
   taskBank: TaskBankItem[],
   tasks: Task[],

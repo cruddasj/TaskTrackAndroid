@@ -4,9 +4,9 @@ import EditOutlined from '@mui/icons-material/EditOutlined';
 import PlaylistAddRounded from '@mui/icons-material/PlaylistAddRounded';
 import InfoOutlined from '@mui/icons-material/InfoOutlined';
 import { Alert, Box, Button, Card, CardContent, Checkbox, Chip, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, MenuItem, Stack, TextField, Typography } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAppState } from '../state/AppStateContext';
-import { hasDuplicateTodayTaskTitle, WEEKDAY_LABELS, WEEKDAY_SELECTION_ORDER } from '../state/tasks';
+import { hasDuplicateTodayTaskTitle, sortTaskBankItemsAlphabetically, WEEKDAY_LABELS, WEEKDAY_SELECTION_ORDER } from '../state/tasks';
 import { TaskBankItem } from '../types';
 import { getTodayKey, normalizeOptionalDescription } from '../utils';
 
@@ -38,6 +38,7 @@ export const TaskBankScreen = () => {
   const [taskPendingDelete, setTaskPendingDelete] = useState<TaskBankItem | null>(null);
   const [form, setForm] = useState<TaskFormState>(emptyForm);
   const todayKey = getTodayKey();
+  const sortedTaskBank = useMemo(() => sortTaskBankItemsAlphabetically(state.taskBank), [state.taskBank]);
 
   useEffect(() => {
     if (!form.category && state.categories.length > 0) {
@@ -143,7 +144,7 @@ export const TaskBankScreen = () => {
           </CardContent>
         </Card>
       )}
-      {state.taskBank.map((task) => (
+      {sortedTaskBank.map((task) => (
         <Card key={task.id}>
           <CardContent>
             <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
@@ -181,7 +182,7 @@ export const TaskBankScreen = () => {
                     return;
                   }
                   addTaskFromBank(task.id);
-    showSuccessMessage('Task added to Today\'s Tasks.');
+                  showSuccessMessage('Task added to Today\'s Tasks.');
                 }}
                 startIcon={<PlaylistAddRounded />}
               >
