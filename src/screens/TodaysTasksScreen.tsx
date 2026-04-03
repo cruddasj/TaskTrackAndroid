@@ -6,10 +6,11 @@ import CircleOutlined from '@mui/icons-material/CircleOutlined';
 import { Alert, Box, Button, Card, CardContent, Checkbox, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { getDefaultSelectedRecurringSuggestionIds, getSelectedRecurringSuggestions } from './todaysTaskSuggestions';
+import { PlanningDay, PlanningDayToggle } from '../components/PlanningDayToggle';
 import { useAppState } from '../state/AppStateContext';
 import { hasDuplicateTodayTaskTitle, suggestRecurringTaskBankItems, WEEKDAY_LABELS } from '../state/tasks';
 import { Task, TaskBankItem } from '../types';
-import { getTodayKey, normalizeOptionalDescription } from '../utils';
+import { getTodayKey, getTomorrowKey, normalizeOptionalDescription } from '../utils';
 
 interface TaskFormState {
   title: string;
@@ -28,7 +29,10 @@ const emptyForm: TaskFormState = {
 export const TodaysTasksScreen = () => {
   const { state, addTask, updateTask, deleteTask, toggleTask, showSuccessMessage } = useAppState();
   const todayKey = getTodayKey();
-  const todaysTasks = state.tasks.filter((task) => task.plannedDate === todayKey);
+  const tomorrowKey = getTomorrowKey();
+  const [planningDay, setPlanningDay] = useState<PlanningDay>('today');
+  const selectedDateKey = planningDay === 'today' ? todayKey : tomorrowKey;
+  const tasksForSelectedDay = state.tasks.filter((task) => task.plannedDate === selectedDateKey);
   const [open, setOpen] = useState(false);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const [recurringSuggestions, setRecurringSuggestions] = useState<TaskBankItem[]>([]);
@@ -85,8 +89,8 @@ export const TodaysTasksScreen = () => {
     const estimateMinutes = Number(form.estimateMinutes);
 
     if (!title || !Number.isFinite(estimateMinutes) || estimateMinutes <= 0) return;
-    if (hasDuplicateTodayTaskTitle(state.tasks, todayKey, title, editingTaskId ?? undefined)) {
-      setValidationMessage('A task with this name already exists in Today\'s Tasks.');
+    if (hasDuplicateTodayTaskTitle(state.tasks, selectedDateKey, title, editingTaskId ?? undefined)) {
+      setValidationMessage(`A task with this name already exists in ${planningDay === 'today' ? 'today' : 'tomorrow'}'s list.`);
       return;
     }
 
@@ -100,10 +104,10 @@ export const TodaysTasksScreen = () => {
         category,
         estimateMinutes,
       });
-      showSuccessMessage('Today task updated.');
+      showSuccessMessage(`${planningDay === 'today' ? 'Today' : 'Tomorrow'} task updated.`);
     } else {
-      addTask({ title, description, category, estimateMinutes });
-      showSuccessMessage('Today task created.');
+      addTask({ title, description, category, estimateMinutes, plannedDate: selectedDateKey });
+      showSuccessMessage(`${planningDay === 'today' ? 'Today' : 'Tomorrow'} task created.`);
     }
 
     setValidationMessage(null);
@@ -111,7 +115,7 @@ export const TodaysTasksScreen = () => {
   };
 
   const openRecurringSuggestions = () => {
-    const suggestions = suggestRecurringTaskBankItems(state.taskBank, state.tasks, todayKey);
+    const suggestions = suggestRecurringTaskBankItems(state.taskBank, state.tasks, selectedDateKey);
     setRecurringSuggestions(suggestions);
     setSelectedRecurringSuggestionIds(getDefaultSelectedRecurringSuggestionIds(suggestions));
     setSuggestionsOpen(true);
@@ -130,6 +134,7 @@ export const TodaysTasksScreen = () => {
         description: item.description,
         category: item.category,
         estimateMinutes: item.estimateMinutes,
+        plannedDate: selectedDateKey,
       }));
     if (selectedSuggestions.length > 0) {
       showSuccessMessage(`${selectedSuggestions.length} recurring task suggestion${selectedSuggestions.length === 1 ? '' : 's'} added.`);
@@ -148,15 +153,18 @@ export const TodaysTasksScreen = () => {
   const confirmDeleteTask = () => {
     if (!taskPendingDelete) return;
     deleteTask(taskPendingDelete.id);
-    showSuccessMessage('Today task deleted.');
+    showSuccessMessage(`${planningDay === 'today' ? 'Today' : 'Tomorrow'} task deleted.`);
     setTaskPendingDelete(null);
   };
 
   return (
     <Stack spacing={2}>
       <Box>
-        <Typography variant="h3">Today&apos;s Tasks</Typography>
-        <Typography color="text.secondary">Capture only what you plan to complete today, then assign tasks into rounds.</Typography>
+        <Typography variant="h3">Tasks</Typography>
+        <Typography color="text.secondary">Plan tasks for today or tomorrow, then assign today&apos;s tasks into rounds.</Typography>
+        <Box mt={1.25}>
+          <PlanningDayToggle value={planningDay} onChange={setPlanningDay} />
+        </Box>
       </Box>
       <Card>
         <CardContent>
@@ -170,7 +178,7 @@ export const TodaysTasksScreen = () => {
         </CardContent>
       </Card>
 
-      {todaysTasks.map((task) => (
+      {tasksForSelectedDay.map((task) => (
         <Card key={task.id}>
           <CardContent>
             <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={1} spacing={1.5}>
@@ -220,10 +228,10 @@ export const TodaysTasksScreen = () => {
         </Card>
       ))}
 
-      {todaysTasks.length === 0 && (
+      {tasksForSelectedDay.length === 0 && (
         <Card>
           <CardContent>
-            <Typography color="text.secondary">No tasks added for today yet. Create one or copy from Task Bank.</Typography>
+            <Typography color="text.secondary">No tasks added for {planningDay} yet. Create one or copy from Task Bank.</Typography>
           </CardContent>
         </Card>
       )}
@@ -248,7 +256,7 @@ export const TodaysTasksScreen = () => {
       </IconButton>
 
       <Dialog open={open} onClose={closeDialog} fullWidth>
-        <DialogTitle>{editingTaskId ? 'Edit today\'s task' : 'Add today\'s task'}</DialogTitle>
+        <DialogTitle>{editingTaskId ? `Edit ${planningDay}'s task` : `Add ${planningDay}'s task`}</DialogTitle>
         <DialogContent>
           <TextField
             margin="dense"
@@ -261,7 +269,7 @@ export const TodaysTasksScreen = () => {
               const nextTitle = event.target.value;
               setForm((current) => ({ ...current, title: nextTitle }));
               if (!validationMessage) return;
-              if (!hasDuplicateTodayTaskTitle(state.tasks, todayKey, nextTitle, editingTaskId ?? undefined)) {
+              if (!hasDuplicateTodayTaskTitle(state.tasks, selectedDateKey, nextTitle, editingTaskId ?? undefined)) {
                 setValidationMessage(null);
               }
             }}

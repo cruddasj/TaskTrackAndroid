@@ -1,5 +1,5 @@
 import { AppState, PomodoroState, Round, Task } from '../types';
-import { advanceActiveRound, buildNewRound } from './rounds';
+import { advanceActiveRound, buildNewRound, getRoundPlannedDate } from './rounds';
 import { getTodayKey } from '../utils';
 
 export const getNextPomodoroPhase = (state: AppState): PomodoroState['phase'] => {
@@ -9,7 +9,18 @@ export const getNextPomodoroPhase = (state: AppState): PomodoroState['phase'] =>
 };
 
 export const getRoundProgressionForPhaseAdvance = (state: AppState) =>
-  state.pomodoro.phase === 'work' ? advanceActiveRound(state.rounds, state.pomodoro.activeRoundId) : undefined;
+  state.pomodoro.phase === 'work'
+    ? (() => {
+      const todayKey = getTodayKey();
+      const todayRounds = state.rounds.filter((round) => getRoundPlannedDate(round) === todayKey);
+      const nonTodayRounds = state.rounds.filter((round) => getRoundPlannedDate(round) !== todayKey);
+      const progression = advanceActiveRound(todayRounds, state.pomodoro.activeRoundId);
+      return {
+        nextRoundId: progression.nextRoundId,
+        rounds: [...nonTodayRounds, ...progression.rounds],
+      };
+    })()
+    : undefined;
 
 interface RoundAdvanceResult {
   rounds: Round[];
@@ -49,7 +60,7 @@ export const applyWorkPhaseRoundAdvance = (state: AppState): RoundAdvanceResult 
   }
 
   const recoveryRound = {
-    ...buildNewRound(progression.rounds, state.settings.pomodoroMinutes),
+    ...buildNewRound(progression.rounds, state.settings.pomodoroMinutes, { plannedDate: todayKey }),
     taskIds: unassignedTodayTaskIds,
   };
 

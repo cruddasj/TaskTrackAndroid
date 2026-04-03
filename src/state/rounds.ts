@@ -1,10 +1,14 @@
 import { Round, Task } from '../types';
+import { getTodayKey } from '../utils';
+
+export const getRoundPlannedDate = (round: Round): string => round.plannedDate ?? getTodayKey();
 
 export const hasEmptyRoundWithoutTasks = (rounds: Round[]): boolean =>
   rounds.some((round) => round.status !== 'done' && round.taskIds.length === 0);
 export const isRoundCompleted = (round?: Round): boolean => round?.status === 'done';
 
-export const hasRoundsWithAssignedTasks = (rounds: Round[]): boolean => rounds.some((round) => round.taskIds.length > 0);
+export const hasRoundsWithAssignedTasks = (rounds: Round[], plannedDate = getTodayKey()): boolean =>
+  rounds.some((round) => getRoundPlannedDate(round) === plannedDate && round.taskIds.length > 0);
 
 export const getRoundEstimatedMinutes = (round: Round, tasks: Task[]): number =>
   round.taskIds.reduce((total, taskId) => {
@@ -83,10 +87,11 @@ export const sortRoundsChronologically = (rounds: Round[]): Round[] =>
 export const buildNewRound = (
   rounds: Round[],
   pomodoroMinutes: number,
-  options?: { title?: string; taskIds?: string[] },
+  options?: { title?: string; taskIds?: string[]; plannedDate?: string },
 ): Round => ({
   id: crypto.randomUUID(),
   title: options?.title?.trim() || getDefaultRoundTitle(rounds),
+  plannedDate: options?.plannedDate ?? getTodayKey(),
   scheduledTime: '',
   durationMinutes: pomodoroMinutes,
   taskIds: options?.taskIds ?? [],
@@ -94,10 +99,13 @@ export const buildNewRound = (
 });
 
 export const removeRoundAndNormalizeStatuses = (rounds: Round[], roundId: string): Round[] => {
+  const removedRound = rounds.find((round) => round.id === roundId);
+  const removedRoundDate = removedRound ? getRoundPlannedDate(removedRound) : undefined;
   const remainingRounds = rounds.filter((round) => round.id !== roundId);
-  const firstOpenRoundId = remainingRounds.find((round) => round.status !== 'done')?.id;
+  const firstOpenRoundId = remainingRounds.find((round) =>
+    round.status !== 'done' && getRoundPlannedDate(round) === removedRoundDate)?.id;
   return remainingRounds.map((round) =>
-    round.status === 'done'
+    round.status === 'done' || getRoundPlannedDate(round) !== removedRoundDate
       ? round
       : { ...round, status: round.id === firstOpenRoundId ? 'active' : 'upcoming' },
   );
