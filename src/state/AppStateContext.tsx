@@ -13,6 +13,7 @@ import { AppState, PomodoroState, Round, Task, TaskBankItem } from '../types';
 import { buildNewRound, getDefaultRoundTitle, isRoundCompleted, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
 import { applyWorkPhaseRoundAdvance, getNextPomodoroPhase } from './pomodoroTransition';
 import { createDemoState, loadState, saveState } from './storage';
+import { getAssignmentRoundUpdate, getRevivedTaskRoundUpdate } from './taskRoundHistory';
 import { getTodayKey } from '../utils';
 
 type NewTask = Omit<Task, 'id' | 'status' | 'plannedDate' | 'completedAt'>;
@@ -127,15 +128,25 @@ const reducer = (state: AppState, action: Action): AppState => {
     case 'TOGGLE_TASK':
       return {
         ...state,
-        tasks: state.tasks.map((task) =>
-          task.id !== action.payload.id
-            ? task
-            : {
+        tasks: state.tasks.map((task) => {
+          if (task.id !== action.payload.id) return task;
+
+          const isDoneToTodo = task.status === 'done';
+          if (!isDoneToTodo) {
+            return {
               ...task,
-              status: task.status === 'done' ? 'todo' : 'done',
-              completedAt: task.status === 'done' ? undefined : new Date().toISOString(),
-            },
-        ),
+              status: 'done',
+              completedAt: new Date().toISOString(),
+            };
+          }
+
+          return {
+            ...task,
+            status: 'todo',
+            completedAt: undefined,
+            ...getRevivedTaskRoundUpdate(task, state.rounds),
+          };
+        }),
       };
     case 'SET_USER_NAME':
       return { ...state, userName: action.payload.userName };
@@ -208,18 +219,7 @@ const reducer = (state: AppState, action: Action): AppState => {
               ? round
               : { ...round, taskIds: round.taskIds.filter((taskId) => !taskIdSet.has(taskId)) },
         ),
-        tasks: state.tasks.map((task) => {
-          if (taskIdSet.has(task.id)) {
-            const currentRoundId = task.roundId;
-            const wasInDifferentRound = typeof currentRoundId === 'string' && currentRoundId !== roundId;
-            const previousRoundIds = wasInDifferentRound
-              ? Array.from(new Set([...(task.previousRoundIds ?? []), currentRoundId]))
-              : task.previousRoundIds;
-            return { ...task, roundId, previousRoundIds };
-          }
-          if (task.roundId === roundId) return { ...task, roundId: undefined };
-          return task;
-        }),
+        tasks: state.tasks.map((task) => ({ ...task, ...getAssignmentRoundUpdate(task, roundId, taskIdSet.has(task.id)) })),
       };
     }
     case 'AUTO_GROUP_TODAY_TASKS': {
