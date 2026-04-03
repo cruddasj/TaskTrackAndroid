@@ -156,7 +156,7 @@ export const FocusScreen = () => {
           <Chip label="Close" onClick={() => navigate('/rounds')} sx={{ px: 0.5 }} />
         </Box>
 
-        <Box position="relative" width={{ xs: 300, md: 340 }} height={{ xs: 300, md: 340 }}>
+        <Box position="relative" width={{ xs: 250, sm: 300, md: 340 }} height={{ xs: 250, sm: 300, md: 340 }}>
           <svg width="100%" height="100%" viewBox="0 0 320 320">
             <circle cx="160" cy="160" r="140" stroke="#2a2a2a" strokeWidth="8" fill="none" />
             <circle
@@ -173,7 +173,7 @@ export const FocusScreen = () => {
             />
           </svg>
           <Stack position="absolute" sx={{ inset: 0, px: { xs: 3.5, md: 4 } }} alignItems="center" justifyContent="center">
-            <Typography variant="h1" fontSize={{ xs: 76, md: 88 }} fontWeight={800}>{formatTime(state.pomodoro.remainingSeconds)}</Typography>
+            <Typography variant="h1" fontSize={{ xs: 62, sm: 76, md: 88 }} fontWeight={800}>{formatTime(state.pomodoro.remainingSeconds)}</Typography>
             <Typography color="text.secondary" letterSpacing="0.1em">REMAINING</Typography>
           </Stack>
         </Box>
@@ -186,7 +186,14 @@ export const FocusScreen = () => {
         </Stack>
 
         {state.pomodoro.phase === 'work' ? (
-          <Card sx={{ width: '100%', maxWidth: 780, maxHeight: { xs: 220, md: 280 }, overflow: 'hidden' }}>
+          <Card
+            sx={{
+              width: '100%',
+              maxWidth: 780,
+              maxHeight: { xs: 180, sm: 220, md: 280 },
+              overflow: 'hidden',
+            }}
+          >
             <CardContent>
               <Stack spacing={1} sx={{ maxHeight: '100%', overflowY: 'auto', pr: 0.5 }}>
                 <Typography variant="h6">Tasks in this session</Typography>
@@ -228,7 +235,24 @@ export const FocusScreen = () => {
           </Alert>
         )}
 
-        <Stack direction="row" spacing={3} alignItems="center" pb={2}>
+        <Stack
+          direction="row"
+          spacing={3}
+          alignItems="center"
+          sx={{
+            pb: { xs: 'calc(env(safe-area-inset-bottom, 0px) + 8px)', md: 2 },
+            px: { xs: 2, md: 0 },
+            position: { xs: 'sticky', md: 'static' },
+            bottom: { xs: 0, md: 'auto' },
+            width: { xs: '100%', md: 'auto' },
+            justifyContent: 'center',
+            background: {
+              xs: 'linear-gradient(180deg, rgba(14,14,14,0) 0%, rgba(14,14,14,0.9) 20%, rgba(14,14,14,1) 100%)',
+              md: 'transparent',
+            },
+            zIndex: 2,
+          }}
+        >
           <IconButton sx={{ bgcolor: '#1a1a1a' }} onClick={resetPomodoro}><ReplayRounded /></IconButton>
           <IconButton
             onClick={() =>
