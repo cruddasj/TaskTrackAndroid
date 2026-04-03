@@ -1,5 +1,8 @@
 const isNativePlatformMock = jest.fn();
 const getPlatformMock = jest.fn();
+const writeFileMock = jest.fn();
+const getUriMock = jest.fn();
+const shareMock = jest.fn();
 
 jest.mock('@capacitor/core', () => ({
   Capacitor: {
@@ -8,13 +11,30 @@ jest.mock('@capacitor/core', () => ({
   },
 }));
 
+jest.mock('@capacitor/filesystem', () => ({
+  Filesystem: {
+    writeFile: writeFileMock,
+    getUri: getUriMock,
+  },
+  Directory: {
+    Cache: 'CACHE',
+  },
+  Encoding: {
+    UTF8: 'utf8',
+  },
+}));
+
+jest.mock('@capacitor/share', () => ({
+  Share: {
+    share: shareMock,
+  },
+}));
+
 import { exportBackupFile } from './backupExport';
 
 describe('exportBackupFile', () => {
   const createObjectUrlMock = jest.fn();
   const revokeObjectUrlMock = jest.fn();
-  const shareMock = jest.fn();
-  const canShareMock = jest.fn();
   let clickSpy: jest.SpyInstance;
 
   beforeEach(() => {
@@ -22,6 +42,9 @@ describe('exportBackupFile', () => {
     isNativePlatformMock.mockReturnValue(false);
     getPlatformMock.mockReturnValue('web');
     createObjectUrlMock.mockReturnValue('blob:backup-url');
+    getUriMock.mockResolvedValue({ uri: 'content://tmp/tasktrack.json' });
+    writeFileMock.mockResolvedValue(undefined);
+    shareMock.mockResolvedValue(undefined);
 
     Object.defineProperty(URL, 'createObjectURL', {
       writable: true,
@@ -33,17 +56,6 @@ describe('exportBackupFile', () => {
     });
 
     clickSpy = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
-
-    Object.defineProperty(navigator, 'share', {
-      configurable: true,
-      writable: true,
-      value: shareMock,
-    });
-    Object.defineProperty(navigator, 'canShare', {
-      configurable: true,
-      writable: true,
-      value: canShareMock,
-    });
   });
 
   afterEach(() => {
@@ -57,33 +69,37 @@ describe('exportBackupFile', () => {
     expect(createObjectUrlMock).toHaveBeenCalledTimes(1);
     expect(clickSpy).toHaveBeenCalledTimes(1);
     expect(revokeObjectUrlMock).toHaveBeenCalledWith('blob:backup-url');
+    expect(writeFileMock).not.toHaveBeenCalled();
     expect(shareMock).not.toHaveBeenCalled();
   });
 
-  it('uses native share on Android when file sharing is supported', async () => {
+  it('uses capacitor share on Android native', async () => {
     isNativePlatformMock.mockReturnValue(true);
     getPlatformMock.mockReturnValue('android');
-    canShareMock.mockReturnValue(true);
-    shareMock.mockResolvedValue(undefined);
 
     const method = await exportBackupFile('{"ok":true}', 'tasktrack.json');
 
     expect(method).toBe('share');
-    expect(canShareMock).toHaveBeenCalledWith(expect.objectContaining({
-      files: expect.any(Array),
+    expect(writeFileMock).toHaveBeenCalledWith(expect.objectContaining({
+      path: 'tasktrack.json',
+      data: '{"ok":true}',
+      directory: 'CACHE',
+    }));
+    expect(getUriMock).toHaveBeenCalledWith(expect.objectContaining({
+      path: 'tasktrack.json',
+      directory: 'CACHE',
     }));
     expect(shareMock).toHaveBeenCalledWith(expect.objectContaining({
-      files: expect.any(Array),
+      url: 'content://tmp/tasktrack.json',
       title: 'TaskTrack backup',
     }));
     expect(clickSpy).not.toHaveBeenCalled();
   });
 
-  it('returns cancelled when share is dismissed', async () => {
+  it('returns cancelled when native share is cancelled', async () => {
     isNativePlatformMock.mockReturnValue(true);
     getPlatformMock.mockReturnValue('android');
-    canShareMock.mockReturnValue(true);
-    shareMock.mockRejectedValue(new DOMException('cancelled', 'AbortError'));
+    shareMock.mockRejectedValue(new Error('Share canceled'));
 
     const method = await exportBackupFile('{"ok":true}', 'tasktrack.json');
 
