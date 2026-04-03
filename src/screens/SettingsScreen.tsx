@@ -8,6 +8,7 @@ import { ChangeEvent, useMemo, useRef, useState } from 'react';
 import { playAlarmTone } from '../services/notifications';
 import { useAppState } from '../state/AppStateContext';
 import { createBackupJson, importBackupJson } from '../state/backup';
+import { exportBackupFile } from '../services/backupExport';
 
 export const SettingsScreen = () => {
   const {
@@ -54,14 +55,18 @@ export const SettingsScreen = () => {
 
   const handleExportBackup = async () => {
     const backupJson = await createBackupJson(state, backupPassword);
-    const blob = new Blob([backupJson], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = `tasktrack-backup-${new Date().toISOString().slice(0, 10)}.json`;
-    anchor.click();
-    URL.revokeObjectURL(url);
-    showSuccessMessage(hasBackupPassword ? 'Encrypted backup exported.' : 'Backup exported.');
+    const fileName = `tasktrack-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    const exportMethod = await exportBackupFile(backupJson, fileName);
+
+    if (exportMethod === 'cancelled') return;
+
+    showSuccessMessage(
+      exportMethod === 'share'
+        ? 'Choose where to save your backup file.'
+        : hasBackupPassword
+          ? 'Encrypted backup exported.'
+          : 'Backup exported.',
+    );
   };
 
   const handleImportBackup = async (event: ChangeEvent<HTMLInputElement>) => {
