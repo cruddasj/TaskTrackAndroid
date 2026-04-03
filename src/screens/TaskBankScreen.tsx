@@ -166,15 +166,18 @@ export const TaskBankScreen = () => {
               </Stack>
             </Stack>
             {task.description && <Typography color="text.secondary" mb={2}>{task.description}</Typography>}
-            <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
-              <Chip label={task.category} />
-              <Chip label={`${task.estimateMinutes} min`} variant="outlined" />
-              {task.recurrenceDays && <Chip label={`Every ${task.recurrenceDays} days`} variant="outlined" />}
-              {task.recurrenceWeekdays && task.recurrenceWeekdays.length > 0 && (
-                <Chip label={`On ${task.recurrenceWeekdays.map((weekday) => WEEKDAY_LABELS[weekday]).join(', ')}`} variant="outlined" />
-              )}
+            <Stack spacing={1}>
+              <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+                <Chip label={task.category} />
+                <Chip label={`${task.estimateMinutes} min`} variant="outlined" />
+                {task.recurrenceDays && <Chip label={`Every ${task.recurrenceDays} days`} variant="outlined" />}
+                {task.recurrenceWeekdays && task.recurrenceWeekdays.length > 0 && (
+                  <Chip label={`On ${task.recurrenceWeekdays.map((weekday) => WEEKDAY_LABELS[weekday]).join(', ')}`} variant="outlined" />
+                )}
+              </Stack>
               <Button
                 size="small"
+                sx={{ alignSelf: 'flex-start' }}
                 onClick={() => {
                   if (hasDuplicateTodayTaskTitle(state.tasks, todayKey, task.title)) {
                     setValidationMessage(`"${task.title}" is already in Today's Tasks.`);
