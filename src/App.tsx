@@ -1,7 +1,11 @@
 import { CssBaseline, ThemeProvider } from '@mui/material';
+import { useCallback, useState } from 'react';
 import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import { AppShell } from './components/AppShell';
 import { useAppState } from './state/AppStateContext';
+import { RuntimeErrorBoundary } from './debug/RuntimeErrorBoundary';
+import { RuntimeErrorDialog } from './debug/RuntimeErrorDialog';
+import { type CapturedRuntimeError, useRuntimeErrorMonitor } from './debug/runtimeErrorMonitor';
 import { DashboardScreen } from './screens/DashboardScreen';
 import { FocusScreen } from './screens/FocusScreen';
 import { RoundsScreen } from './screens/RoundsScreen';
@@ -31,9 +35,18 @@ const FocusGate = () => {
 };
 
 export default function App() {
+  const [capturedError, setCapturedError] = useState<CapturedRuntimeError | null>(null);
+
+  const handleRuntimeError = useCallback((error: CapturedRuntimeError) => {
+    setCapturedError(error);
+  }, []);
+
+  useRuntimeErrorMonitor(handleRuntimeError);
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
+      <RuntimeErrorBoundary onError={handleRuntimeError}>
       <Routes>
         <Route element={<SetupGate />}>
           <Route path="/" element={<AppShell />}>
@@ -48,6 +61,8 @@ export default function App() {
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </RuntimeErrorBoundary>
+      <RuntimeErrorDialog error={capturedError} onClose={() => setCapturedError(null)} />
     </ThemeProvider>
   );
 }
