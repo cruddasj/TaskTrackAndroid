@@ -14,7 +14,7 @@ import { formatTime, getTodayKey } from '../utils';
 const tabs = [
   { label: 'Dashboard', path: '/', icon: <DashboardOutlined /> },
   { label: 'Task Bank', path: '/task-bank', icon: <ListAltOutlined /> },
-  { label: "Today's Tasks", path: '/tasks-today', icon: <ListAltOutlined /> },
+  { label: 'Tasks', path: '/tasks-today', icon: <ListAltOutlined /> },
   { label: 'Rounds', path: '/rounds', icon: <TimerOutlined /> },
   { label: 'Settings', path: '/settings', icon: <SettingsOutlined /> },
 ];
@@ -24,7 +24,7 @@ export const AppShell = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isFirstTimeUser = !state.userName.trim();
-  const hasTrackableRound = hasRoundsWithAssignedTasks(state.rounds);
+  const hasTrackableRound = hasRoundsWithAssignedTasks(state.rounds, getTodayKey());
   const allTodaysTasksDone = areAllTasksCompletedForDate(state.tasks, getTodayKey());
   const showTimerButton = !allTodaysTasksDone && (state.pomodoro.isRunning || hasTrackableRound);
   const visibleTabs = useMemo(() => isFirstTimeUser ? tabs.filter((tab) => tab.path === '/settings') : tabs, [isFirstTimeUser]);

@@ -4,7 +4,8 @@ export const hasEmptyRoundWithoutTasks = (rounds: Round[]): boolean =>
   rounds.some((round) => round.status !== 'done' && round.taskIds.length === 0);
 export const isRoundCompleted = (round?: Round): boolean => round?.status === 'done';
 
-export const hasRoundsWithAssignedTasks = (rounds: Round[]): boolean => rounds.some((round) => round.taskIds.length > 0);
+export const hasRoundsWithAssignedTasks = (rounds: Round[], plannedDate?: string): boolean =>
+  rounds.some((round) => round.taskIds.length > 0 && (!plannedDate || round.plannedDate === plannedDate));
 
 export const getRoundEstimatedMinutes = (round: Round, tasks: Task[]): number =>
   round.taskIds.reduce((total, taskId) => {
@@ -83,14 +84,16 @@ export const sortRoundsChronologically = (rounds: Round[]): Round[] =>
 export const buildNewRound = (
   rounds: Round[],
   pomodoroMinutes: number,
+  plannedDate: string,
   options?: { title?: string; taskIds?: string[] },
 ): Round => ({
   id: crypto.randomUUID(),
   title: options?.title?.trim() || getDefaultRoundTitle(rounds),
+  plannedDate,
   scheduledTime: '',
   durationMinutes: pomodoroMinutes,
   taskIds: options?.taskIds ?? [],
-  status: rounds.some((round) => round.status !== 'done') ? 'upcoming' : 'active',
+  status: rounds.some((round) => round.plannedDate === plannedDate && round.status !== 'done') ? 'upcoming' : 'active',
 });
 
 export const removeRoundAndNormalizeStatuses = (rounds: Round[], roundId: string): Round[] => {

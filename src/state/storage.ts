@@ -155,6 +155,7 @@ export const createDemoState = (state: AppState): AppState => {
       {
         id: todayRound1Id,
         title: 'Round 1',
+        plannedDate: todayKey,
         scheduledTime: '09:00 AM',
         durationMinutes: state.settings.pomodoroMinutes,
         taskIds: tasks.filter((task) => task.roundId === todayRound1Id).map((task) => task.id),
@@ -163,6 +164,7 @@ export const createDemoState = (state: AppState): AppState => {
       {
         id: todayRound2Id,
         title: 'Round 2',
+        plannedDate: todayKey,
         scheduledTime: '10:00 AM',
         durationMinutes: state.settings.pomodoroMinutes,
         taskIds: tasks.filter((task) => task.roundId === todayRound2Id).map((task) => task.id),
@@ -220,7 +222,10 @@ export const normalizeState = (raw: Partial<AppState>): AppState => {
             .sort((a, b) => a - b)
           : undefined,
     })),
-    rounds: raw.rounds ?? defaultState.rounds,
+    rounds: raw.rounds?.map((round) => ({
+      ...round,
+      plannedDate: round.plannedDate ?? getDateKey(),
+    })) ?? defaultState.rounds,
     settings: {
       pomodoroMinutes:
         raw.settings?.pomodoroMinutes && raw.settings.pomodoroMinutes > 0

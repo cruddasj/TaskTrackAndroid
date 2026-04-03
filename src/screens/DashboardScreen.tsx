@@ -8,35 +8,42 @@ import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
 import { Box, Button, ButtonBase, Card, CardContent, IconButton, LinearProgress, Stack, Typography } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { PlanningDayToggle } from '../components/PlanningDayToggle';
 import { useAppState } from '../state/AppStateContext';
 import { formatFocusTimeSpent, getGreeting } from './greeting';
-import { getTodayKey } from '../utils';
+import { getTomorrowKey } from '../utils';
 import { getDashboardHeroCopy, getTodayRoundMetrics } from './dashboardMetrics';
 import { formatHistoryDayLabel, getCategoryTotals, getCompletedTaskHistory } from './dashboardInsights';
+import { getPlanningDateFromDay, getPlanningDayLabel, PlanningDay } from './planningDate';
 
 const HISTORY_WINDOW_DAYS = 30;
 
 export const DashboardScreen = () => {
   const navigate = useNavigate();
   const { state } = useAppState();
-  const todayKey = getTodayKey();
-  const todaysTasks = state.tasks.filter((task) => task.plannedDate === todayKey);
+  const [planningDay, setPlanningDay] = useState<PlanningDay>('today');
+  const plannedDate = getPlanningDateFromDay(planningDay);
+  const isTodayPlanning = planningDay === 'today';
+  const tomorrowKey = getTomorrowKey();
+  const todaysTasks = state.tasks.filter((task) => task.plannedDate === plannedDate);
+  const tomorrowTasks = state.tasks.filter((task) => task.plannedDate === tomorrowKey);
   const completed = todaysTasks.reduce((acc, task) => acc + (task.status === 'done' ? 1 : 0), 0);
   const progress = todaysTasks.length > 0 ? Math.round((completed / todaysTasks.length) * 100) : 0;
   const { completedRounds: sessionsCompletedToday, focusedMinutes: totalFocusMinutes } = getTodayRoundMetrics(state.rounds, todaysTasks);
   const formattedFocusTimeSpent = formatFocusTimeSpent(totalFocusMinutes);
-  const currentRound = state.rounds.find((round) => round.id === state.pomodoro.activeRoundId)
-    ?? state.rounds.find((round) => round.status === 'active');
+  const roundsForDate = state.rounds.filter((round) => round.plannedDate === plannedDate);
+  const currentRound = roundsForDate.find((round) => round.id === state.pomodoro.activeRoundId)
+    ?? roundsForDate.find((round) => round.status === 'active');
   const currentRoundTasks = currentRound
     ? currentRound.taskIds
       .map((taskId) => todaysTasks.find((task) => task.id === taskId))
       .filter((task): task is NonNullable<typeof task> => !!task)
     : [];
   const nextRound = currentRound
-    ? state.rounds
-      .slice(state.rounds.findIndex((round) => round.id === currentRound.id) + 1)
+      ? roundsForDate
+      .slice(roundsForDate.findIndex((round) => round.id === currentRound.id) + 1)
       .find((round) => round.status !== 'done')
-    : state.rounds.find((round) => round.status === 'upcoming');
+    : roundsForDate.find((round) => round.status === 'upcoming');
   const nextRoundTasks = nextRound
     ? nextRound.taskIds
       .map((taskId) => todaysTasks.find((task) => task.id === taskId))
@@ -100,6 +107,9 @@ export const DashboardScreen = () => {
       <Box>
         <Typography variant="h3">{greeting}, {state.userName}</Typography>
         <Typography color="text.secondary">Pick a round and use focused attention blocks to move through small, manageable tasks.</Typography>
+        <Box mt={1.5}>
+          <PlanningDayToggle value={planningDay} onChange={setPlanningDay} />
+        </Box>
       </Box>
 
       <Card sx={{ background: 'radial-gradient(circle at 65% 40%, rgba(145,247,142,0.28), rgba(14,14,14,1) 60%)' }}>
@@ -112,7 +122,7 @@ export const DashboardScreen = () => {
           </Typography>
           {allTodaysTasksDone ? (
             <Typography color="text.secondary" mb={2}>
-              Great job. You finished every planned task for today, so you can stop for today.
+              Great job. You finished every planned task for {getPlanningDayLabel(planningDay).toLowerCase()}.
             </Typography>
           ) : currentRoundTasks.length > 0 ? (
             <>
@@ -125,27 +135,31 @@ export const DashboardScreen = () => {
                   </Stack>
                 ))}
               </Stack>
-              <Button size="large" variant="contained" startIcon={<PlayArrowRounded />} onClick={() => navigate('/focus')}>
-                Open timer
-              </Button>
+              {isTodayPlanning ? (
+                <Button size="large" variant="contained" startIcon={<PlayArrowRounded />} onClick={() => navigate('/focus')}>
+                  Open timer
+                </Button>
+              ) : (
+                <Typography color="text.secondary">You can plan ahead for tomorrow here. Timer sessions can only start for today.</Typography>
+              )}
             </>
           ) : (
             <>
-              <Typography color="text.secondary" mb={2}>
+                <Typography color="text.secondary" mb={2}>
                 {state.pomodoro.phase !== 'work'
                   ? 'You are currently on a break. Round planning resumes after your break ends.'
                   : hasTodayTasks
                   ? 'Assign tasks to this round before starting your next round.'
-                  : 'Add tasks to Today\'s Tasks first, then assign them into a round.'}
+                  : `Add tasks to ${getPlanningDayLabel(planningDay)}'s tasks first, then assign them into a round.`}
               </Typography>
-              {state.pomodoro.phase === 'work' && (
+              {state.pomodoro.phase === 'work' && isTodayPlanning && (
                 <Button
                   size="large"
                   variant="contained"
                   startIcon={<PlayArrowRounded />}
                   onClick={() => navigate(hasTodayTasks ? '/rounds' : '/tasks-today')}
                 >
-                  {hasTodayTasks ? 'Assign tasks' : 'Add to Today\'s Tasks'}
+                  {hasTodayTasks ? 'Assign tasks' : `Add to ${getPlanningDayLabel(planningDay)}'s tasks`}
                 </Button>
               )}
             </>
@@ -174,19 +188,25 @@ export const DashboardScreen = () => {
               <Typography color="text.secondary">
                 {hasTodayTasks
                   ? 'Assign tasks to a later round so they are ready when this round ends.'
-                  : 'Add tasks to Today\'s Tasks first, then assign them into your next round.'}
+                  : `Add tasks to ${getPlanningDayLabel(planningDay)}'s tasks first, then assign them into your next round.`}
               </Typography>
             )}
           </CardContent>
         </Card>
       )}
+      <Card>
+        <CardContent>
+          <Typography color="text.secondary">Tasks planned for tomorrow</Typography>
+          <Typography variant="h4">{tomorrowTasks.length}</Typography>
+        </CardContent>
+      </Card>
 
       <Card
         onClick={() => navigate('/tasks-today')}
         sx={{ cursor: 'pointer' }}
       >
         <CardContent>
-          <Typography color="text.secondary">Today&apos;s planned tasks completed</Typography>
+          <Typography color="text.secondary">{getPlanningDayLabel(planningDay)}&apos;s planned tasks completed</Typography>
           <Typography variant="h3" color="primary.main">{progress}%</Typography>
           <LinearProgress variant="determinate" value={progress} sx={{ mt: 1, height: 8, borderRadius: 99 }} />
         </CardContent>
@@ -203,7 +223,7 @@ export const DashboardScreen = () => {
                 color="text.secondary"
                 sx={{ fontSize: { xs: '0.82rem', sm: '0.92rem' }, lineHeight: 1.2, whiteSpace: 'nowrap' }}
               >
-                Tasks completed today
+                Tasks completed ({getPlanningDayLabel(planningDay).toLowerCase()})
               </Typography>
               <ChevronRightRounded color="primary" fontSize="small" />
             </Stack>
@@ -241,7 +261,7 @@ export const DashboardScreen = () => {
                 color="text.secondary"
                 sx={{ fontSize: { xs: '0.82rem', sm: '0.92rem' }, lineHeight: 1.2, whiteSpace: 'nowrap' }}
               >
-                Sessions completed today
+                Sessions completed ({getPlanningDayLabel(planningDay).toLowerCase()})
               </Typography>
               <ChevronRightRounded color="primary" fontSize="small" />
             </Stack>

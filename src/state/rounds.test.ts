@@ -26,8 +26,9 @@ describe('round helpers', () => {
 
   it('creates upcoming rounds while an unfinished round exists', () => {
     const round = buildNewRound(
-      [{ id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'active' }],
+      [{ id: 'r1', title: 'Round 1', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'active' }],
       25,
+      '2026-03-29',
     );
 
     expect(round.title).toBe('Round 2');
@@ -65,8 +66,9 @@ describe('round helpers', () => {
 
   it('creates an active round when all existing rounds are done', () => {
     const round = buildNewRound(
-      [{ id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'done' }],
+      [{ id: 'r1', title: 'Round 1', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'done' }],
       30,
+      '2026-03-29',
     );
 
     expect(round.status).toBe('active');

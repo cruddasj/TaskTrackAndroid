@@ -8,6 +8,12 @@ export const getTodayKey = (): string => {
   return new Date().toISOString().slice(0, 10);
 };
 
+export const getTomorrowKey = (): string => {
+  const now = new Date();
+  now.setUTCDate(now.getUTCDate() + 1);
+  return now.toISOString().slice(0, 10);
+};
+
 export const normalizeOptionalDescription = (description: string): string => {
   return description.trim();
 };

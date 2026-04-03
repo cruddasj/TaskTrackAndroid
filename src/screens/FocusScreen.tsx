@@ -34,11 +34,12 @@ export const FocusScreen = () => {
   const [sessionReviewOpen, setSessionReviewOpen] = useState(false);
   const [confirmedDoneIds, setConfirmedDoneIds] = useState<string[]>([]);
   const requestedRoundId = searchParams.get('roundId') ?? undefined;
-  const visibleRoundId = getVisibleRoundId(state.rounds, requestedRoundId, state.pomodoro.activeRoundId);
+  const todaysRounds = useMemo(() => state.rounds.filter((round) => round.plannedDate === getTodayKey()), [state.rounds]);
+  const visibleRoundId = getVisibleRoundId(todaysRounds, requestedRoundId, state.pomodoro.activeRoundId);
 
   const activeRound = useMemo(
-    () => state.rounds.find((round) => round.id === visibleRoundId),
-    [state.rounds, visibleRoundId],
+    () => todaysRounds.find((round) => round.id === visibleRoundId),
+    [todaysRounds, visibleRoundId],
   );
 
   const roundTasks = useMemo(() => {
@@ -116,15 +117,15 @@ export const FocusScreen = () => {
 
     const carryForwardIds = roundTasks.filter((task) => !confirmedDoneSet.has(task.id)).map((task) => task.id);
     if (carryForwardIds.length > 0) {
-      const nextRound = getCarryForwardRound(state.rounds, activeRound.id);
-      const targetRoundId = nextRound?.id ?? createRound();
+      const nextRound = getCarryForwardRound(todaysRounds, activeRound.id);
+      const targetRoundId = nextRound?.id ?? createRound(undefined, getTodayKey());
       const targetRoundTaskIds = nextRound?.taskIds ?? [];
       assignTasksToRound(targetRoundId, Array.from(new Set([...targetRoundTaskIds, ...carryForwardIds])));
     }
 
     setSessionReviewOpen(false);
     skipPomodoro();
-  }, [roundTasks, confirmedDoneIds, activeRound, state.rounds, assignTasksToRound, createRound, skipPomodoro, toggleTask]);
+  }, [roundTasks, confirmedDoneIds, activeRound, todaysRounds, assignTasksToRound, createRound, skipPomodoro, toggleTask]);
 
   useEffect(() => {
     if (!sessionReviewOpen) return;
