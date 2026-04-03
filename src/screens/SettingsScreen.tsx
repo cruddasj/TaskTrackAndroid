@@ -376,6 +376,11 @@ export const SettingsScreen = () => {
         <CardContent>
           <Stack spacing={2}>
             <Typography variant="h5">Task categories</Typography>
+            {state.settings.showFirstTimeGuidance && (
+              <Alert severity="success" icon={<InfoOutlined fontSize="inherit" />} sx={guidanceAlertSx}>
+                Use categories to group similar tasks (for example Work, Personal, or Errands) so planning, sorting, and review are easier throughout the app.
+              </Alert>
+            )}
             {state.categories.map((category) => (
               <Stack key={category} direction="row" alignItems="center" justifyContent="space-between">
                 <Typography>{category}</Typography>

@@ -203,7 +203,7 @@ export const DashboardScreen = () => {
                 color="text.secondary"
                 sx={{ fontSize: { xs: '0.82rem', sm: '0.92rem' }, lineHeight: 1.2, whiteSpace: 'nowrap' }}
               >
-                Completed today
+                Tasks completed today
               </Typography>
               <ChevronRightRounded color="primary" fontSize="small" />
             </Stack>
