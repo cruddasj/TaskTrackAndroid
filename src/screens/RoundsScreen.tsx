@@ -28,20 +28,22 @@ import {
   Typography,
 } from '@mui/material';
 import { useMemo, useState } from 'react';
+import { PlanningDay, PlanningDayToggle } from '../components/PlanningDayToggle';
 import { useAppState } from '../state/AppStateContext';
 import {
   getCarryHistoryForRound,
+  getRoundPlannedDate,
   getDefaultRoundTitle,
   getRoundEstimatedMinutes,
   getRoundTaskIdsForDisplay,
   hasEmptyRoundWithoutTasks,
   isRoundCompleted,
 } from '../state/rounds';
-import { getTodayKey } from '../utils';
+import { getTodayKey, getTomorrowKey } from '../utils';
 import { shouldShowCategoryGroupingSuggestion } from './roundsScreenVisibility';
 
 export const RoundsScreen = () => {
-  const { state, assignTasksToRound, autoGroupTodayTasks, moveRound, createRound, deleteRound, updateRoundTitle, showSuccessMessage } = useAppState();
+  const { state, assignTasksToRound, autoGroupTasksForDate, moveRound, createRound, deleteRound, updateRoundTitle, showSuccessMessage } = useAppState();
   const [editingRoundId, setEditingRoundId] = useState<string | null>(null);
   const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
   const [createRoundOpen, setCreateRoundOpen] = useState(false);
@@ -52,11 +54,15 @@ export const RoundsScreen = () => {
   const [roundPendingDelete, setRoundPendingDelete] = useState<{ id: string; title: string } | null>(null);
   const [roundCreationValidationMessage, setRoundCreationValidationMessage] = useState<string | null>(null);
   const todayKey = getTodayKey();
-  const todaysTasks = useMemo(() => state.tasks.filter((task) => task.plannedDate === todayKey), [state.tasks, todayKey]);
+  const tomorrowKey = getTomorrowKey();
+  const [planningDay, setPlanningDay] = useState<PlanningDay>('today');
+  const selectedDateKey = planningDay === 'today' ? todayKey : tomorrowKey;
+  const todaysTasks = useMemo(() => state.tasks.filter((task) => task.plannedDate === selectedDateKey), [state.tasks, selectedDateKey]);
+  const orderedRounds = useMemo(() => state.rounds.filter((round) => getRoundPlannedDate(round) === selectedDateKey), [state.rounds, selectedDateKey]);
 
   const editingRound = useMemo(
-    () => state.rounds.find((round) => round.id === editingRoundId),
-    [state.rounds, editingRoundId],
+    () => orderedRounds.find((round) => round.id === editingRoundId),
+    [orderedRounds, editingRoundId],
   );
   const totalSelectedMinutes = useMemo(
     () =>
@@ -68,7 +74,7 @@ export const RoundsScreen = () => {
   );
 
   const openRoundAssignment = (roundId: string) => {
-    const round = state.rounds.find((item) => item.id === roundId);
+    const round = orderedRounds.find((item) => item.id === roundId);
     if (!round || isRoundCompleted(round)) return;
     setEditingRoundId(roundId);
     setSelectedTaskIds(round.taskIds);
@@ -85,14 +91,13 @@ export const RoundsScreen = () => {
   const availableTasks = useMemo(() => {
     return todaysTasks.filter((task) => !task.roundId || task.roundId === editingRound?.id);
   }, [todaysTasks, editingRound]);
-  const orderedRounds = state.rounds;
   const plannedRounds = useMemo(
     () => orderedRounds.filter((round) => round.status !== 'done'),
     [orderedRounds],
   );
   const unassignedTasks = useMemo(
-    () => todaysTasks.filter((task) => !task.roundId || !state.rounds.some((round) => round.id === task.roundId)),
-    [todaysTasks, state.rounds],
+    () => todaysTasks.filter((task) => !task.roundId || !orderedRounds.some((round) => round.id === task.roundId)),
+    [todaysTasks, orderedRounds],
   );
   const showCategoryGroupingSuggestion = useMemo(
     () => shouldShowCategoryGroupingSuggestion(todaysTasks),
@@ -100,14 +105,14 @@ export const RoundsScreen = () => {
   );
   const roundEstimatedMinutes = useMemo(
     () =>
-      state.rounds.reduce<Record<string, number>>((acc, round) => {
+      orderedRounds.reduce<Record<string, number>>((acc, round) => {
         acc[round.id] = getRoundEstimatedMinutes(round, todaysTasks);
         return acc;
       }, {}),
-    [state.rounds, todaysTasks],
+    [orderedRounds, todaysTasks],
   );
   const openCreateRoundDialog = () => {
-    const hasEmptyRound = hasEmptyRoundWithoutTasks(state.rounds);
+    const hasEmptyRound = hasEmptyRoundWithoutTasks(orderedRounds);
     if (hasEmptyRound) {
       setRoundCreationValidationMessage(
         'You already have a round without tasks. Assign tasks to that round before creating another one.',
@@ -115,7 +120,7 @@ export const RoundsScreen = () => {
       return;
     }
 
-    setNewRoundTitle(getDefaultRoundTitle(state.rounds));
+    setNewRoundTitle(getDefaultRoundTitle(orderedRounds));
     setNewRoundTaskIds([]);
     setCreateRoundOpen(true);
     setRoundCreationValidationMessage(null);
@@ -123,8 +128,8 @@ export const RoundsScreen = () => {
     setSelectedTaskIds([]);
   };
   const handleCreateRound = () => {
-    const resolvedTitle = newRoundTitle.trim() || getDefaultRoundTitle(state.rounds);
-    createRound({ title: resolvedTitle, taskIds: newRoundTaskIds });
+    const resolvedTitle = newRoundTitle.trim() || getDefaultRoundTitle(orderedRounds);
+    createRound({ title: resolvedTitle, taskIds: newRoundTaskIds, plannedDate: selectedDateKey });
     setCreateRoundOpen(false);
     setNewRoundTitle('');
     setNewRoundTaskIds([]);
@@ -148,13 +153,13 @@ export const RoundsScreen = () => {
   const confirmDeleteRound = () => {
     if (!roundPendingDelete) return;
     deleteRound(roundPendingDelete.id);
-    showSuccessMessage(`${roundPendingDelete.title} deleted. Tasks moved to Unassigned tasks for today.`);
+    showSuccessMessage(`${roundPendingDelete.title} deleted. Tasks moved to Unassigned tasks for ${planningDay}.`);
     setRoundPendingDelete(null);
   };
 
   const handleQuickAssignToRound = (taskId: string, event: SelectChangeEvent<string>) => {
     const roundId = event.target.value;
-    const targetRound = state.rounds.find((round) => round.id === roundId);
+    const targetRound = orderedRounds.find((round) => round.id === roundId);
     if (!targetRound || isRoundCompleted(targetRound)) return;
     const nextTaskIds = targetRound.taskIds.includes(taskId) ? targetRound.taskIds : [...targetRound.taskIds, taskId];
     assignTasksToRound(roundId, nextTaskIds);
@@ -164,17 +169,21 @@ export const RoundsScreen = () => {
   return (
     <Stack spacing={2}>
       <Box>
-        <Typography variant="h3">Today's Rounds</Typography>
-        <Typography color="text.secondary">Group today&apos;s tasks into rounds, then reorder rounds with the arrows.</Typography>
+        <Typography variant="h3">Rounds</Typography>
+        <Typography color="text.secondary">Plan and organize rounds for today or tomorrow.</Typography>
+        <Box mt={1.25}>
+          <PlanningDayToggle value={planningDay} onChange={setPlanningDay} />
+        </Box>
       </Box>
       {roundCreationValidationMessage && <Alert severity="warning">{roundCreationValidationMessage}</Alert>}
+      {planningDay === 'tomorrow' && <Alert severity="success">Tomorrow rounds are for planning only. Start rounds from today.</Alert>}
       {showCategoryGroupingSuggestion && (
         <Box>
           <Button
             variant="outlined"
             onClick={() => {
-              autoGroupTodayTasks();
-              showSuccessMessage('Suggested rounds generated by category.');
+              autoGroupTasksForDate(selectedDateKey);
+              showSuccessMessage(`Suggested rounds generated by category for ${planningDay}.`);
             }}
           >
             Suggest groupings by category
@@ -183,7 +192,7 @@ export const RoundsScreen = () => {
       )}
       <Card sx={{ bgcolor: '#1a1a1a' }}>
         <CardContent>
-          <Typography variant="h6" mb={1}>Unassigned tasks for today</Typography>
+          <Typography variant="h6" mb={1}>Unassigned tasks for {planningDay}</Typography>
           <Stack spacing={1}>
             {unassignedTasks.map((task) => (
               <Stack direction="row" spacing={1} alignItems="center" key={task.id}>
@@ -208,8 +217,8 @@ export const RoundsScreen = () => {
             {unassignedTasks.length === 0 && (
               <Typography color="text.secondary">
                 {todaysTasks.length === 0
-                  ? 'No tasks in Today\'s Tasks yet.'
-                  : 'All today\'s tasks are assigned to a round.'}
+                  ? `No tasks in ${planningDay}'s list yet.`
+                  : `All ${planningDay}'s tasks are assigned to a round.`}
               </Typography>
             )}
           </Stack>
@@ -452,7 +461,7 @@ export const RoundsScreen = () => {
         <DialogContent>
           <Typography>
             Are you sure you want to delete &quot;{roundPendingDelete?.title}&quot;? Tasks in this round will move to
-            Unassigned tasks for today.
+            Unassigned tasks for {planningDay}.
           </Typography>
         </DialogContent>
         <DialogActions>

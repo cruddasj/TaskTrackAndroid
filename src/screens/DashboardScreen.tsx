@@ -10,7 +10,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
 import { formatFocusTimeSpent, getGreeting } from './greeting';
-import { getTodayKey } from '../utils';
+import { getTodayKey, getTomorrowKey } from '../utils';
 import { getDashboardHeroCopy, getTodayRoundMetrics } from './dashboardMetrics';
 import { formatHistoryDayLabel, getCategoryTotals, getCompletedTaskHistory } from './dashboardInsights';
 
@@ -20,7 +20,9 @@ export const DashboardScreen = () => {
   const navigate = useNavigate();
   const { state } = useAppState();
   const todayKey = getTodayKey();
+  const tomorrowKey = getTomorrowKey();
   const todaysTasks = state.tasks.filter((task) => task.plannedDate === todayKey);
+  const tomorrowTasks = state.tasks.filter((task) => task.plannedDate === tomorrowKey);
   const completed = todaysTasks.reduce((acc, task) => acc + (task.status === 'done' ? 1 : 0), 0);
   const progress = todaysTasks.length > 0 ? Math.round((completed / todaysTasks.length) * 100) : 0;
   const { completedRounds: sessionsCompletedToday, focusedMinutes: totalFocusMinutes } = getTodayRoundMetrics(state.rounds, todaysTasks);
@@ -143,9 +145,9 @@ export const DashboardScreen = () => {
                   size="large"
                   variant="contained"
                   startIcon={<PlayArrowRounded />}
-                  onClick={() => navigate(hasTodayTasks ? '/rounds' : '/tasks-today')}
+                  onClick={() => navigate(hasTodayTasks ? '/rounds' : '/tasks')}
                 >
-                  {hasTodayTasks ? 'Assign tasks' : 'Add to Today\'s Tasks'}
+                  {hasTodayTasks ? 'Assign tasks' : 'Add tasks'}
                 </Button>
               )}
             </>
@@ -174,7 +176,7 @@ export const DashboardScreen = () => {
               <Typography color="text.secondary">
                 {hasTodayTasks
                   ? 'Assign tasks to a later round so they are ready when this round ends.'
-                  : 'Add tasks to Today\'s Tasks first, then assign them into your next round.'}
+                  : 'Add tasks first, then assign them into your next round.'}
               </Typography>
             )}
           </CardContent>
@@ -182,7 +184,7 @@ export const DashboardScreen = () => {
       )}
 
       <Card
-        onClick={() => navigate('/tasks-today')}
+        onClick={() => navigate('/tasks')}
         sx={{ cursor: 'pointer' }}
       >
         <CardContent>
@@ -194,7 +196,7 @@ export const DashboardScreen = () => {
 
       <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
         <Card
-          onClick={() => navigate('/tasks-today')}
+          onClick={() => navigate('/tasks')}
           sx={interactiveStatCardSx}
         >
           <CardContent>
@@ -211,7 +213,7 @@ export const DashboardScreen = () => {
           </CardContent>
         </Card>
         <Card
-          onClick={() => navigate('/tasks-today')}
+          onClick={() => navigate('/tasks')}
           sx={interactiveStatCardSx}
         >
           <CardContent>
@@ -249,6 +251,23 @@ export const DashboardScreen = () => {
           </CardContent>
         </Card>
       </Stack>
+
+      <Card onClick={() => navigate('/tasks')} sx={{ cursor: 'pointer' }}>
+        <CardContent>
+          <Typography color="text.secondary">Tasks planned for tomorrow</Typography>
+          <Typography variant="h4" color="primary.main" mb={tomorrowTasks.length > 0 ? 1 : 0}>{tomorrowTasks.length}</Typography>
+          {tomorrowTasks.length > 0 ? (
+            <Stack spacing={0.75}>
+              {tomorrowTasks.slice(0, 3).map((task) => (
+                <Typography key={task.id} color="text.secondary">• {task.title}</Typography>
+              ))}
+              {tomorrowTasks.length > 3 && <Typography color="text.secondary">+{tomorrowTasks.length - 3} more</Typography>}
+            </Stack>
+          ) : (
+            <Typography color="text.secondary">No tasks planned for tomorrow yet.</Typography>
+          )}
+        </CardContent>
+      </Card>
 
       <Card sx={{ border: '1px solid', borderColor: isInsightsExpanded ? 'primary.main' : 'divider' }}>
         <CardContent>

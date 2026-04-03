@@ -8,7 +8,7 @@ import { Alert, Box, Button, Card, CardContent, Chip, Dialog, DialogActions, Dia
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
-import { getCarryForwardRound, getVisibleRoundId } from '../state/rounds';
+import { getCarryForwardRound, getRoundPlannedDate, getVisibleRoundId } from '../state/rounds';
 import { areAllTasksCompletedForDate } from '../state/tasks';
 import type { Task } from '../types';
 import { formatTime, getTodayKey } from '../utils';
@@ -34,11 +34,16 @@ export const FocusScreen = () => {
   const [sessionReviewOpen, setSessionReviewOpen] = useState(false);
   const [confirmedDoneIds, setConfirmedDoneIds] = useState<string[]>([]);
   const requestedRoundId = searchParams.get('roundId') ?? undefined;
-  const visibleRoundId = getVisibleRoundId(state.rounds, requestedRoundId, state.pomodoro.activeRoundId);
+  const todayKey = getTodayKey();
+  const todayRounds = useMemo(
+    () => state.rounds.filter((round) => getRoundPlannedDate(round) === todayKey),
+    [state.rounds, todayKey],
+  );
+  const visibleRoundId = getVisibleRoundId(todayRounds, requestedRoundId, state.pomodoro.activeRoundId);
 
   const activeRound = useMemo(
-    () => state.rounds.find((round) => round.id === visibleRoundId),
-    [state.rounds, visibleRoundId],
+    () => todayRounds.find((round) => round.id === visibleRoundId),
+    [todayRounds, visibleRoundId],
   );
 
   const roundTasks = useMemo(() => {
@@ -63,7 +68,7 @@ export const FocusScreen = () => {
     [roundTasks],
   );
 
-  const allTodaysTasksDone = areAllTasksCompletedForDate(state.tasks, getTodayKey());
+  const allTodaysTasksDone = areAllTasksCompletedForDate(state.tasks, todayKey);
   const canMarkTasksDone = canMarkTaskDone(state.pomodoro.isRunning);
   const blockedTaskDoneMessage = getMarkTaskDoneBlockedMessage(state.pomodoro.isRunning);
 
@@ -116,15 +121,15 @@ export const FocusScreen = () => {
 
     const carryForwardIds = roundTasks.filter((task) => !confirmedDoneSet.has(task.id)).map((task) => task.id);
     if (carryForwardIds.length > 0) {
-      const nextRound = getCarryForwardRound(state.rounds, activeRound.id);
-      const targetRoundId = nextRound?.id ?? createRound();
+      const nextRound = getCarryForwardRound(todayRounds, activeRound.id);
+      const targetRoundId = nextRound?.id ?? createRound({ plannedDate: todayKey });
       const targetRoundTaskIds = nextRound?.taskIds ?? [];
       assignTasksToRound(targetRoundId, Array.from(new Set([...targetRoundTaskIds, ...carryForwardIds])));
     }
 
     setSessionReviewOpen(false);
     skipPomodoro();
-  }, [roundTasks, confirmedDoneIds, activeRound, state.rounds, assignTasksToRound, createRound, skipPomodoro, toggleTask]);
+  }, [roundTasks, confirmedDoneIds, activeRound, todayRounds, assignTasksToRound, createRound, skipPomodoro, toggleTask, todayKey]);
 
   useEffect(() => {
     if (!sessionReviewOpen) return;

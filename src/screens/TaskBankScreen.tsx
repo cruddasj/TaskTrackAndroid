@@ -5,10 +5,11 @@ import PlaylistAddRounded from '@mui/icons-material/PlaylistAddRounded';
 import InfoOutlined from '@mui/icons-material/InfoOutlined';
 import { Alert, Box, Button, Card, CardContent, Checkbox, Chip, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
+import { PlanningDay, PlanningDayToggle } from '../components/PlanningDayToggle';
 import { useAppState } from '../state/AppStateContext';
 import { hasDuplicateTodayTaskTitle, sortTaskBankItemsAlphabetically, WEEKDAY_LABELS, WEEKDAY_SELECTION_ORDER } from '../state/tasks';
 import { TaskBankItem } from '../types';
-import { getTodayKey, normalizeOptionalDescription } from '../utils';
+import { getTodayKey, getTomorrowKey, normalizeOptionalDescription } from '../utils';
 
 interface TaskFormState {
   title: string;
@@ -38,6 +39,9 @@ export const TaskBankScreen = () => {
   const [taskPendingDelete, setTaskPendingDelete] = useState<TaskBankItem | null>(null);
   const [form, setForm] = useState<TaskFormState>(emptyForm);
   const todayKey = getTodayKey();
+  const tomorrowKey = getTomorrowKey();
+  const [planningDay, setPlanningDay] = useState<PlanningDay>('today');
+  const selectedDateKey = planningDay === 'today' ? todayKey : tomorrowKey;
   const sortedTaskBank = useMemo(() => sortTaskBankItemsAlphabetically(state.taskBank), [state.taskBank]);
 
   useEffect(() => {
@@ -125,14 +129,17 @@ export const TaskBankScreen = () => {
     <Stack spacing={2}>
       <Box>
         <Typography variant="h3">Task Bank</Typography>
-        <Typography color="text.secondary">Create and manage your reusable task templates for quick reuse.</Typography>
+        <Typography color="text.secondary">Create reusable task templates, then add them to today or tomorrow in one tap.</Typography>
+        <Box mt={1.25}>
+          <PlanningDayToggle value={planningDay} onChange={setPlanningDay} />
+        </Box>
       </Box>
       {state.settings.showFirstTimeGuidance && (
         <Card>
           <CardContent>
             <Box>
               <Typography variant="h5">Task Bank guidance</Typography>
-              <Typography color="text.secondary">Save common tasks here, then add only what is needed to Today&apos;s Tasks.</Typography>
+              <Typography color="text.secondary">Save common tasks here, then add only what is needed to your selected planning day.</Typography>
             </Box>
             <Alert
               icon={<InfoOutlined fontSize="inherit" />}
@@ -177,16 +184,16 @@ export const TaskBankScreen = () => {
                 size="small"
                 sx={{ alignSelf: 'flex-start' }}
                 onClick={() => {
-                  if (hasDuplicateTodayTaskTitle(state.tasks, todayKey, task.title)) {
-                    showSuccessMessage(`"${task.title}" is already in Today's Tasks.`);
+                  if (hasDuplicateTodayTaskTitle(state.tasks, selectedDateKey, task.title)) {
+                    showSuccessMessage(`"${task.title}" is already in ${planningDay}'s tasks.`);
                     return;
                   }
-                  addTaskFromBank(task.id);
-                  showSuccessMessage('Task added to Today\'s Tasks.');
+                  addTaskFromBank(task.id, selectedDateKey);
+                  showSuccessMessage(`Task added to ${planningDay}'s tasks.`);
                 }}
                 startIcon={<PlaylistAddRounded />}
               >
-                Add to today&apos;s tasks
+                {`Add to ${planningDay}'s tasks`}
               </Button>
             </Stack>
           </CardContent>

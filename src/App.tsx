@@ -14,6 +14,7 @@ import { TaskBankScreen } from './screens/TaskBankScreen';
 import { TodaysTasksScreen } from './screens/TodaysTasksScreen';
 import { hasRoundsWithAssignedTasks } from './state/rounds';
 import { theme } from './theme';
+import { getTodayKey } from './utils';
 
 const SetupGate = () => {
   const { state } = useAppState();
@@ -28,7 +29,7 @@ const SetupGate = () => {
 
 const FocusGate = () => {
   const { state } = useAppState();
-  if (!state.pomodoro.isRunning && !hasRoundsWithAssignedTasks(state.rounds)) {
+  if (!state.pomodoro.isRunning && !hasRoundsWithAssignedTasks(state.rounds, getTodayKey())) {
     return <Navigate to="/rounds" replace />;
   }
   return <FocusScreen />;
@@ -51,8 +52,8 @@ export default function App() {
         <Route element={<SetupGate />}>
           <Route path="/" element={<AppShell />}>
             <Route index element={<DashboardScreen />} />
-            <Route path="tasks" element={<Navigate to="/tasks-today" replace />} />
-            <Route path="tasks-today" element={<TodaysTasksScreen />} />
+            <Route path="tasks" element={<TodaysTasksScreen />} />
+            <Route path="tasks-today" element={<Navigate to="/tasks" replace />} />
             <Route path="task-bank" element={<TaskBankScreen />} />
             <Route path="rounds" element={<RoundsScreen />} />
             <Route path="settings" element={<SettingsScreen />} />
