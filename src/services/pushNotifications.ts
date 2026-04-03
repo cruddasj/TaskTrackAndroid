@@ -9,6 +9,10 @@ export const resetPushNotificationsInitializationForTests = (): void => {
 
 export const initializePushNotifications = async (): Promise<void> => {
   if (!Capacitor.isNativePlatform() || pushNotificationsInitialized) return;
+  if (Capacitor.getPlatform() === 'android') {
+    console.info('Skipping push registration on Android until Firebase is configured.');
+    return;
+  }
 
   pushNotificationsInitialized = true;
 
