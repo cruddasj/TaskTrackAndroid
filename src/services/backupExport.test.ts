@@ -90,7 +90,7 @@ describe('exportBackupFile', () => {
       directory: 'CACHE',
     }));
     expect(shareMock).toHaveBeenCalledWith(expect.objectContaining({
-      url: 'content://tmp/tasktrack.json',
+      files: ['content://tmp/tasktrack.json'],
       title: 'TaskTrack backup',
     }));
     expect(clickSpy).not.toHaveBeenCalled();

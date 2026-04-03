@@ -32,7 +32,7 @@ const shareBackupFileOnAndroid = async (backupJson: string, fileName: string): P
     await Share.share({
       title: 'TaskTrack backup',
       text: 'Choose where to save your TaskTrack backup file.',
-      url: backupUri.uri,
+      files: [backupUri.uri],
       dialogTitle: 'Export backup',
     });
 
