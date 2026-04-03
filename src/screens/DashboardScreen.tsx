@@ -5,7 +5,8 @@ import ChevronRightRounded from '@mui/icons-material/ChevronRightRounded';
 import KeyboardArrowLeftRounded from '@mui/icons-material/KeyboardArrowLeftRounded';
 import KeyboardArrowRightRounded from '@mui/icons-material/KeyboardArrowRightRounded';
 import ExpandMoreRounded from '@mui/icons-material/ExpandMoreRounded';
-import { Box, Button, Card, CardContent, IconButton, LinearProgress, Stack, Typography } from '@mui/material';
+import ExpandLessRounded from '@mui/icons-material/ExpandLessRounded';
+import { Box, Button, ButtonBase, Card, CardContent, IconButton, LinearProgress, Stack, Typography } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
@@ -252,7 +253,20 @@ export const DashboardScreen = () => {
 
       <Card sx={{ border: '1px solid', borderColor: isInsightsExpanded ? 'primary.main' : 'divider' }}>
         <CardContent>
-          <Stack direction="row" alignItems="flex-start" justifyContent="space-between" spacing={1}>
+          <ButtonBase
+            aria-label={isInsightsExpanded ? 'Collapse insights' : 'Expand insights'}
+            onClick={() => setIsInsightsExpanded((current) => !current)}
+            sx={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'flex-start',
+              justifyContent: 'space-between',
+              textAlign: 'left',
+              borderRadius: 1,
+              p: 0.5,
+              mx: -0.5,
+            }}
+          >
             <Stack direction="row" alignItems="center" spacing={1}>
               <InsightsOutlined color="primary" />
               <Box>
@@ -260,10 +274,12 @@ export const DashboardScreen = () => {
                 <Typography color="text.secondary">Review completed task history by day.</Typography>
               </Box>
             </Stack>
-            <IconButton aria-label={isInsightsExpanded ? 'Collapse insights' : 'Expand insights'} onClick={() => setIsInsightsExpanded((current) => !current)}>
-              {isInsightsExpanded ? <ExpandMoreRounded /> : <ChevronRightRounded />}
-            </IconButton>
-          </Stack>
+            {isInsightsExpanded ? (
+              <ExpandLessRounded color="primary" />
+            ) : (
+              <ExpandMoreRounded color="primary" />
+            )}
+          </ButtonBase>
 
           {isInsightsExpanded && (
             <Stack spacing={2.5} mt={2.5}>
