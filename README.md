@@ -65,4 +65,5 @@ If you want custom sounds, add corresponding files under `android/app/src/main/r
 ## Android release workflow notes
 
 - Release APK builds now use app id `com.tasktrack.android` to avoid install conflicts with older package signatures.
+- Release APK builds are signed with a stable release keystore provided via GitHub Actions secrets (`ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`) so upgrade installs remain compatible.
 - The Android release workflow automatically keeps only the latest 3 generated GitHub releases/tags and deletes older auto-generated release tags.
