@@ -311,9 +311,24 @@ export const TodaysTasksScreen = () => {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={suggestionsOpen} onClose={() => setSuggestionsOpen(false)} fullWidth>
+      <Dialog
+        open={suggestionsOpen}
+        onClose={() => setSuggestionsOpen(false)}
+        fullWidth
+        scroll="paper"
+        PaperProps={{
+          sx: {
+            maxHeight: 'min(92dvh, 760px)',
+          },
+        }}
+      >
         <DialogTitle>Suggested recurring tasks</DialogTitle>
-        <DialogContent>
+        <DialogContent
+          sx={{
+            overflowY: 'auto',
+            pb: 'max(16px, env(safe-area-inset-bottom))',
+          }}
+        >
           {recurringSuggestions.length === 0 ? (
             <Alert severity="success" sx={{ bgcolor: 'rgba(145,247,142,0.12)', color: 'primary.main', '& .MuiAlert-icon': { color: 'primary.main' } }}>
               No suggestions are due now. Suggestions only appear when today matches a task&apos;s repeat weekdays or day interval from Task Bank.
@@ -339,7 +354,7 @@ export const TodaysTasksScreen = () => {
             </Stack>
           )}
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ pb: 'max(8px, env(safe-area-inset-bottom))' }}>
           <Button onClick={() => setSuggestionsOpen(false)}>Cancel</Button>
           <Button variant="contained" onClick={addRecurringSuggestions} disabled={recurringSuggestions.length === 0 || selectedRecurringSuggestionIds.length === 0}>
             Add suggested tasks
