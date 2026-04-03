@@ -58,11 +58,11 @@ export const SettingsScreen = () => {
     const fileName = `tasktrack-backup-${new Date().toISOString().slice(0, 10)}.json`;
     const exportMethod = await exportBackupFile(backupJson, fileName);
 
-    if (exportMethod === 'cancelled') return;
-
     showSuccessMessage(
-      exportMethod === 'share'
-        ? 'Choose where to save your backup file.'
+      exportMethod === 'filesystem'
+        ? hasBackupPassword
+          ? 'Encrypted backup saved to your Android files.'
+          : 'Backup saved to your Android files.'
         : hasBackupPassword
           ? 'Encrypted backup exported.'
           : 'Backup exported.',
