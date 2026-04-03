@@ -3,7 +3,7 @@ import DeleteOutlineRounded from '@mui/icons-material/DeleteOutlineRounded';
 import EditOutlined from '@mui/icons-material/EditOutlined';
 import PlaylistAddRounded from '@mui/icons-material/PlaylistAddRounded';
 import InfoOutlined from '@mui/icons-material/InfoOutlined';
-import { Alert, Box, Button, Card, CardContent, Checkbox, Chip, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, MenuItem, Snackbar, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, Card, CardContent, Checkbox, Chip, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useAppState } from '../state/AppStateContext';
 import { hasDuplicateTodayTaskTitle, WEEKDAY_LABELS, WEEKDAY_SELECTION_ORDER } from '../state/tasks';
@@ -37,7 +37,6 @@ export const TaskBankScreen = () => {
   const [editingTaskBankId, setEditingTaskBankId] = useState<string | null>(null);
   const [taskPendingDelete, setTaskPendingDelete] = useState<TaskBankItem | null>(null);
   const [form, setForm] = useState<TaskFormState>(emptyForm);
-  const [duplicateTaskWarningMessage, setDuplicateTaskWarningMessage] = useState<string | null>(null);
   const todayKey = getTodayKey();
 
   useEffect(() => {
@@ -178,11 +177,10 @@ export const TaskBankScreen = () => {
                 sx={{ alignSelf: 'flex-start' }}
                 onClick={() => {
                   if (hasDuplicateTodayTaskTitle(state.tasks, todayKey, task.title)) {
-                    setDuplicateTaskWarningMessage(`"${task.title}" is already in Today's Tasks.`);
+                    showSuccessMessage(`"${task.title}" is already in Today's Tasks.`);
                     return;
                   }
                   addTaskFromBank(task.id);
-                  setDuplicateTaskWarningMessage(null);
                   showSuccessMessage('Task added to today\'s tasks.');
                 }}
                 startIcon={<PlaylistAddRounded />}
@@ -316,20 +314,6 @@ export const TaskBankScreen = () => {
           </Button>
         </DialogActions>
       </Dialog>
-      <Snackbar
-        open={!!duplicateTaskWarningMessage}
-        autoHideDuration={2500}
-        onClose={(_, reason) => {
-          if (reason === 'clickaway') return;
-          setDuplicateTaskWarningMessage(null);
-        }}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        sx={{ mb: 'calc(70px + env(safe-area-inset-bottom, 0px))' }}
-      >
-        <Alert severity="warning" variant="filled" onClose={() => setDuplicateTaskWarningMessage(null)}>
-          {duplicateTaskWarningMessage}
-        </Alert>
-      </Snackbar>
     </Stack>
   );
 };
