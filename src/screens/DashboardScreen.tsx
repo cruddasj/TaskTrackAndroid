@@ -273,7 +273,7 @@ export const DashboardScreen = () => {
                 <Typography color="text.secondary">Review completed task history by day.</Typography>
               </Box>
             </Stack>
-            <UnfoldMoreIcon color="primary" sx={{ alignSelf: 'flex-start' }} />
+            <UnfoldMoreIcon color="primary" sx={{ alignSelf: 'flex-start', mr: -0.25 }} />
           </ButtonBase>
 
           {isInsightsExpanded && (
