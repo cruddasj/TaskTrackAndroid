@@ -143,28 +143,33 @@ export const FocusScreen = () => {
       }}
     >
       <Stack
-        spacing={{ xs: 2, md: 3 }}
+        spacing={2}
         sx={{
           width: '100%',
-          maxWidth: 1120,
-          pb: { xs: 2, md: 0 },
+          maxWidth: 420,
+          pb: 2,
         }}
       >
-        <Box width="100%" display="flex" justifyContent="space-between" alignItems="center" px={{ xs: 0.5, md: 1 }}>
-          <Typography variant="h5" color="primary.main" fontWeight={800}>
-            {state.pomodoro.phase === 'work' ? `Active Session (${activeRound?.title ?? 'No round selected'})` : 'Active Session (Break)'}
-          </Typography>
-          <Chip label="Close" onClick={() => navigate('/rounds')} sx={{ px: 0.5 }} />
+        <Box width="100%" display="flex" justifyContent="space-between" alignItems="flex-start" px={0.5}>
+          <Box>
+            <Typography variant="h5" color="primary.main" fontWeight={800} lineHeight={1.2}>
+              Active Session
+            </Typography>
+            <Typography variant="h5" color="primary.main" fontWeight={800} lineHeight={1.2}>
+              {state.pomodoro.phase === 'work' ? `(${activeRound?.title ?? 'No round selected'})` : '(Break)'}
+            </Typography>
+          </Box>
+          <Chip label="Close" size="small" onClick={() => navigate('/rounds')} sx={{ px: 0.5, mt: 0.5 }} />
         </Box>
 
-        <Stack direction={{ xs: 'column', md: 'row' }} spacing={{ xs: 2, md: 3 }} alignItems={{ xs: 'center', md: 'stretch' }}>
+        <Stack direction="column" spacing={2} alignItems="center">
           <Stack
-            spacing={{ xs: 2, md: 3 }}
+            spacing={2}
             alignItems="center"
             justifyContent="space-between"
-            sx={{ width: { xs: '100%', md: '55%' } }}
+            sx={{ width: '100%' }}
           >
-            <Box position="relative" width={{ xs: 300, md: 340 }} height={{ xs: 300, md: 340 }}>
+            <Box position="relative" width={300} height={300}>
               <svg width="100%" height="100%" viewBox="0 0 320 320">
                 <circle cx="160" cy="160" r="140" stroke="#2a2a2a" strokeWidth="8" fill="none" />
                 <circle
@@ -180,8 +185,8 @@ export const FocusScreen = () => {
                   transform="rotate(-90 160 160)"
                 />
               </svg>
-              <Stack position="absolute" sx={{ inset: 0, px: { xs: 3.5, md: 4 } }} alignItems="center" justifyContent="center">
-                <Typography variant="h1" fontSize={{ xs: 76, md: 88 }} fontWeight={800}>{formatTime(state.pomodoro.remainingSeconds)}</Typography>
+              <Stack position="absolute" sx={{ inset: 0, px: 3.5 }} alignItems="center" justifyContent="center">
+                <Typography variant="h1" fontSize={76} fontWeight={800}>{formatTime(state.pomodoro.remainingSeconds)}</Typography>
                 <Typography color="text.secondary" letterSpacing="0.1em">REMAINING</Typography>
               </Stack>
             </Box>
@@ -207,7 +212,7 @@ export const FocusScreen = () => {
           </Stack>
 
           {state.pomodoro.phase === 'work' ? (
-            <Card sx={{ width: { xs: '100%', md: '45%' }, maxHeight: { xs: 220, md: 460 }, overflow: 'hidden', alignSelf: 'stretch' }}>
+            <Card sx={{ width: '100%', maxHeight: 220, overflow: 'hidden', alignSelf: 'stretch' }}>
               <CardContent sx={{ height: '100%' }}>
                 <Stack spacing={1} sx={{ maxHeight: '100%', overflowY: 'auto', pr: 0.5 }}>
                   <Typography variant="h6">Tasks in this session</Typography>
@@ -240,7 +245,7 @@ export const FocusScreen = () => {
               severity="success"
               icon={false}
               sx={{
-                width: { xs: '100%', md: '45%' },
+                width: '100%',
                 alignSelf: 'center',
                 justifyContent: 'center',
                 '& .MuiAlert-message': { width: '100%', textAlign: 'center' },
