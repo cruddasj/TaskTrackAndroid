@@ -81,6 +81,20 @@ export const DashboardScreen = () => {
     setCompletedHistoryIndex((current) => Math.max(current - 1, 0));
   };
 
+  const interactiveStatCardSx = {
+    flex: 1,
+    minWidth: { xs: 'calc(50% - 8px)', sm: 0 },
+    cursor: 'pointer',
+    border: '1px solid',
+    borderColor: 'divider',
+    transition: 'transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease',
+    '&:hover': {
+      transform: 'translateY(-2px)',
+      boxShadow: 4,
+      borderColor: 'primary.main',
+    },
+  } as const;
+
   return (
     <Stack spacing={3}>
       <Box>
@@ -181,47 +195,56 @@ export const DashboardScreen = () => {
       <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
         <Card
           onClick={() => navigate('/tasks-today')}
-          sx={{ flex: 1, minWidth: { xs: 'calc(50% - 8px)', sm: 0 }, cursor: 'pointer' }}
+          sx={interactiveStatCardSx}
         >
           <CardContent>
-            <Typography
-              color="text.secondary"
-              sx={{ fontSize: { xs: '0.82rem', sm: '0.92rem' }, lineHeight: 1.2, whiteSpace: 'nowrap' }}
-            >
-              Completed today
-            </Typography>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
+              <Typography
+                color="text.secondary"
+                sx={{ fontSize: { xs: '0.82rem', sm: '0.92rem' }, lineHeight: 1.2, whiteSpace: 'nowrap' }}
+              >
+                Completed today
+              </Typography>
+              <ChevronRightRounded color="primary" fontSize="small" />
+            </Stack>
             <Typography variant="h4" sx={{ fontSize: { xs: '1.55rem', sm: '2.125rem' } }}>{completed} / {todaysTasks.length}</Typography>
           </CardContent>
         </Card>
         <Card
           onClick={() => navigate('/tasks-today')}
-          sx={{ flex: 1, minWidth: { xs: 'calc(50% - 8px)', sm: 0 }, cursor: 'pointer' }}
+          sx={interactiveStatCardSx}
         >
           <CardContent>
-            <Typography
-              color="text.secondary"
-              sx={{
-                fontSize: { xs: '0.82rem', sm: '0.92rem' },
-                lineHeight: 1.2,
-                whiteSpace: { xs: 'normal', sm: 'nowrap' },
-              }}
-            >
-              Focused time spent today
-            </Typography>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
+              <Typography
+                color="text.secondary"
+                sx={{
+                  fontSize: { xs: '0.82rem', sm: '0.92rem' },
+                  lineHeight: 1.2,
+                  whiteSpace: { xs: 'normal', sm: 'nowrap' },
+                }}
+              >
+                Focused time spent
+              </Typography>
+              <ChevronRightRounded color="primary" fontSize="small" />
+            </Stack>
             <Typography variant="h4" sx={{ fontSize: { xs: '1.55rem', sm: '2.125rem' } }}>{formattedFocusTimeSpent}</Typography>
           </CardContent>
         </Card>
         <Card
           onClick={() => navigate('/rounds')}
-          sx={{ flex: 1, minWidth: { xs: 'calc(50% - 8px)', sm: 0 }, cursor: 'pointer' }}
+          sx={interactiveStatCardSx}
         >
           <CardContent>
-            <Typography
-              color="text.secondary"
-              sx={{ fontSize: { xs: '0.82rem', sm: '0.92rem' }, lineHeight: 1.2, whiteSpace: 'nowrap' }}
-            >
-              Sessions completed today
-            </Typography>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
+              <Typography
+                color="text.secondary"
+                sx={{ fontSize: { xs: '0.82rem', sm: '0.92rem' }, lineHeight: 1.2, whiteSpace: 'nowrap' }}
+              >
+                Sessions completed today
+              </Typography>
+              <ChevronRightRounded color="primary" fontSize="small" />
+            </Stack>
             <Typography variant="h4" sx={{ fontSize: { xs: '1.55rem', sm: '2.125rem' } }}>{sessionsCompletedToday}</Typography>
           </CardContent>
         </Card>
