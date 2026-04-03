@@ -99,12 +99,19 @@ describe('notifications service', () => {
     expect(scheduleMock).not.toHaveBeenCalled();
   });
 
-  it('does not schedule immediate native notification on completion', async () => {
+  it('schedules an immediate native notification on completion', async () => {
     isNativePlatformMock.mockReturnValue(true);
 
     await notifyPomodoroComplete('Done', 'Body', 'bell', 3);
 
-    expect(scheduleMock).not.toHaveBeenCalled();
+    expect(scheduleMock).toHaveBeenCalledTimes(1);
+    const payload = scheduleMock.mock.calls[0][0];
+    expect(payload.notifications).toHaveLength(1);
+    expect(payload.notifications[0]).toEqual(expect.objectContaining({
+      title: 'Done',
+      body: 'Body',
+      channelId: 'round-finish-bell-v2',
+    }));
   });
 
   it('requests browser notification permission on web when permission is default', async () => {
