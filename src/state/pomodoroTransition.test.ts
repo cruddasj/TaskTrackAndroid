@@ -64,8 +64,8 @@ describe('pomodoro transition helpers', () => {
     const progression = getRoundProgressionForPhaseAdvance(
       buildState({
         rounds: [
-          { id: 'r1', title: 'Round 1', scheduledTime: '09:00', durationMinutes: 25, taskIds: ['t1'], status: 'active' },
-          { id: 'r2', title: 'Round 2', scheduledTime: '10:00', durationMinutes: 25, taskIds: ['t2'], status: 'upcoming' },
+          { id: 'r1', title: 'Round 1', plannedDate: todayKey, scheduledTime: '09:00', durationMinutes: 25, taskIds: ['t1'], status: 'active' },
+          { id: 'r2', title: 'Round 2', plannedDate: todayKey, scheduledTime: '10:00', durationMinutes: 25, taskIds: ['t2'], status: 'upcoming' },
         ],
       }),
     );
@@ -79,8 +79,8 @@ describe('pomodoro transition helpers', () => {
     const progression = getRoundProgressionForPhaseAdvance(
       buildState({
         rounds: [
-          { id: 'r1', title: 'Round 1', scheduledTime: '09:00', durationMinutes: 25, taskIds: ['t1'], status: 'done' },
-          { id: 'r2', title: 'Round 2', scheduledTime: '10:00', durationMinutes: 25, taskIds: ['t2'], status: 'active' },
+          { id: 'r1', title: 'Round 1', plannedDate: todayKey, scheduledTime: '09:00', durationMinutes: 25, taskIds: ['t1'], status: 'done' },
+          { id: 'r2', title: 'Round 2', plannedDate: todayKey, scheduledTime: '10:00', durationMinutes: 25, taskIds: ['t2'], status: 'active' },
         ],
         pomodoro: {
           isRunning: true,
@@ -102,7 +102,7 @@ describe('pomodoro transition helpers', () => {
     const result = applyWorkPhaseRoundAdvance(
       buildState({
         rounds: [
-          { id: 'r1', title: 'Round 1', scheduledTime: '09:00', durationMinutes: 25, taskIds: ['t1'], status: 'active' },
+          { id: 'r1', title: 'Round 1', plannedDate: todayKey, scheduledTime: '09:00', durationMinutes: 25, taskIds: ['t1'], status: 'active' },
         ],
         tasks: [
           { id: 't1', title: 'Done', description: '', category: 'Work', estimateMinutes: 25, status: 'done', plannedDate: todayKey, roundId: 'r1' },
@@ -124,7 +124,7 @@ describe('pomodoro transition helpers', () => {
     const result = applyWorkPhaseRoundAdvance(
       buildState({
         rounds: [
-          { id: 'r1', title: 'Round 1', scheduledTime: '09:00', durationMinutes: 25, taskIds: ['t1'], status: 'active' },
+          { id: 'r1', title: 'Round 1', plannedDate: todayKey, scheduledTime: '09:00', durationMinutes: 25, taskIds: ['t1'], status: 'active' },
         ],
         tasks: [
           { id: 't1', title: 'Done', description: '', category: 'Work', estimateMinutes: 25, status: 'done', plannedDate: todayKey, roundId: 'r1' },

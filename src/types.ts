@@ -26,6 +26,7 @@ export interface TaskBankItem {
 export interface Round {
   id: string;
   title: string;
+  plannedDate: string;
   scheduledTime: string;
   durationMinutes: number;
   taskIds: string[];

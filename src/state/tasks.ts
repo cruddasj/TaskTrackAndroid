@@ -63,7 +63,7 @@ export const suggestRecurringTaskBankItems = (
   now: Date = new Date(),
 ): TaskBankItem[] => {
   const nowMs = now.getTime();
-  const todayWeekday = now.getUTCDay();
+  const plannedDateWeekday = new Date(`${plannedDate}T00:00:00.000Z`).getUTCDay();
   const completionByTitle = getLastCompletionTimeByTitle(tasks);
   const recentAppearanceByTitle = new Map<string, number>();
   tasks.forEach((task) => {
@@ -78,12 +78,12 @@ export const suggestRecurringTaskBankItems = (
   });
 
   const hasScheduledWeekdayInPastWeek = (recurrenceWeekdays: number[]): boolean => {
-    const unique = new Set(recurrenceWeekdays);
-    for (let daysAgo = 1; daysAgo <= 7; daysAgo += 1) {
-      const weekday = (todayWeekday - daysAgo + 7) % 7;
-      if (unique.has(weekday)) return true;
-    }
-    return false;
+      const unique = new Set(recurrenceWeekdays);
+      for (let daysAgo = 1; daysAgo <= 7; daysAgo += 1) {
+      const weekday = (plannedDateWeekday - daysAgo + 7) % 7;
+        if (unique.has(weekday)) return true;
+      }
+      return false;
   };
 
   return taskBank.filter((item) => {
@@ -92,7 +92,7 @@ export const suggestRecurringTaskBankItems = (
     const titleKey = normalizeTaskTitle(item.title);
     const recurrenceWeekdays = (item.recurrenceWeekdays ?? []).filter((weekday) => Number.isInteger(weekday) && weekday >= 0 && weekday <= 6);
     if (recurrenceWeekdays.length > 0) {
-      if (recurrenceWeekdays.includes(todayWeekday)) return true;
+      if (recurrenceWeekdays.includes(plannedDateWeekday)) return true;
 
       if (!hasScheduledWeekdayInPastWeek(recurrenceWeekdays)) return false;
       const lastAppearanceMs = recentAppearanceByTitle.get(titleKey);

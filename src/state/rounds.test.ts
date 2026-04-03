@@ -4,8 +4,8 @@ describe('round helpers', () => {
   it('detects when a round has no tasks assigned', () => {
     expect(
       hasEmptyRoundWithoutTasks([
-        { id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'active' },
-        { id: 'r2', title: 'Round 2', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'upcoming' },
+        { id: 'r1', title: 'Round 1', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'active' },
+        { id: 'r2', title: 'Round 2', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'upcoming' },
       ]),
     ).toBe(true);
   });
@@ -13,21 +13,22 @@ describe('round helpers', () => {
   it('ignores empty rounds that are completed and locked', () => {
     expect(
       hasEmptyRoundWithoutTasks([
-        { id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'done' },
-        { id: 'r2', title: 'Round 2', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'active' },
+        { id: 'r1', title: 'Round 1', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'done' },
+        { id: 'r2', title: 'Round 2', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'active' },
       ]),
     ).toBe(false);
   });
 
   it('recognizes completed rounds for assignment guards', () => {
-    expect(isRoundCompleted({ id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'done' })).toBe(true);
-    expect(isRoundCompleted({ id: 'r2', title: 'Round 2', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'active' })).toBe(false);
+    expect(isRoundCompleted({ id: 'r1', title: 'Round 1', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'done' })).toBe(true);
+    expect(isRoundCompleted({ id: 'r2', title: 'Round 2', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'active' })).toBe(false);
   });
 
   it('creates upcoming rounds while an unfinished round exists', () => {
     const round = buildNewRound(
-      [{ id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'active' }],
+      [{ id: 'r1', title: 'Round 1', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'active' }],
       25,
+      '2026-03-29',
     );
 
     expect(round.title).toBe('Round 2');
@@ -38,8 +39,8 @@ describe('round helpers', () => {
   it('uses the next sequence number when round names are customized', () => {
     expect(
       getDefaultRoundTitle([
-        { id: 'r1', title: 'Round 3', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'active' },
-        { id: 'r2', title: 'Morning', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'upcoming' },
+        { id: 'r1', title: 'Round 3', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'active' },
+        { id: 'r2', title: 'Morning', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'upcoming' },
       ]),
     ).toBe('Round 4');
   });
@@ -47,8 +48,8 @@ describe('round helpers', () => {
   it('starts default round numbering at 1 when no default round titles exist', () => {
     expect(
       getDefaultRoundTitle([
-        { id: 'r1', title: 'Morning Sprint', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'active' },
-        { id: 'r2', title: 'Deep Work', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'upcoming' },
+        { id: 'r1', title: 'Morning Sprint', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'active' },
+        { id: 'r2', title: 'Deep Work', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'upcoming' },
       ]),
     ).toBe('Round 1');
   });
@@ -56,17 +57,18 @@ describe('round helpers', () => {
   it('finds the highest titled round number without relying on list order', () => {
     expect(
       getHighestRoundSequence([
-        { id: 'r1', title: 'Round 12', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'done' },
-        { id: 'r2', title: 'Planning', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'active' },
-        { id: 'r3', title: 'Round 7', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'upcoming' },
+        { id: 'r1', title: 'Round 12', plannedDate: '2026-03-31', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'done' },
+        { id: 'r2', title: 'Planning', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'active' },
+        { id: 'r3', title: 'Round 7', plannedDate: '2026-03-31', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'upcoming' },
       ]),
     ).toBe(12);
   });
 
   it('creates an active round when all existing rounds are done', () => {
     const round = buildNewRound(
-      [{ id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'done' }],
+      [{ id: 'r1', title: 'Round 1', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'done' }],
       30,
+      '2026-03-29',
     );
 
     expect(round.status).toBe('active');
@@ -76,8 +78,8 @@ describe('round helpers', () => {
   it('removes a round and keeps the first open round active', () => {
     const rounds = removeRoundAndNormalizeStatuses(
       [
-        { id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'active' },
-        { id: 'r2', title: 'Round 2', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'upcoming' },
+        { id: 'r1', title: 'Round 1', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'active' },
+        { id: 'r2', title: 'Round 2', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'upcoming' },
       ],
       'r1',
     );
@@ -102,9 +104,9 @@ describe('round helpers', () => {
   it('advances to the next open round after a break', () => {
     const result = advanceActiveRound(
       [
-        { id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'active' },
-        { id: 'r2', title: 'Round 2', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'upcoming' },
-        { id: 'r3', title: 'Round 3', scheduledTime: '', durationMinutes: 25, taskIds: ['t3'], status: 'done' },
+        { id: 'r1', title: 'Round 1', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'active' },
+        { id: 'r2', title: 'Round 2', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'upcoming' },
+        { id: 'r3', title: 'Round 3', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: ['t3'], status: 'done' },
       ],
       'r1',
     );
@@ -118,8 +120,8 @@ describe('round helpers', () => {
   it('marks the final open round as done when no next round exists', () => {
     const result = advanceActiveRound(
       [
-        { id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'active' },
-        { id: 'r2', title: 'Round 2', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'done' },
+        { id: 'r1', title: 'Round 1', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'active' },
+        { id: 'r2', title: 'Round 2', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'done' },
       ],
       'r1',
     );
@@ -132,8 +134,8 @@ describe('round helpers', () => {
   it('detects when at least one round can be tracked', () => {
     expect(
       hasRoundsWithAssignedTasks([
-        { id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'active' },
-        { id: 'r2', title: 'Round 2', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'upcoming' },
+        { id: 'r1', title: 'Round 1', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'active' },
+        { id: 'r2', title: 'Round 2', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'upcoming' },
       ]),
     ).toBe(true);
   });
@@ -141,7 +143,7 @@ describe('round helpers', () => {
   it('totals estimated task minutes for the round', () => {
     expect(
       getRoundEstimatedMinutes(
-        { id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: ['t1', 't2'], status: 'active' },
+        { id: 'r1', title: 'Round 1', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: ['t1', 't2'], status: 'active' },
         [
           { id: 't1', title: 'A', description: '', category: 'Work', estimateMinutes: 15, status: 'todo', plannedDate: '2026-03-29', roundId: 'r1' },
           { id: 't2', title: 'B', description: '', category: 'Work', estimateMinutes: 20, status: 'todo', plannedDate: '2026-03-29', roundId: 'r1' },
@@ -153,7 +155,7 @@ describe('round helpers', () => {
   it('ignores missing task ids when totaling estimates', () => {
     expect(
       getRoundEstimatedMinutes(
-        { id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: ['t1', 'missing'], status: 'active' },
+        { id: 'r1', title: 'Round 1', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: ['t1', 'missing'], status: 'active' },
         [{ id: 't1', title: 'A', description: '', category: 'Work', estimateMinutes: 10, status: 'todo', plannedDate: '2026-03-29', roundId: 'r1' }],
       ),
     ).toBe(10);
@@ -162,7 +164,7 @@ describe('round helpers', () => {
   it('keeps moved tasks visible in their previous completed round', () => {
     expect(
       getRoundTaskIdsForDisplay(
-        { id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'done' },
+        { id: 'r1', title: 'Round 1', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'done' },
         [
           {
             id: 't1',
@@ -183,7 +185,7 @@ describe('round helpers', () => {
   it('does not duplicate task ids when task is both currently and previously linked to a round', () => {
     expect(
       getRoundTaskIdsForDisplay(
-        { id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'done' },
+        { id: 'r1', title: 'Round 1', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'done' },
         [
           {
             id: 't1',
@@ -205,8 +207,8 @@ describe('round helpers', () => {
     expect(
       getVisibleRoundId(
         [
-          { id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'upcoming' },
-          { id: 'r2', title: 'Round 2', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'active' },
+          { id: 'r1', title: 'Round 1', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'upcoming' },
+          { id: 'r2', title: 'Round 2', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'active' },
         ],
         'r1',
         'r2',
@@ -218,8 +220,8 @@ describe('round helpers', () => {
     expect(
       getVisibleRoundId(
         [
-          { id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'active' },
-          { id: 'r2', title: 'Round 2', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'upcoming' },
+          { id: 'r1', title: 'Round 1', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'active' },
+          { id: 'r2', title: 'Round 2', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'upcoming' },
         ],
         'missing',
         'also-missing',
@@ -231,8 +233,8 @@ describe('round helpers', () => {
     expect(
       getCarryForwardRound(
         [
-          { id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'upcoming' },
-          { id: 'r2', title: 'Round 2', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'active' },
+          { id: 'r1', title: 'Round 1', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'upcoming' },
+          { id: 'r2', title: 'Round 2', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'active' },
         ],
         'r2',
       )?.id,
@@ -243,9 +245,9 @@ describe('round helpers', () => {
     expect(
       getCarryForwardRound(
         [
-          { id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'upcoming' },
-          { id: 'r2', title: 'Round 2', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'active' },
-          { id: 'r3', title: 'Round 3', scheduledTime: '', durationMinutes: 25, taskIds: ['t3'], status: 'upcoming' },
+          { id: 'r1', title: 'Round 1', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'upcoming' },
+          { id: 'r2', title: 'Round 2', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'active' },
+          { id: 'r3', title: 'Round 3', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: ['t3'], status: 'upcoming' },
         ],
         'r2',
       )?.id,
@@ -254,9 +256,9 @@ describe('round helpers', () => {
 
   it('sorts rounds in numeric round-title order for display', () => {
     const sorted = sortRoundsChronologically([
-      { id: 'r3', title: 'Round 3', scheduledTime: '', durationMinutes: 25, taskIds: ['t3'], status: 'active' },
-      { id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'done' },
-      { id: 'r2', title: 'Round 2', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'done' },
+      { id: 'r3', title: 'Round 3', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: ['t3'], status: 'active' },
+      { id: 'r1', title: 'Round 1', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'done' },
+      { id: 'r2', title: 'Round 2', plannedDate: '2026-03-29', scheduledTime: '', durationMinutes: 25, taskIds: ['t2'], status: 'done' },
     ]);
 
     expect(sorted.map((round) => round.title)).toEqual(['Round 1', 'Round 2', 'Round 3']);

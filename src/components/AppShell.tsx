@@ -7,14 +7,13 @@ import { BottomNavigation, BottomNavigationAction, Box, Button, Paper, Snackbar,
 import { useMemo } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
-import { hasRoundsWithAssignedTasks } from '../state/rounds';
 import { areAllTasksCompletedForDate } from '../state/tasks';
 import { formatTime, getTodayKey } from '../utils';
 
 const tabs = [
   { label: 'Dashboard', path: '/', icon: <DashboardOutlined /> },
   { label: 'Task Bank', path: '/task-bank', icon: <ListAltOutlined /> },
-  { label: "Today's Tasks", path: '/tasks-today', icon: <ListAltOutlined /> },
+  { label: 'Tasks', path: '/tasks-today', icon: <ListAltOutlined /> },
   { label: 'Rounds', path: '/rounds', icon: <TimerOutlined /> },
   { label: 'Settings', path: '/settings', icon: <SettingsOutlined /> },
 ];
@@ -24,8 +23,10 @@ export const AppShell = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isFirstTimeUser = !state.userName.trim();
-  const hasTrackableRound = hasRoundsWithAssignedTasks(state.rounds);
-  const allTodaysTasksDone = areAllTasksCompletedForDate(state.tasks, getTodayKey());
+  const todayKey = getTodayKey();
+  const todayRoundIds = new Set(state.rounds.filter((round) => round.plannedDate === todayKey).map((round) => round.id));
+  const hasTrackableRound = state.tasks.some((task) => task.roundId && todayRoundIds.has(task.roundId));
+  const allTodaysTasksDone = areAllTasksCompletedForDate(state.tasks, todayKey);
   const showTimerButton = !allTodaysTasksDone && (state.pomodoro.isRunning || hasTrackableRound);
   const visibleTabs = useMemo(() => isFirstTimeUser ? tabs.filter((tab) => tab.path === '/settings') : tabs, [isFirstTimeUser]);
   const current = useMemo(() => visibleTabs.find((tab) => tab.path === location.pathname)?.path || false, [visibleTabs, location.pathname]);

@@ -10,7 +10,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
 import { formatFocusTimeSpent, getGreeting } from './greeting';
-import { getTodayKey } from '../utils';
+import { getTodayKey, getTomorrowKey } from '../utils';
+import { PlanningDayOption, PlanningDayToggle } from '../components/PlanningDayToggle';
 import { getDashboardHeroCopy, getTodayRoundMetrics } from './dashboardMetrics';
 import { formatHistoryDayLabel, getCategoryTotals, getCompletedTaskHistory } from './dashboardInsights';
 
@@ -19,31 +20,34 @@ const HISTORY_WINDOW_DAYS = 30;
 export const DashboardScreen = () => {
   const navigate = useNavigate();
   const { state } = useAppState();
-  const todayKey = getTodayKey();
-  const todaysTasks = state.tasks.filter((task) => task.plannedDate === todayKey);
-  const completed = todaysTasks.reduce((acc, task) => acc + (task.status === 'done' ? 1 : 0), 0);
-  const progress = todaysTasks.length > 0 ? Math.round((completed / todaysTasks.length) * 100) : 0;
+  const [planningDay, setPlanningDay] = useState<PlanningDayOption>('today');
+  const selectedDateKey = planningDay === 'today' ? getTodayKey() : getTomorrowKey();
+  const selectedTasks = state.tasks.filter((task) => task.plannedDate === selectedDateKey);
+  const todaysTasks = state.tasks.filter((task) => task.plannedDate === getTodayKey());
+  const selectedRounds = state.rounds.filter((round) => round.plannedDate === selectedDateKey);
+  const completed = selectedTasks.reduce((acc, task) => acc + (task.status === 'done' ? 1 : 0), 0);
+  const progress = selectedTasks.length > 0 ? Math.round((completed / selectedTasks.length) * 100) : 0;
   const { completedRounds: sessionsCompletedToday, focusedMinutes: totalFocusMinutes } = getTodayRoundMetrics(state.rounds, todaysTasks);
   const formattedFocusTimeSpent = formatFocusTimeSpent(totalFocusMinutes);
-  const currentRound = state.rounds.find((round) => round.id === state.pomodoro.activeRoundId)
-    ?? state.rounds.find((round) => round.status === 'active');
+  const currentRound = selectedRounds.find((round) => round.id === state.pomodoro.activeRoundId)
+    ?? selectedRounds.find((round) => round.status === 'active');
   const currentRoundTasks = currentRound
     ? currentRound.taskIds
-      .map((taskId) => todaysTasks.find((task) => task.id === taskId))
+      .map((taskId) => selectedTasks.find((task) => task.id === taskId))
       .filter((task): task is NonNullable<typeof task> => !!task)
     : [];
   const nextRound = currentRound
-    ? state.rounds
-      .slice(state.rounds.findIndex((round) => round.id === currentRound.id) + 1)
+    ? selectedRounds
+      .slice(selectedRounds.findIndex((round) => round.id === currentRound.id) + 1)
       .find((round) => round.status !== 'done')
-    : state.rounds.find((round) => round.status === 'upcoming');
+    : selectedRounds.find((round) => round.status === 'upcoming');
   const nextRoundTasks = nextRound
     ? nextRound.taskIds
-      .map((taskId) => todaysTasks.find((task) => task.id === taskId))
+      .map((taskId) => selectedTasks.find((task) => task.id === taskId))
       .filter((task): task is NonNullable<typeof task> => !!task)
     : [];
-  const hasTodayTasks = todaysTasks.length > 0;
-  const allTodaysTasksDone = hasTodayTasks && completed === todaysTasks.length;
+  const hasTodayTasks = selectedTasks.length > 0;
+  const allTodaysTasksDone = hasTodayTasks && completed === selectedTasks.length;
   const heroCopy = getDashboardHeroCopy({
     phase: state.pomodoro.phase,
     allTodaysTasksDone,
@@ -100,6 +104,7 @@ export const DashboardScreen = () => {
       <Box>
         <Typography variant="h3">{greeting}, {state.userName}</Typography>
         <Typography color="text.secondary">Pick a round and use focused attention blocks to move through small, manageable tasks.</Typography>
+        <PlanningDayToggle value={planningDay} onChange={setPlanningDay} />
       </Box>
 
       <Card sx={{ background: 'radial-gradient(circle at 65% 40%, rgba(145,247,142,0.28), rgba(14,14,14,1) 60%)' }}>
@@ -114,7 +119,7 @@ export const DashboardScreen = () => {
             <Typography color="text.secondary" mb={2}>
               Great job. You finished every planned task for today, so you can stop for today.
             </Typography>
-          ) : currentRoundTasks.length > 0 ? (
+          ) : planningDay === 'today' && currentRoundTasks.length > 0 ? (
             <>
               <Typography color="text.secondary" mb={2}>These tasks are queued for your current round.</Typography>
               <Stack spacing={1.25} mb={2.5}>
@@ -136,17 +141,20 @@ export const DashboardScreen = () => {
                   ? 'You are currently on a break. Round planning resumes after your break ends.'
                   : hasTodayTasks
                   ? 'Assign tasks to this round before starting your next round.'
-                  : 'Add tasks to Today\'s Tasks first, then assign them into a round.'}
+                  : `Add tasks to ${planningDay === 'today' ? 'today' : 'tomorrow'} first, then assign them into a round.`}
               </Typography>
-              {state.pomodoro.phase === 'work' && (
+              {planningDay === 'today' && state.pomodoro.phase === 'work' && (
                 <Button
                   size="large"
                   variant="contained"
                   startIcon={<PlayArrowRounded />}
                   onClick={() => navigate(hasTodayTasks ? '/rounds' : '/tasks-today')}
                 >
-                  {hasTodayTasks ? 'Assign tasks' : 'Add to Today\'s Tasks'}
+                  {hasTodayTasks ? 'Assign tasks' : `Add to ${planningDay === 'today' ? 'today' : 'tomorrow'} tasks`}
                 </Button>
+              )}
+              {planningDay === 'tomorrow' && (
+                <Typography color="text.secondary">Tomorrow is planning-only. Start rounds from this screen when it is today.</Typography>
               )}
             </>
           )}
@@ -174,7 +182,7 @@ export const DashboardScreen = () => {
               <Typography color="text.secondary">
                 {hasTodayTasks
                   ? 'Assign tasks to a later round so they are ready when this round ends.'
-                  : 'Add tasks to Today\'s Tasks first, then assign them into your next round.'}
+                  : `Add tasks to ${planningDay === 'today' ? 'today' : 'tomorrow'} first, then assign them into your next round.`}
               </Typography>
             )}
           </CardContent>
@@ -186,7 +194,7 @@ export const DashboardScreen = () => {
         sx={{ cursor: 'pointer' }}
       >
         <CardContent>
-          <Typography color="text.secondary">Today&apos;s planned tasks completed</Typography>
+          <Typography color="text.secondary">{planningDay === 'today' ? `Today's planned tasks completed` : `Tomorrow's planned tasks completed`}</Typography>
           <Typography variant="h3" color="primary.main">{progress}%</Typography>
           <LinearProgress variant="determinate" value={progress} sx={{ mt: 1, height: 8, borderRadius: 99 }} />
         </CardContent>
@@ -203,11 +211,11 @@ export const DashboardScreen = () => {
                 color="text.secondary"
                 sx={{ fontSize: { xs: '0.82rem', sm: '0.92rem' }, lineHeight: 1.2, whiteSpace: 'nowrap' }}
               >
-                Tasks completed today
+                {planningDay === 'today' ? 'Tasks completed today' : 'Tasks completed tomorrow'}
               </Typography>
               <ChevronRightRounded color="primary" fontSize="small" />
             </Stack>
-            <Typography variant="h4" sx={{ fontSize: { xs: '1.55rem', sm: '2.125rem' } }}>{completed} / {todaysTasks.length}</Typography>
+            <Typography variant="h4" sx={{ fontSize: { xs: '1.55rem', sm: '2.125rem' } }}>{completed} / {selectedTasks.length}</Typography>
           </CardContent>
         </Card>
         <Card

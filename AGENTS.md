@@ -44,12 +44,15 @@ Use this section as the source of truth whenever changing `/rounds` or `/focus` 
 
 ### Current workflow contract
 - **Rounds page is the planning source**: tasks planned for today can be unassigned or assigned to a round.
+- **Planning day scope**: both `/rounds` and `/tasks-today` can target `today` or `tomorrow`; all round/task assignment actions only mutate items for the selected planning day.
 - **Timer (Focus) page tracks one visible round** based on active round id first, then requested round id, then round status.
+- **Focus day guard**: Focus only reads and advances rounds whose `plannedDate` is today.
 - **Work-session completion advances rounds**:
   - If another open round exists, current round is marked done and the next open round becomes active.
   - If no open round exists, the app now checks for today tasks that are still unfinished and unassigned.
   - When such tasks exist, the app auto-creates a new recovery round and assigns those tasks so the timer can continue without looping on a completed round.
 - **Break transitions do not reorder rounds**; they only change timer phase.
+- **Tomorrow rounds are planning-only**: they cannot be started from Dashboard or Focus until that date becomes today.
 
 ### Required update rule for future changes
 When you modify timer/round linkage behavior, update this AGENTS section in the same PR with:

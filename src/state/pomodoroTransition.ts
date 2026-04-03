@@ -9,7 +9,12 @@ export const getNextPomodoroPhase = (state: AppState): PomodoroState['phase'] =>
 };
 
 export const getRoundProgressionForPhaseAdvance = (state: AppState) =>
-  state.pomodoro.phase === 'work' ? advanceActiveRound(state.rounds, state.pomodoro.activeRoundId) : undefined;
+  state.pomodoro.phase === 'work'
+    ? advanceActiveRound(
+      state.rounds.filter((round) => round.plannedDate === getTodayKey()),
+      state.pomodoro.activeRoundId,
+    )
+    : undefined;
 
 interface RoundAdvanceResult {
   rounds: Round[];
@@ -25,7 +30,10 @@ export const applyWorkPhaseRoundAdvance = (state: AppState): RoundAdvanceResult 
 
   if (progression.nextRoundId) {
     return {
-      rounds: progression.rounds,
+      rounds: [
+        ...state.rounds.filter((round) => round.plannedDate !== getTodayKey()),
+        ...progression.rounds,
+      ],
       tasks: state.tasks,
       nextRoundId: progression.nextRoundId,
     };
@@ -42,19 +50,26 @@ export const applyWorkPhaseRoundAdvance = (state: AppState): RoundAdvanceResult 
 
   if (unassignedTodayTaskIds.length === 0) {
     return {
-      rounds: progression.rounds,
+      rounds: [
+        ...state.rounds.filter((round) => round.plannedDate !== todayKey),
+        ...progression.rounds,
+      ],
       tasks: state.tasks,
       nextRoundId: undefined,
     };
   }
 
   const recoveryRound = {
-    ...buildNewRound(progression.rounds, state.settings.pomodoroMinutes),
+    ...buildNewRound(progression.rounds, state.settings.pomodoroMinutes, todayKey),
     taskIds: unassignedTodayTaskIds,
   };
 
   return {
-    rounds: [...progression.rounds, recoveryRound],
+    rounds: [
+      ...state.rounds.filter((round) => round.plannedDate !== todayKey),
+      ...progression.rounds,
+      recoveryRound,
+    ],
     tasks: state.tasks.map((task) =>
       unassignedTodayTaskIds.includes(task.id) ? { ...task, roundId: recoveryRound.id } : task),
     nextRoundId: recoveryRound.id,

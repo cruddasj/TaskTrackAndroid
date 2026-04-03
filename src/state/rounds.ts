@@ -83,21 +83,24 @@ export const sortRoundsChronologically = (rounds: Round[]): Round[] =>
 export const buildNewRound = (
   rounds: Round[],
   pomodoroMinutes: number,
+  plannedDate: string,
   options?: { title?: string; taskIds?: string[] },
 ): Round => ({
   id: crypto.randomUUID(),
   title: options?.title?.trim() || getDefaultRoundTitle(rounds),
+  plannedDate,
   scheduledTime: '',
   durationMinutes: pomodoroMinutes,
   taskIds: options?.taskIds ?? [],
-  status: rounds.some((round) => round.status !== 'done') ? 'upcoming' : 'active',
+  status: rounds.some((round) => round.plannedDate === plannedDate && round.status !== 'done') ? 'upcoming' : 'active',
 });
 
 export const removeRoundAndNormalizeStatuses = (rounds: Round[], roundId: string): Round[] => {
+  const removedRound = rounds.find((round) => round.id === roundId);
   const remainingRounds = rounds.filter((round) => round.id !== roundId);
-  const firstOpenRoundId = remainingRounds.find((round) => round.status !== 'done')?.id;
+  const firstOpenRoundId = remainingRounds.find((round) => round.plannedDate === removedRound?.plannedDate && round.status !== 'done')?.id;
   return remainingRounds.map((round) =>
-    round.status === 'done'
+    round.status === 'done' || round.plannedDate !== removedRound?.plannedDate
       ? round
       : { ...round, status: round.id === firstOpenRoundId ? 'active' : 'upcoming' },
   );

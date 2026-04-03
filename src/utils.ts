@@ -4,9 +4,15 @@ export const formatTime = (seconds: number): string => {
   return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
 };
 
-export const getTodayKey = (): string => {
-  return new Date().toISOString().slice(0, 10);
+export const getDateKeyByOffset = (offsetDays = 0): string => {
+  const date = new Date();
+  date.setDate(date.getDate() + offsetDays);
+  return date.toISOString().slice(0, 10);
 };
+
+export const getTodayKey = (): string => getDateKeyByOffset(0);
+
+export const getTomorrowKey = (): string => getDateKeyByOffset(1);
 
 export const normalizeOptionalDescription = (description: string): string => {
   return description.trim();

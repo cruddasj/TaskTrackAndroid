@@ -35,7 +35,7 @@ const buildState = (overrides: Partial<AppState> = {}): AppState => ({
 describe('AppStateContext reducer round history behavior', () => {
   it('unassigns revived tasks from done rounds', () => {
     const initialState = buildState({
-      rounds: [{ id: 'round-done', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: ['task-1'], status: 'done' }],
+      rounds: [{ id: 'round-done', title: 'Round 1', plannedDate: '2026-03-31', scheduledTime: '', durationMinutes: 25, taskIds: ['task-1'], status: 'done' }],
       tasks: [{
         id: 'task-1',
         title: 'Write summary',
@@ -63,7 +63,7 @@ describe('AppStateContext reducer round history behavior', () => {
 
   it('stores the original done round id once in previousRoundIds when reviving', () => {
     const initialState = buildState({
-      rounds: [{ id: 'round-done', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: ['task-1'], status: 'done' }],
+      rounds: [{ id: 'round-done', title: 'Round 1', plannedDate: '2026-03-31', scheduledTime: '', durationMinutes: 25, taskIds: ['task-1'], status: 'done' }],
       tasks: [{
         id: 'task-1',
         title: 'Write summary',
@@ -86,8 +86,8 @@ describe('AppStateContext reducer round history behavior', () => {
   it('keeps carry history intact after reassignment and avoids duplicate history entries', () => {
     const initialState = buildState({
       rounds: [
-        { id: 'round-done', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: ['task-1'], status: 'done' },
-        { id: 'round-new', title: 'Round 2', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'active' },
+        { id: 'round-done', title: 'Round 1', plannedDate: '2026-03-31', scheduledTime: '', durationMinutes: 25, taskIds: ['task-1'], status: 'done' },
+        { id: 'round-new', title: 'Round 2', plannedDate: '2026-03-31', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'active' },
       ],
       tasks: [{
         id: 'task-1',

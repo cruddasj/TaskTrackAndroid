@@ -25,9 +25,9 @@ describe('getTodayRoundMetrics', () => {
   it('counts only completed rounds tied to today tasks', () => {
     const metrics = getTodayRoundMetrics(
       [
-        { id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'done' },
-        { id: 'r2', title: 'Round 2', scheduledTime: '', durationMinutes: 5, taskIds: [], status: 'done' },
-        { id: 'r3', title: 'Round 3', scheduledTime: '', durationMinutes: 25, taskIds: ['t3'], status: 'active' },
+        { id: 'r1', title: 'Round 1', plannedDate: '2026-03-31', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'done' },
+        { id: 'r2', title: 'Round 2', plannedDate: '2026-03-31', scheduledTime: '', durationMinutes: 5, taskIds: [], status: 'done' },
+        { id: 'r3', title: 'Round 3', plannedDate: '2026-03-31', scheduledTime: '', durationMinutes: 25, taskIds: ['t3'], status: 'active' },
       ],
       [
         { id: 't1', title: 'Task 1', description: '', category: 'General', estimateMinutes: 25, status: 'done', plannedDate: '2026-03-31' },
@@ -41,8 +41,8 @@ describe('getTodayRoundMetrics', () => {
   it('counts completed rounds that only have carried-over today tasks in history', () => {
     const metrics = getTodayRoundMetrics(
       [
-        { id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'done' },
-        { id: 'r2', title: 'Round 2', scheduledTime: '', durationMinutes: 25, taskIds: ['t1', 't2'], status: 'done' },
+        { id: 'r1', title: 'Round 1', plannedDate: '2026-03-31', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'done' },
+        { id: 'r2', title: 'Round 2', plannedDate: '2026-03-31', scheduledTime: '', durationMinutes: 25, taskIds: ['t1', 't2'], status: 'done' },
       ],
       [
         {
