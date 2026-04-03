@@ -211,6 +211,7 @@ export const SettingsScreen = () => {
               variant="outlined"
               color="secondary"
               startIcon={<DownloadRounded />}
+              sx={{ width: { xs: '100%', sm: 'fit-content' }, alignSelf: { xs: 'stretch', sm: 'flex-start' } }}
               onClick={() => {
                 loadDemoData();
                 showSuccessMessage('Demo data loaded.');
