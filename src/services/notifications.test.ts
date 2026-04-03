@@ -81,7 +81,7 @@ describe('notifications service', () => {
     }));
     expect(payload.notifications).toHaveLength(1);
     expect(payload.notifications[0]).toEqual(expect.objectContaining({
-      id: 424242,
+      id: 42,
       channelId: 'round-finish-bell-v2',
       title: 'Done',
       body: 'Body',
@@ -158,7 +158,7 @@ describe('notifications service', () => {
 
     await clearScheduledPomodoroPhaseEndNotification();
 
-    expect(cancelMock).toHaveBeenCalledWith({ notifications: [{ id: 424242 }] });
+    expect(cancelMock).toHaveBeenCalledWith({ notifications: [{ id: 42 }] });
   });
 
   it('falls back to vibrate when haptics notification feedback fails', async () => {

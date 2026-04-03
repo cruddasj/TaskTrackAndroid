@@ -6,7 +6,7 @@ export type AlarmTone = 'bell' | 'chime' | 'digital';
 
 const ALARM_REPEAT_INTERVAL_MS = 2500;
 const ANDROID_CHANNEL_VERSION = 'v2';
-const POMODORO_PHASE_END_NOTIFICATION_ID = 424242;
+const POMODORO_PHASE_END_NOTIFICATION_ID = 42;
 
 
 const triggerCompletionHaptic = async (): Promise<void> => {
@@ -146,7 +146,7 @@ export const dismissNativeAlarmNotifications = async (): Promise<void> => {
   if (!Capacitor.isNativePlatform()) return;
   const pending = await LocalNotifications.getPending();
   if (pending.notifications.length > 0) {
-    await LocalNotifications.cancel({ notifications: pending.notifications.map(({ id }) => ({ id })) });
+    await LocalNotifications.cancel({ notifications: pending.notifications.map(({ id }) => ({ id: Number(id) })) });
   }
   await LocalNotifications.removeAllDeliveredNotifications();
 };
