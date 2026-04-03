@@ -186,7 +186,14 @@ export const FocusScreen = () => {
         </Stack>
 
         {state.pomodoro.phase === 'work' ? (
-          <Card sx={{ width: '100%', maxWidth: 780, maxHeight: { xs: 220, md: 280 }, overflow: 'hidden' }}>
+          <Card
+            sx={{
+              width: '100%',
+              maxWidth: 780,
+              maxHeight: { xs: 'min(36dvh, 320px)', md: 280 },
+              overflow: 'hidden',
+            }}
+          >
             <CardContent>
               <Stack spacing={1} sx={{ maxHeight: '100%', overflowY: 'auto', pr: 0.5 }}>
                 <Typography variant="h6">Tasks in this session</Typography>
@@ -228,7 +235,22 @@ export const FocusScreen = () => {
           </Alert>
         )}
 
-        <Stack direction="row" spacing={3} alignItems="center" pb={2}>
+        <Stack
+          direction="row"
+          spacing={3}
+          alignItems="center"
+          sx={{
+            pb: { xs: 0, md: 2 },
+            pt: { xs: 1, md: 0 },
+            px: { xs: 1.5, md: 0 },
+            position: { xs: 'sticky', md: 'static' },
+            bottom: { xs: 'calc(env(safe-area-inset-bottom, 0px) + 8px)', md: 'auto' },
+            zIndex: 2,
+            bgcolor: { xs: 'rgba(10, 10, 10, 0.92)', md: 'transparent' },
+            borderRadius: { xs: 999, md: 0 },
+            backdropFilter: { xs: 'blur(6px)', md: 'none' },
+          }}
+        >
           <IconButton sx={{ bgcolor: '#1a1a1a' }} onClick={resetPomodoro}><ReplayRounded /></IconButton>
           <IconButton
             onClick={() =>
