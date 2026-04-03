@@ -148,7 +148,7 @@ export const FocusScreen = () => {
         sx={{
           width: '100%',
           maxWidth: 980,
-          pb: { xs: 2, md: 0 },
+          pb: { xs: 13, md: 0 },
         }}
       >
         <Box width="100%" display="flex" justifyContent="space-between" alignItems="center" px={{ xs: 0.5, md: 1 }}>
@@ -186,9 +186,18 @@ export const FocusScreen = () => {
         </Stack>
 
         {state.pomodoro.phase === 'work' ? (
-          <Card sx={{ width: '100%', maxWidth: 780, maxHeight: { xs: 220, md: 280 }, overflow: 'hidden' }}>
+          <Card
+            sx={{
+              width: '100%',
+              maxWidth: 780,
+              maxHeight: { xs: 240, md: 280 },
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
             <CardContent>
-              <Stack spacing={1} sx={{ maxHeight: '100%', overflowY: 'auto', pr: 0.5 }}>
+              <Stack spacing={1} sx={{ maxHeight: { xs: 180, md: 220 }, overflowY: 'auto', pr: 0.5 }}>
                 <Typography variant="h6">Tasks in this session</Typography>
                 {roundTasks.map((task) => (
                   <Stack key={task.id} direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
@@ -228,7 +237,27 @@ export const FocusScreen = () => {
           </Alert>
         )}
 
-        <Stack direction="row" spacing={3} alignItems="center" pb={2}>
+        <Stack
+          direction="row"
+          spacing={3}
+          alignItems="center"
+          pb={{ xs: 0, md: 2 }}
+          sx={{
+            position: { xs: 'fixed', md: 'static' },
+            left: { xs: '50%', md: 'auto' },
+            bottom: { xs: 'calc(env(safe-area-inset-bottom, 0px) + 12px)', md: 'auto' },
+            transform: { xs: 'translateX(-50%)', md: 'none' },
+            width: { xs: 'calc(100% - 24px)', md: 'auto' },
+            maxWidth: { xs: 420, md: 'none' },
+            justifyContent: 'center',
+            borderRadius: { xs: 999, md: 0 },
+            px: { xs: 2, md: 0 },
+            py: { xs: 1.25, md: 0 },
+            bgcolor: { xs: 'rgba(18, 18, 18, 0.94)', md: 'transparent' },
+            backdropFilter: { xs: 'blur(10px)', md: 'none' },
+            zIndex: 5,
+          }}
+        >
           <IconButton sx={{ bgcolor: '#1a1a1a' }} onClick={resetPomodoro}><ReplayRounded /></IconButton>
           <IconButton
             onClick={() =>
