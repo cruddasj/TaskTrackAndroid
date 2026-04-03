@@ -15,15 +15,19 @@ jest.mock('@capacitor/core', () => ({
   },
 }));
 
-jest.mock('@capacitor/haptics', () => ({
-  Haptics: {
-    notification: hapticsNotificationMock,
-    vibrate: hapticsVibrateMock,
-  },
-  NotificationType: {
-    Success: 'SUCCESS',
-  },
-}));
+jest.mock(
+  '@capacitor/haptics',
+  () => ({
+    Haptics: {
+      notification: hapticsNotificationMock,
+      vibrate: hapticsVibrateMock,
+    },
+    NotificationType: {
+      Success: 'SUCCESS',
+    },
+  }),
+  { virtual: true },
+);
 
 jest.mock('@capacitor/local-notifications', () => ({
   LocalNotifications: {

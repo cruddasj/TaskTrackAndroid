@@ -1,4 +1,5 @@
 const isNativePlatformMock = jest.fn();
+const getPlatformMock = jest.fn();
 const addListenerMock = jest.fn().mockResolvedValue({ remove: jest.fn() });
 const checkPermissionsMock = jest.fn();
 const requestPermissionsMock = jest.fn();
@@ -7,17 +8,22 @@ const registerMock = jest.fn();
 jest.mock('@capacitor/core', () => ({
   Capacitor: {
     isNativePlatform: isNativePlatformMock,
+    getPlatform: getPlatformMock,
   },
 }));
 
-jest.mock('@capacitor/push-notifications', () => ({
-  PushNotifications: {
-    addListener: addListenerMock,
-    checkPermissions: checkPermissionsMock,
-    requestPermissions: requestPermissionsMock,
-    register: registerMock,
-  },
-}));
+jest.mock(
+  '@capacitor/push-notifications',
+  () => ({
+    PushNotifications: {
+      addListener: addListenerMock,
+      checkPermissions: checkPermissionsMock,
+      requestPermissions: requestPermissionsMock,
+      register: registerMock,
+    },
+  }),
+  { virtual: true },
+);
 
 import { initializePushNotifications, resetPushNotificationsInitializationForTests } from './pushNotifications';
 
@@ -26,6 +32,7 @@ describe('push notification service', () => {
     resetPushNotificationsInitializationForTests();
     jest.clearAllMocks();
     isNativePlatformMock.mockReturnValue(true);
+    getPlatformMock.mockReturnValue('ios');
     checkPermissionsMock.mockResolvedValue({ receive: 'granted' });
     requestPermissionsMock.mockResolvedValue({ receive: 'granted' });
   });
@@ -52,6 +59,16 @@ describe('push notification service', () => {
 
     await initializePushNotifications();
 
+    expect(registerMock).not.toHaveBeenCalled();
+  });
+
+  it('does not register on android without firebase setup', async () => {
+    getPlatformMock.mockReturnValue('android');
+
+    await initializePushNotifications();
+
+    expect(addListenerMock).not.toHaveBeenCalled();
+    expect(checkPermissionsMock).not.toHaveBeenCalled();
     expect(registerMock).not.toHaveBeenCalled();
   });
 });
