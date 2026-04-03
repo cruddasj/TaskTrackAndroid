@@ -164,7 +164,7 @@ export const FocusScreen = () => {
         <Box width="100%" display="flex" justifyContent="space-between" alignItems="flex-start" px={0.5}>
           <Box>
             <Typography variant="h5" color="primary.main" fontWeight={800} lineHeight={1.2}>
-              Active Session
+              Active Round
             </Typography>
             <Typography variant="h5" color="primary.main" fontWeight={800} lineHeight={1.2}>
               {state.pomodoro.phase === 'work' ? `(${activeRound?.title ?? 'No round selected'})` : '(Break)'}
@@ -226,7 +226,7 @@ export const FocusScreen = () => {
             <Card sx={{ width: '100%', maxHeight: 220, overflow: 'hidden', alignSelf: 'stretch' }}>
               <CardContent sx={{ height: '100%' }}>
                 <Stack spacing={1} sx={{ maxHeight: '100%', overflowY: 'auto', pr: 0.5 }}>
-                  <Typography variant="h6">Tasks in this session</Typography>
+                  <Typography variant="h6">Tasks in this round</Typography>
                   {roundTasks.map((task) => (
                     <Stack key={task.id} direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
                       <Typography>{task.title}</Typography>
@@ -247,7 +247,7 @@ export const FocusScreen = () => {
                       </Button>
                     </Stack>
                   ))}
-                  {roundTasks.length === 0 && <Typography color="text.secondary">No tasks assigned to this session yet.</Typography>}
+                  {roundTasks.length === 0 && <Typography color="text.secondary">No tasks assigned to this round yet.</Typography>}
                 </Stack>
               </CardContent>
             </Card>
@@ -262,14 +262,14 @@ export const FocusScreen = () => {
                 '& .MuiAlert-message': { width: '100%', textAlign: 'center' },
               }}
             >
-              Break in progress. Tasks are hidden until your next focus session starts.
+              Break in progress. Tasks are hidden until your next round starts.
             </Alert>
           )}
         </Stack>
       </Stack>
 
       <Dialog open={sessionReviewOpen} onClose={() => setSessionReviewOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Session complete: confirm unfinished tasks</DialogTitle>
+        <DialogTitle>Round complete: confirm unfinished tasks</DialogTitle>
         <DialogContent>
           <Typography color="text.secondary" mb={2}>
             Mark anything you completed. Tasks left unfinished will move into your next focus round automatically.

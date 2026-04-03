@@ -51,7 +51,7 @@ export const AppShell = () => {
               size="small"
               onClick={() => navigate('/focus')}
             >
-              {state.pomodoro.isRunning ? 'Active session' : 'Timer'} {formatTime(state.pomodoro.remainingSeconds)}
+              {state.pomodoro.isRunning ? 'Active round' : 'Timer'} {formatTime(state.pomodoro.remainingSeconds)}
             </Button>
           )}
         </Stack>

@@ -254,7 +254,7 @@ export const SettingsScreen = () => {
               inputProps={{ min: 1 }}
               value={shortBreakMinutes}
               onChange={(event) => setShortBreakMinutesInput(event.target.value)}
-              helperText="Break after each focus session."
+              helperText="Break after each round."
             />
             <TextField
               label="Long break minutes"
@@ -262,10 +262,10 @@ export const SettingsScreen = () => {
               inputProps={{ min: 1 }}
               value={longBreakMinutes}
               onChange={(event) => setLongBreakMinutesInput(event.target.value)}
-              helperText="Long reset break after several sessions."
+              helperText="Long reset break after several rounds."
             />
             <TextField
-              label="Sessions before long break"
+              label="Rounds before long break"
               type="number"
               inputProps={{ min: 2 }}
               value={sessionsBeforeLongBreak}
@@ -295,7 +295,7 @@ export const SettingsScreen = () => {
               helperText="Controls in-app alarm loudness from 0 (mute) to 100 (max). Native notification volume still follows your device volume."
             />
             <TextField
-              label="Alarm repeats per session end"
+              label="Alarm repeats when a round ends"
               type="number"
               inputProps={{ min: 1, max: 10 }}
               value={alarmRepeatCount}

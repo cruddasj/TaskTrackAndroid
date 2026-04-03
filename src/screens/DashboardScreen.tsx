@@ -112,7 +112,7 @@ export const DashboardScreen = () => {
           </Typography>
           {allTodaysTasksDone ? (
             <Typography color="text.secondary" mb={2}>
-              Great job. You finished every planned task for today, so your focus session can end here.
+              Great job. You finished every planned task for today, so you can stop for today.
             </Typography>
           ) : currentRoundTasks.length > 0 ? (
             <>
@@ -135,7 +135,7 @@ export const DashboardScreen = () => {
                 {state.pomodoro.phase !== 'work'
                   ? 'You are currently on a break. Round planning resumes after your break ends.'
                   : hasTodayTasks
-                  ? 'Assign tasks to this round before starting your next active session.'
+                  ? 'Assign tasks to this round before starting your next round.'
                   : 'Add tasks to Today\'s Tasks first, then assign them into a round.'}
               </Typography>
               {state.pomodoro.phase === 'work' && (
