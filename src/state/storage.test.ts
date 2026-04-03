@@ -1,4 +1,4 @@
-import { createDemoState, loadState, saveState, seedState } from './storage';
+import { clearStoredState, createDemoState, loadState, saveState, seedState } from './storage';
 import { getTodayKey } from '../utils';
 
 describe('storage', () => {
@@ -33,6 +33,15 @@ describe('storage', () => {
     expect(loadState().settings.alarmRepeatCount).toBe(5);
     expect(loadState().settings.sessionReviewGraceSeconds).toBe(90);
     expect(loadState().settings.showFirstTimeGuidance).toBe(false);
+  });
+
+  it('clears persisted app state from localStorage', () => {
+    saveState(seedState);
+    expect(localStorage.getItem('tasktrack.state.v2')).not.toBeNull();
+
+    clearStoredState();
+
+    expect(localStorage.getItem('tasktrack.state.v2')).toBeNull();
   });
 
   it('normalizes invalid alarm repeat counts to defaults and caps oversized values', () => {

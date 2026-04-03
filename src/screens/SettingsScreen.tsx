@@ -26,6 +26,7 @@ export const SettingsScreen = () => {
     setShowFirstTimeGuidance,
     loadDemoData,
     importState,
+    clearAllData,
     showSuccessMessage,
   } = useAppState();
   const [name, setName] = useState(state.userName);
@@ -40,6 +41,7 @@ export const SettingsScreen = () => {
   const [categoryPendingDelete, setCategoryPendingDelete] = useState<string | null>(null);
   const [backupPassword, setBackupPassword] = useState('');
   const [importError, setImportError] = useState<string | null>(null);
+  const [confirmDataClearOpen, setConfirmDataClearOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const needsName = !state.userName.trim();
@@ -218,6 +220,26 @@ export const SettingsScreen = () => {
               }}
             >
               Load demo data
+            </Button>
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent>
+          <Stack spacing={2}>
+            <Typography variant="h5">Clear app data</Typography>
+            <Alert severity="success" icon={<InfoOutlined fontSize="inherit" />} sx={guidanceAlertSx}>
+              This permanently removes your tasks, rounds, timer state, and settings from this device.
+            </Alert>
+            <Button
+              variant="outlined"
+              color="error"
+              startIcon={<DeleteOutlineRounded />}
+              sx={{ width: { xs: '100%', sm: 'fit-content' }, alignSelf: { xs: 'stretch', sm: 'flex-start' } }}
+              onClick={() => setConfirmDataClearOpen(true)}
+            >
+              Clear all app data
             </Button>
           </Stack>
         </CardContent>
@@ -441,6 +463,30 @@ export const SettingsScreen = () => {
             }}
           >
             Delete category
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={confirmDataClearOpen} onClose={() => setConfirmDataClearOpen(false)} fullWidth maxWidth="xs">
+        <DialogTitle>Clear all app data?</DialogTitle>
+        <DialogContent>
+          <Typography color="text.secondary">
+            This will delete all local tasks, rounds, history, and custom settings. This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmDataClearOpen(false)}>Cancel</Button>
+          <Button
+            color="error"
+            variant="contained"
+            onClick={() => {
+              clearAllData();
+              setConfirmDataClearOpen(false);
+              setName('');
+              showSuccessMessage('All app data cleared.');
+            }}
+          >
+            Clear data
           </Button>
         </DialogActions>
       </Dialog>

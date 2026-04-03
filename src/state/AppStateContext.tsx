@@ -12,7 +12,7 @@ import { initializePushNotifications } from '../services/pushNotifications';
 import { AppState, PomodoroState, Round, Task, TaskBankItem } from '../types';
 import { buildNewRound, getDefaultRoundTitle, isRoundCompleted, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
 import { applyWorkPhaseRoundAdvance, getNextPomodoroPhase } from './pomodoroTransition';
-import { createDemoState, loadState, saveState } from './storage';
+import { clearStoredState, createDemoState, loadState, saveState, seedState } from './storage';
 import { getAssignmentRoundUpdate, getRevivedTaskRoundUpdate } from './taskRoundHistory';
 import { getTodayKey } from '../utils';
 
@@ -524,6 +524,7 @@ interface AppStateContextValue {
   setShowFirstTimeGuidance: (enabled: boolean) => void;
   loadDemoData: () => void;
   importState: (nextState: AppState) => void;
+  clearAllData: () => void;
   startPomodoro: (taskId: string, roundId?: string, minutes?: number) => void;
   pausePomodoro: () => void;
   completePomodoro: () => void;
@@ -667,6 +668,16 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
     setSuccessMessage(null);
   };
 
+  const clearAllData = () => {
+    stopAlarmRef.current?.();
+    stopAlarmRef.current = null;
+    setAlarmActive(false);
+    clearScheduledPomodoroPhaseEndNotification().catch(() => undefined);
+    dismissNativeAlarmNotifications().catch(() => undefined);
+    clearStoredState();
+    dispatch({ type: 'IMPORT_STATE', payload: { state: seedState } });
+  };
+
   const value = useMemo<AppStateContextValue>(
     () => ({
       state,
@@ -708,6 +719,7 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
       setShowFirstTimeGuidance: (enabled) => dispatch({ type: 'SET_SHOW_FIRST_TIME_GUIDANCE', payload: { enabled } }),
       loadDemoData: () => dispatch({ type: 'LOAD_DEMO_DATA' }),
       importState: (nextState) => dispatch({ type: 'IMPORT_STATE', payload: { state: nextState } }),
+      clearAllData,
       startPomodoro: (taskId, roundId, minutes) => dispatch({ type: 'START_POMODORO', payload: { taskId, roundId, minutes } }),
       pausePomodoro: () => dispatch({ type: 'PAUSE_POMODORO' }),
       completePomodoro: () => dispatch({ type: 'COMPLETE_POMODORO' }),

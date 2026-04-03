@@ -275,4 +275,8 @@ export const saveState = (state: AppState): void => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 };
 
+export const clearStoredState = (): void => {
+  localStorage.removeItem(STORAGE_KEY);
+};
+
 export const seedState = defaultState;
