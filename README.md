@@ -7,7 +7,7 @@ TaskTrack is a Pomodoro-driven task planner designed for daily execution. You ca
 - Guides users through onboarding, then provides a focused Pomodoro workflow for planning tasks, grouping them into rounds, and tracking completion progress from the dashboard.
 - Supports a reusable **Task Bank** plus **Today's Tasks**, including duplicate prevention, quick-add actions, and recurring-task suggestions based on either interval rules (every X days) or weekday rules (for example, Sundays, with overdue catch-up suggestions if missed in the previous week).
 - Includes round management and assignment flows (auto-grouping by category, manual assignment, unassigned-task visibility, reordering, deletion recovery) with mobile-friendly controls and beginner-focused guidance copy.
-- Runs full work/break timer cycles with configurable durations, alarm tone/repeat settings, local persistence, and recent activity insights/history used for recurring suggestions.
+- Runs full work/break timer cycles with configurable durations, alarm tone/volume/repeat settings, local persistence, and recent activity insights/history used for recurring suggestions.
 
 ## Tech stack
 
@@ -49,6 +49,8 @@ The app schedules native local notifications with sound references in the format
 - `res://raw/alarm_bell`
 - `res://raw/alarm_chime`
 - `res://raw/alarm_digital`
+- `res://raw/alarm_gentle`
+- `res://raw/alarm_pulse`
 
 If you want custom sounds, add corresponding files under `android/app/src/main/res/raw/`.
 

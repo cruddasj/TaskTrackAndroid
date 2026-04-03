@@ -15,11 +15,12 @@ describe('storage', () => {
     expect(loaded.taskBank).toEqual([]);
   });
 
-  it('saves and loads state with alarm repeat count', () => {
+  it('saves and loads state with alarm repeat count and volume', () => {
     const updated = {
       ...seedState,
       settings: {
         ...seedState.settings,
+        alarmVolume: 45,
         alarmRepeatCount: 5,
         sessionReviewGraceSeconds: 90,
         showFirstTimeGuidance: false,
@@ -28,6 +29,7 @@ describe('storage', () => {
 
     saveState(updated);
 
+    expect(loadState().settings.alarmVolume).toBe(45);
     expect(loadState().settings.alarmRepeatCount).toBe(5);
     expect(loadState().settings.sessionReviewGraceSeconds).toBe(90);
     expect(loadState().settings.showFirstTimeGuidance).toBe(false);
@@ -55,6 +57,30 @@ describe('storage', () => {
     );
 
     expect(loadState().settings.alarmRepeatCount).toBe(10);
+  });
+
+  it('normalizes invalid alarm volumes to defaults and caps oversized values', () => {
+    localStorage.setItem(
+      'tasktrack.state.v2',
+      JSON.stringify({
+        settings: {
+          alarmVolume: -1,
+        },
+      }),
+    );
+
+    expect(loadState().settings.alarmVolume).toBe(0);
+
+    localStorage.setItem(
+      'tasktrack.state.v2',
+      JSON.stringify({
+        settings: {
+          alarmVolume: 333,
+        },
+      }),
+    );
+
+    expect(loadState().settings.alarmVolume).toBe(100);
   });
 
   it('defaults first-time guidance setting to true when missing from persisted state', () => {
