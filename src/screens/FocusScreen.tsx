@@ -12,13 +12,13 @@ import { getCarryForwardRound, getVisibleRoundId } from '../state/rounds';
 import { areAllTasksCompletedForDate } from '../state/tasks';
 import type { Task } from '../types';
 import { formatTime, getTodayKey } from '../utils';
-import { canMarkTaskDone } from './focusTaskToggle';
+import { canMarkTaskDone, getMarkTaskDoneBlockedMessage } from './focusTaskToggle';
 import { getWorkSkipOutcome } from './focusSkip';
 
 export const FocusScreen = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { state, startPomodoro, pausePomodoro, skipPomodoro, resetPomodoro, toggleTask, assignTasksToRound, createRound } = useAppState();
+  const { state, startPomodoro, pausePomodoro, skipPomodoro, resetPomodoro, toggleTask, assignTasksToRound, createRound, showSuccessMessage } = useAppState();
   const [sessionReviewOpen, setSessionReviewOpen] = useState(false);
   const [confirmedDoneIds, setConfirmedDoneIds] = useState<string[]>([]);
   const requestedRoundId = searchParams.get('roundId') ?? undefined;
@@ -53,6 +53,7 @@ export const FocusScreen = () => {
 
   const allTodaysTasksDone = areAllTasksCompletedForDate(state.tasks, getTodayKey());
   const canMarkTasksDone = canMarkTaskDone(state.pomodoro.isRunning);
+  const blockedTaskDoneMessage = getMarkTaskDoneBlockedMessage(state.pomodoro.isRunning);
 
   useEffect(() => {
     if (state.pomodoro.remainingSeconds !== 0 || state.pomodoro.isRunning || unfinishedRoundTasks.length === 0) return;
@@ -196,9 +197,13 @@ export const FocusScreen = () => {
                     <Button
                       size="small"
                       startIcon={task.status === 'done' ? <CheckCircleRounded color="success" /> : <CircleOutlined color="disabled" />}
-                      disabled={!canMarkTasksDone}
                       onClick={() => {
-                        if (!canMarkTasksDone) return;
+                        if (!canMarkTasksDone) {
+                          if (blockedTaskDoneMessage) {
+                            showSuccessMessage(blockedTaskDoneMessage);
+                          }
+                          return;
+                        }
                         toggleTask(task.id);
                       }}
                     >
@@ -206,9 +211,6 @@ export const FocusScreen = () => {
                     </Button>
                   </Stack>
                 ))}
-                {!canMarkTasksDone && roundTasks.length > 0 && (
-                  <Typography color="text.secondary">Start or resume the timer to mark tasks as done.</Typography>
-                )}
                 {roundTasks.length === 0 && <Typography color="text.secondary">No tasks assigned to this session yet.</Typography>}
               </Stack>
             </CardContent>
