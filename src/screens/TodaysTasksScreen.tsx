@@ -316,11 +316,11 @@ export const TodaysTasksScreen = () => {
         <DialogContent>
           {recurringSuggestions.length === 0 ? (
             <Alert severity="success" sx={{ bgcolor: 'rgba(145,247,142,0.12)', color: 'primary.main', '& .MuiAlert-icon': { color: 'primary.main' } }}>
-              No recurring tasks are due right now.
+              No suggestions are due now. Suggestions only appear when today matches a task&apos;s repeat weekdays or day interval from Task Bank.
             </Alert>
           ) : (
             <Stack spacing={1.5} mt={0.5}>
-              <Typography color="text.secondary">Add these due recurring tasks to Today&apos;s Tasks?</Typography>
+              <Typography color="text.secondary">Due suggestions are preselected by default. Tap “Add suggested tasks” to create Today&apos;s Tasks for the checked items.</Typography>
               {recurringSuggestions.map((task) => (
                 <Stack key={task.id} direction="row" alignItems="flex-start" spacing={1}>
                   <Checkbox
