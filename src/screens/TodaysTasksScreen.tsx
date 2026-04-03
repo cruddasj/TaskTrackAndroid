@@ -332,7 +332,7 @@ export const TodaysTasksScreen = () => {
                   <Box>
                     <Typography fontWeight={700}>{task.title}</Typography>
                     <Typography color="text.secondary" variant="body2">{task.description}</Typography>
-                    <Typography color="text.secondary" variant="body2">{task.category} • {task.estimateMinutes} min • {formatRecurrenceLabel(task)}</Typography>
+                    <Typography color="text.secondary" variant="body2">{task.category} ({task.estimateMinutes} min - {formatRecurrenceLabel(task)})</Typography>
                   </Box>
                 </Stack>
               ))}
