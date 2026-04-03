@@ -181,7 +181,7 @@ export const TaskBankScreen = () => {
                     return;
                   }
                   addTaskFromBank(task.id);
-                  showSuccessMessage('Task added to today\'s tasks.');
+    showSuccessMessage('Task added to Today\'s Tasks.');
                 }}
                 startIcon={<PlaylistAddRounded />}
               >
@@ -195,7 +195,7 @@ export const TaskBankScreen = () => {
       {state.taskBank.length === 0 && (
         <Card>
           <CardContent>
-            <Typography color="text.secondary">No task bank items yet.</Typography>
+            <Typography color="text.secondary">No Task Bank items yet.</Typography>
           </CardContent>
         </Card>
       )}
@@ -220,7 +220,7 @@ export const TaskBankScreen = () => {
       </IconButton>
 
       <Dialog open={open} onClose={closeDialog} fullWidth>
-        <DialogTitle>{editingTaskBankId ? 'Edit task bank item' : 'Add task bank item'}</DialogTitle>
+        <DialogTitle>{editingTaskBankId ? 'Edit Task Bank item' : 'Add Task Bank item'}</DialogTitle>
         <DialogContent>
           <TextField margin="dense" label="Task title" fullWidth value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} />
           <TextField
@@ -256,7 +256,7 @@ export const TaskBankScreen = () => {
           >
             <MenuItem value="none">No repeat</MenuItem>
             <MenuItem value="days">Every X days</MenuItem>
-            <MenuItem value="weekdays">Specific weekdays</MenuItem>
+            <MenuItem value="weekdays">Specific days of the week</MenuItem>
           </TextField>
           {form.recurrenceMode === 'days' && (
             <TextField

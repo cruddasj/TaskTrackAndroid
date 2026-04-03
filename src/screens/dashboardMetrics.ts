@@ -33,7 +33,7 @@ export const getDashboardHeroCopy = (options: {
   if (allTodaysTasksDone) {
     return {
       overline: 'All tasks complete',
-      title: 'All today tasks are complete',
+      title: 'All today\'s tasks are complete',
     };
   }
 

@@ -164,7 +164,7 @@ export const FocusScreen = () => {
         <Box width="100%" display="flex" justifyContent="space-between" alignItems="flex-start" px={0.5}>
           <Box>
             <Typography variant="h5" color="primary.main" fontWeight={800} lineHeight={1.2}>
-              Active Round
+              Active round
             </Typography>
             <Typography variant="h5" color="primary.main" fontWeight={800} lineHeight={1.2}>
               {state.pomodoro.phase === 'work' ? `(${activeRound?.title ?? 'No round selected'})` : '(Break)'}
@@ -198,7 +198,7 @@ export const FocusScreen = () => {
               </svg>
               <Stack position="absolute" sx={{ inset: 0, px: 3.5 }} alignItems="center" justifyContent="center">
                 <Typography variant="h1" fontSize={76} fontWeight={800}>{formatTime(state.pomodoro.remainingSeconds)}</Typography>
-                <Typography color="text.secondary" letterSpacing="0.1em">REMAINING</Typography>
+                <Typography color="text.secondary" letterSpacing="0.1em">Remaining</Typography>
               </Stack>
             </Box>
 

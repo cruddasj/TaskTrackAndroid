@@ -83,7 +83,7 @@ describe('getDashboardHeroCopy', () => {
 
     expect(heroCopy).toEqual({
       overline: 'All tasks complete',
-      title: 'All today tasks are complete',
+      title: 'All today\'s tasks are complete',
     });
   });
 

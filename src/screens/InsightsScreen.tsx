@@ -8,10 +8,10 @@ export const InsightsScreen = () => {
 
   return (
     <Stack spacing={2}>
-      <Typography variant="h3">Round Analytics</Typography>
+      <Typography variant="h3">Round analytics</Typography>
       <Card>
         <CardContent>
-          <Typography color="text.secondary">Daily Velocity</Typography>
+          <Typography color="text.secondary">Daily velocity</Typography>
           <Typography variant="h3" color="primary.main">{progress}%</Typography>
           <LinearProgress variant="determinate" value={progress} sx={{ mt: 1, height: 8, borderRadius: 99 }} />
         </CardContent>
