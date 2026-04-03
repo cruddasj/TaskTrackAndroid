@@ -21,6 +21,7 @@ export const SettingsScreen = () => {
     setSessionsBeforeLongBreak,
     setSessionReviewGraceSeconds,
     setAlarmTone,
+    setAlarmVolume,
     setAlarmRepeatCount,
     setShowFirstTimeGuidance,
     loadDemoData,
@@ -34,6 +35,7 @@ export const SettingsScreen = () => {
   const [longBreakMinutes, setLongBreakMinutesInput] = useState(state.settings.longBreakMinutes.toString());
   const [sessionsBeforeLongBreak, setSessionsBeforeLongBreakInput] = useState(state.settings.sessionsBeforeLongBreak.toString());
   const [sessionReviewGraceSeconds, setSessionReviewGraceSecondsInput] = useState(state.settings.sessionReviewGraceSeconds.toString());
+  const [alarmVolume, setAlarmVolumeInput] = useState(state.settings.alarmVolume.toString());
   const [alarmRepeatCount, setAlarmRepeatCountInput] = useState(state.settings.alarmRepeatCount.toString());
   const [categoryPendingDelete, setCategoryPendingDelete] = useState<string | null>(null);
   const [backupPassword, setBackupPassword] = useState('');
@@ -273,14 +275,24 @@ export const SettingsScreen = () => {
               label="Alarm tone"
               value={state.settings.alarmTone}
               onChange={(event) => {
-                setAlarmTone(event.target.value as 'bell' | 'chime' | 'digital');
+                setAlarmTone(event.target.value as 'bell' | 'chime' | 'digital' | 'gentle' | 'pulse');
                 showSuccessMessage('Alarm tone updated.');
               }}
             >
               <MenuItem value="bell">Bell</MenuItem>
               <MenuItem value="chime">Chime</MenuItem>
               <MenuItem value="digital">Digital</MenuItem>
+              <MenuItem value="gentle">Gentle</MenuItem>
+              <MenuItem value="pulse">Pulse</MenuItem>
             </TextField>
+            <TextField
+              label="Alarm volume (%)"
+              type="number"
+              inputProps={{ min: 0, max: 100 }}
+              value={alarmVolume}
+              onChange={(event) => setAlarmVolumeInput(event.target.value)}
+              helperText="Controls in-app alarm loudness from 0 (mute) to 100 (max). Native notification volume still follows your device volume."
+            />
             <TextField
               label="Alarm repeats per session end"
               type="number"
@@ -301,7 +313,7 @@ export const SettingsScreen = () => {
               variant="outlined"
               color="secondary"
               startIcon={<VolumeUpRounded />}
-              onClick={() => playAlarmTone(state.settings.alarmTone)}
+              onClick={() => playAlarmTone(state.settings.alarmTone, state.settings.alarmVolume / 100)}
             >
               Preview alarm tone
             </Button>
@@ -313,20 +325,23 @@ export const SettingsScreen = () => {
                 const longBreak = Number(longBreakMinutes);
                 const sessions = Number(sessionsBeforeLongBreak);
                 const reviewTimeout = Number(sessionReviewGraceSeconds);
+                const volume = Number(alarmVolume);
                 const repeats = Number(alarmRepeatCount);
-                if (!Number.isFinite(minutes) || !Number.isFinite(shortBreak) || !Number.isFinite(longBreak) || !Number.isFinite(sessions) || !Number.isFinite(reviewTimeout) || !Number.isFinite(repeats)) return;
-                if (minutes <= 0 || shortBreak <= 0 || longBreak <= 0 || sessions <= 1 || reviewTimeout < 5 || reviewTimeout > 600 || repeats < 1 || repeats > 10) return;
+                if (!Number.isFinite(minutes) || !Number.isFinite(shortBreak) || !Number.isFinite(longBreak) || !Number.isFinite(sessions) || !Number.isFinite(reviewTimeout) || !Number.isFinite(volume) || !Number.isFinite(repeats)) return;
+                if (minutes <= 0 || shortBreak <= 0 || longBreak <= 0 || sessions <= 1 || reviewTimeout < 5 || reviewTimeout > 600 || volume < 0 || volume > 100 || repeats < 1 || repeats > 10) return;
                 setPomodoroMinutes(minutes);
                 setShortBreakMinutes(shortBreak);
                 setLongBreakMinutes(longBreak);
                 setSessionsBeforeLongBreak(sessions);
                 setSessionReviewGraceSeconds(reviewTimeout);
+                setAlarmVolume(volume);
                 setAlarmRepeatCount(repeats);
                 setPomodoroMinutesInput(String(Math.round(minutes)));
                 setShortBreakMinutesInput(String(Math.round(shortBreak)));
                 setLongBreakMinutesInput(String(Math.round(longBreak)));
                 setSessionsBeforeLongBreakInput(String(Math.round(sessions)));
                 setSessionReviewGraceSecondsInput(String(Math.max(5, Math.min(600, Math.round(reviewTimeout)))));
+                setAlarmVolumeInput(String(Math.max(0, Math.min(100, Math.round(volume)))));
                 setAlarmRepeatCountInput(String(Math.max(1, Math.min(10, Math.round(repeats)))));
                 showSuccessMessage('Timer settings saved.');
               }}
@@ -336,6 +351,7 @@ export const SettingsScreen = () => {
                 !longBreakMinutes.trim() ||
                 !sessionsBeforeLongBreak.trim() ||
                 !sessionReviewGraceSeconds.trim() ||
+                !alarmVolume.trim() ||
                 !alarmRepeatCount.trim() ||
                 Number(pomodoroMinutes) <= 0 ||
                 Number(shortBreakMinutes) <= 0 ||
@@ -343,6 +359,8 @@ export const SettingsScreen = () => {
                 Number(sessionsBeforeLongBreak) <= 1 ||
                 Number(sessionReviewGraceSeconds) < 5 ||
                 Number(sessionReviewGraceSeconds) > 600 ||
+                Number(alarmVolume) < 0 ||
+                Number(alarmVolume) > 100 ||
                 Number(alarmRepeatCount) < 1 ||
                 Number(alarmRepeatCount) > 10
               }

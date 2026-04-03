@@ -6,6 +6,7 @@ const DEFAULT_SHORT_BREAK_MINUTES = 5;
 const DEFAULT_LONG_BREAK_MINUTES = 15;
 const DEFAULT_SESSIONS_BEFORE_LONG_BREAK = 4;
 const DEFAULT_SESSION_REVIEW_GRACE_SECONDS = 60;
+const DEFAULT_ALARM_VOLUME = 70;
 const DEFAULT_ALARM_REPEAT_COUNT = 3;
 const DEFAULT_SHOW_FIRST_TIME_GUIDANCE = true;
 const getDateKey = (daysAgo = 0): string => {
@@ -42,6 +43,7 @@ const defaultState: AppState = {
     sessionsBeforeLongBreak: DEFAULT_SESSIONS_BEFORE_LONG_BREAK,
     sessionReviewGraceSeconds: DEFAULT_SESSION_REVIEW_GRACE_SECONDS,
     alarmTone: 'bell',
+    alarmVolume: DEFAULT_ALARM_VOLUME,
     alarmRepeatCount: DEFAULT_ALARM_REPEAT_COUNT,
     showFirstTimeGuidance: DEFAULT_SHOW_FIRST_TIME_GUIDANCE,
   },
@@ -241,6 +243,10 @@ export const normalizeState = (raw: Partial<AppState>): AppState => {
           ? Math.min(600, Math.round(raw.settings.sessionReviewGraceSeconds))
           : DEFAULT_SESSION_REVIEW_GRACE_SECONDS,
       alarmTone: raw.settings?.alarmTone ?? 'bell',
+      alarmVolume:
+        typeof raw.settings?.alarmVolume === 'number'
+          ? Math.max(0, Math.min(100, Math.round(raw.settings.alarmVolume)))
+          : DEFAULT_ALARM_VOLUME,
       alarmRepeatCount:
         raw.settings?.alarmRepeatCount && raw.settings.alarmRepeatCount > 0
           ? Math.min(10, Math.round(raw.settings.alarmRepeatCount))

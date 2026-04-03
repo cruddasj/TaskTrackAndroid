@@ -46,6 +46,7 @@ type Action =
   | { type: 'SET_SESSIONS_BEFORE_LONG_BREAK'; payload: { sessions: number } }
   | { type: 'SET_SESSION_REVIEW_GRACE_SECONDS'; payload: { seconds: number } }
   | { type: 'SET_ALARM_TONE'; payload: { tone: AlarmTone } }
+  | { type: 'SET_ALARM_VOLUME'; payload: { volume: number } }
   | { type: 'SET_ALARM_REPEAT_COUNT'; payload: { count: number } }
   | { type: 'SET_SHOW_FIRST_TIME_GUIDANCE'; payload: { enabled: boolean } }
   | { type: 'LOAD_DEMO_DATA' }
@@ -373,6 +374,14 @@ const reducer = (state: AppState, action: Action): AppState => {
           alarmTone: action.payload.tone,
         },
       };
+    case 'SET_ALARM_VOLUME':
+      return {
+        ...state,
+        settings: {
+          ...state.settings,
+          alarmVolume: Math.max(0, Math.min(100, Math.round(action.payload.volume))),
+        },
+      };
     case 'SET_ALARM_REPEAT_COUNT':
       return {
         ...state,
@@ -510,6 +519,7 @@ interface AppStateContextValue {
   setSessionsBeforeLongBreak: (sessions: number) => void;
   setSessionReviewGraceSeconds: (seconds: number) => void;
   setAlarmTone: (tone: AlarmTone) => void;
+  setAlarmVolume: (volume: number) => void;
   setAlarmRepeatCount: (count: number) => void;
   setShowFirstTimeGuidance: (enabled: boolean) => void;
   loadDemoData: () => void;
@@ -624,7 +634,7 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
 
     stopAlarmRef.current?.();
     setAlarmActive(true);
-    stopAlarmRef.current = startRepeatingAlarm(state.settings.alarmTone, state.settings.alarmRepeatCount, () => {
+    stopAlarmRef.current = startRepeatingAlarm(state.settings.alarmTone, state.settings.alarmRepeatCount, state.settings.alarmVolume / 100, () => {
       stopAlarmRef.current = null;
       setAlarmActive(false);
     });
@@ -640,7 +650,7 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
     }
 
     dispatch({ type: 'ADVANCE_POMODORO_PHASE' });
-  }, [state, state.pomodoro.remainingSeconds, state.pomodoro.isRunning, state.pomodoro.phase, state.settings.alarmTone, state.settings.alarmRepeatCount]);
+  }, [state, state.pomodoro.remainingSeconds, state.pomodoro.isRunning, state.pomodoro.phase, state.settings.alarmTone, state.settings.alarmRepeatCount, state.settings.alarmVolume]);
 
   const dismissAlarm = () => {
     stopAlarmRef.current?.();
@@ -693,6 +703,7 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
       setSessionsBeforeLongBreak: (sessions) => dispatch({ type: 'SET_SESSIONS_BEFORE_LONG_BREAK', payload: { sessions } }),
       setSessionReviewGraceSeconds: (seconds) => dispatch({ type: 'SET_SESSION_REVIEW_GRACE_SECONDS', payload: { seconds } }),
       setAlarmTone: (tone) => dispatch({ type: 'SET_ALARM_TONE', payload: { tone } }),
+      setAlarmVolume: (volume) => dispatch({ type: 'SET_ALARM_VOLUME', payload: { volume } }),
       setAlarmRepeatCount: (count) => dispatch({ type: 'SET_ALARM_REPEAT_COUNT', payload: { count } }),
       setShowFirstTimeGuidance: (enabled) => dispatch({ type: 'SET_SHOW_FIRST_TIME_GUIDANCE', payload: { enabled } }),
       loadDemoData: () => dispatch({ type: 'LOAD_DEMO_DATA' }),

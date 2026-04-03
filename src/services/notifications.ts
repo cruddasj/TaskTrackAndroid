@@ -2,7 +2,7 @@ import { Capacitor } from '@capacitor/core';
 import { Haptics, NotificationType } from '@capacitor/haptics';
 import { LocalNotifications } from '@capacitor/local-notifications';
 
-export type AlarmTone = 'bell' | 'chime' | 'digital';
+export type AlarmTone = 'bell' | 'chime' | 'digital' | 'gentle' | 'pulse';
 
 const ALARM_REPEAT_INTERVAL_MS = 2500;
 const ANDROID_CHANNEL_VERSION = 'v2';
@@ -151,8 +151,9 @@ export const dismissNativeAlarmNotifications = async (): Promise<void> => {
   await LocalNotifications.removeAllDeliveredNotifications();
 };
 
-const playTonePattern = (context: AudioContext, tone: AlarmTone): void => {
+const playTonePattern = (context: AudioContext, tone: AlarmTone, volume: number): void => {
   const now = context.currentTime;
+  const safeVolume = Math.max(0, Math.min(1, volume));
 
   const beep = (start: number, freq: number, type: OscillatorType = 'triangle', length = 0.32) => {
     const oscillator = context.createOscillator();
@@ -160,7 +161,7 @@ const playTonePattern = (context: AudioContext, tone: AlarmTone): void => {
     oscillator.type = type;
     oscillator.frequency.value = freq;
     gain.gain.setValueAtTime(0.0001, start);
-    gain.gain.exponentialRampToValueAtTime(0.25, start + 0.02);
+    gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, safeVolume * 0.25), start + 0.02);
     gain.gain.exponentialRampToValueAtTime(0.0001, start + Math.max(0.08, length - 0.02));
     oscillator.connect(gain);
     gain.connect(context.destination);
@@ -182,21 +183,37 @@ const playTonePattern = (context: AudioContext, tone: AlarmTone): void => {
     return;
   }
 
+  if (tone === 'gentle') {
+    beep(now, 440, 'sine', 0.4);
+    beep(now + 0.24, 554, 'sine', 0.4);
+    beep(now + 0.48, 659, 'sine', 0.45);
+    return;
+  }
+
+  if (tone === 'pulse') {
+    beep(now, 420, 'square', 0.1);
+    beep(now + 0.14, 480, 'square', 0.1);
+    beep(now + 0.28, 540, 'square', 0.1);
+    beep(now + 0.42, 600, 'square', 0.14);
+    return;
+  }
+
   beep(now, 784);
   beep(now + 0.18, 988);
   beep(now + 0.36, 1318);
 };
 
-export const playAlarmTone = (tone: AlarmTone): void => {
+export const playAlarmTone = (tone: AlarmTone, volume = 0.7): void => {
   const context = new AudioContext();
-  playTonePattern(context, tone);
+  playTonePattern(context, tone, volume);
 };
 
 export const startRepeatingAlarm = (
   tone: AlarmTone,
   repeatCount: number,
+  volume: number,
   onComplete?: () => void,
-  player: (nextTone: AlarmTone) => void = playAlarmTone,
+  player: (nextTone: AlarmTone, nextVolume: number) => void = playAlarmTone,
 ): (() => void) => {
   const safeRepeatCount = Math.max(1, Math.round(repeatCount));
   let playCount = 0;
@@ -210,7 +227,7 @@ export const startRepeatingAlarm = (
 
   const playOnce = () => {
     playCount += 1;
-    player(tone);
+    player(tone, volume);
     void triggerCompletionHaptic();
     if (playCount >= safeRepeatCount) {
       finish();

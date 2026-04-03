@@ -55,7 +55,8 @@ export interface AppState {
     longBreakMinutes: number;
     sessionsBeforeLongBreak: number;
     sessionReviewGraceSeconds: number;
-    alarmTone: 'bell' | 'chime' | 'digital';
+    alarmTone: 'bell' | 'chime' | 'digital' | 'gentle' | 'pulse';
+    alarmVolume: number;
     alarmRepeatCount: number;
     showFirstTimeGuidance: boolean;
   };

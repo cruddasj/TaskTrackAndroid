@@ -170,7 +170,7 @@ describe('notifications service', () => {
     const player = jest.fn();
     hapticsNotificationMock.mockRejectedValueOnce(new Error('unsupported'));
 
-    startRepeatingAlarm('bell', 1, undefined, player);
+    startRepeatingAlarm('bell', 1, 0.7, undefined, player);
     await Promise.resolve();
 
     expect(hapticsNotificationMock).toHaveBeenCalledTimes(1);
@@ -203,8 +203,10 @@ describe('notifications service', () => {
     playAlarmTone('bell');
     playAlarmTone('chime');
     playAlarmTone('digital');
+    playAlarmTone('gentle');
+    playAlarmTone('pulse');
 
-    expect(AudioContextMock).toHaveBeenCalledTimes(3);
+    expect(AudioContextMock).toHaveBeenCalledTimes(5);
   });
 
   it('plays a finite number of repeats and calls completion callback once', () => {
@@ -212,7 +214,7 @@ describe('notifications service', () => {
     const player = jest.fn();
     const onComplete = jest.fn();
 
-    startRepeatingAlarm('chime', 3, onComplete, player);
+    startRepeatingAlarm('chime', 3, 0.5, onComplete, player);
     jest.advanceTimersByTime(5000);
 
     expect(player).toHaveBeenCalledTimes(3);
@@ -225,7 +227,7 @@ describe('notifications service', () => {
     const player = jest.fn();
     const onComplete = jest.fn();
 
-    const stop = startRepeatingAlarm('digital', 4, onComplete, player);
+    const stop = startRepeatingAlarm('digital', 4, 0.8, onComplete, player);
     stop();
     jest.advanceTimersByTime(10000);
 
