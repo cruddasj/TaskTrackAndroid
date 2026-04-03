@@ -45,7 +45,7 @@ export const getDashboardHeroCopy = (options: {
   }
 
   return {
-    overline: 'Active focus session',
+    overline: 'Active round',
     title: currentRoundTaskCount > 0 ? 'Your current round tasks' : 'Ready to plan your current round?',
   };
 };
