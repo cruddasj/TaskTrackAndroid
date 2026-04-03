@@ -17,6 +17,12 @@ export const PlanningDayToggle = ({ value, onChange }: PlanningDayToggleProps) =
       if (nextValue) onChange(nextValue);
     }}
     aria-label="planning-day-toggle"
+    sx={{
+      '& .MuiToggleButton-root': {
+        px: 2.25,
+        py: 0.75,
+      },
+    }}
   >
     <ToggleButton value="today">Today</ToggleButton>
     <ToggleButton value="tomorrow">Tomorrow</ToggleButton>
