@@ -9,6 +9,7 @@ import { playAlarmTone } from '../services/notifications';
 import { useAppState } from '../state/AppStateContext';
 import { createBackupJson, importBackupJson } from '../state/backup';
 import { exportBackupFile } from '../services/backupExport';
+import { getAlphabeticalCategories } from './settingsCategories';
 
 export const SettingsScreen = () => {
   const {
@@ -52,6 +53,7 @@ export const SettingsScreen = () => {
   );
   const guidanceAlertSx = { bgcolor: 'rgba(145,247,142,0.12)', color: 'primary.main', '& .MuiAlert-icon': { color: 'primary.main' } };
   const hasBackupPassword = !!backupPassword.trim();
+  const alphabeticalCategories = useMemo(() => getAlphabeticalCategories(state.categories), [state.categories]);
 
   const handleExportBackup = async () => {
     const backupJson = await createBackupJson(state, backupPassword);
@@ -408,7 +410,7 @@ export const SettingsScreen = () => {
                 Use categories to group similar tasks (for example Work, Personal, or Errands) so planning, sorting, and review are easier throughout the app.
               </Alert>
             )}
-            {state.categories.map((category) => (
+            {alphabeticalCategories.map((category) => (
               <Stack key={category} direction="row" alignItems="center" justifyContent="space-between">
                 <Typography>{category}</Typography>
                 <IconButton
