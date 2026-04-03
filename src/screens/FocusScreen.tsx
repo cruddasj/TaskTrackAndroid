@@ -146,7 +146,6 @@ export const FocusScreen = () => {
         spacing={2}
         sx={{
           width: '100%',
-          maxWidth: 420,
           pb: 2,
         }}
       >
