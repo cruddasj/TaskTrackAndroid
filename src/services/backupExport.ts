@@ -1,4 +1,6 @@
 import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 
 export type BackupExportMethod = 'download' | 'share' | 'cancelled';
 
@@ -12,34 +14,44 @@ const downloadBackupFile = (backupJson: string, fileName: string): void => {
   URL.revokeObjectURL(url);
 };
 
-export const exportBackupFile = async (backupJson: string, fileName: string): Promise<BackupExportMethod> => {
-  const isAndroidNative = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android';
-  const hasNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
-
-  if (!isAndroidNative || !hasNativeShare) {
-    downloadBackupFile(backupJson, fileName);
-    return 'download';
-  }
-
-  const backupFile = new File([backupJson], fileName, { type: 'application/json' });
-  const canShareFiles = typeof navigator.canShare === 'function' && navigator.canShare({ files: [backupFile] });
-
-  if (!canShareFiles) {
-    downloadBackupFile(backupJson, fileName);
-    return 'download';
-  }
-
+const shareBackupFileOnAndroid = async (backupJson: string, fileName: string): Promise<BackupExportMethod> => {
   try {
-    await navigator.share({
-      files: [backupFile],
+    await Filesystem.writeFile({
+      path: fileName,
+      data: backupJson,
+      directory: Directory.Cache,
+      encoding: Encoding.UTF8,
+      recursive: true,
+    });
+
+    const backupUri = await Filesystem.getUri({
+      path: fileName,
+      directory: Directory.Cache,
+    });
+
+    await Share.share({
       title: 'TaskTrack backup',
       text: 'Choose where to save your TaskTrack backup file.',
+      url: backupUri.uri,
+      dialogTitle: 'Export backup',
     });
+
     return 'share';
   } catch (error) {
-    if (error instanceof DOMException && error.name === 'AbortError') {
+    if (error instanceof Error && /cancel/i.test(error.message)) {
       return 'cancelled';
     }
     throw error;
   }
+};
+
+export const exportBackupFile = async (backupJson: string, fileName: string): Promise<BackupExportMethod> => {
+  const isAndroidNative = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android';
+
+  if (!isAndroidNative) {
+    downloadBackupFile(backupJson, fileName);
+    return 'download';
+  }
+
+  return shareBackupFileOnAndroid(backupJson, fileName);
 };
