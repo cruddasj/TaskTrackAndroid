@@ -4,7 +4,7 @@ import PlayArrowRounded from '@mui/icons-material/PlayArrowRounded';
 import CircleOutlined from '@mui/icons-material/CircleOutlined';
 import ReplayRounded from '@mui/icons-material/ReplayRounded';
 import SkipNextRounded from '@mui/icons-material/SkipNextRounded';
-import { Alert, Box, Button, Card, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, Typography } from '@mui/material';
+import { Alert, Box, Button, Card, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Snackbar, Stack, Typography } from '@mui/material';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
@@ -18,7 +18,19 @@ import { getWorkSkipOutcome } from './focusSkip';
 export const FocusScreen = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { state, startPomodoro, pausePomodoro, skipPomodoro, resetPomodoro, toggleTask, assignTasksToRound, createRound, showSuccessMessage } = useAppState();
+  const {
+    state,
+    startPomodoro,
+    pausePomodoro,
+    skipPomodoro,
+    resetPomodoro,
+    toggleTask,
+    assignTasksToRound,
+    createRound,
+    showSuccessMessage,
+    successMessage,
+    clearSuccessMessage,
+  } = useAppState();
   const [sessionReviewOpen, setSessionReviewOpen] = useState(false);
   const [confirmedDoneIds, setConfirmedDoneIds] = useState<string[]>([]);
   const requestedRoundId = searchParams.get('roundId') ?? undefined;
@@ -288,6 +300,14 @@ export const FocusScreen = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      <Snackbar
+        open={!!successMessage}
+        autoHideDuration={2500}
+        onClose={clearSuccessMessage}
+        message={successMessage}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        sx={{ mb: 'calc(24px + env(safe-area-inset-bottom, 0px))' }}
+      />
     </Box>
   );
 };
