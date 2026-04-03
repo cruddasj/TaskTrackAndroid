@@ -3,6 +3,13 @@ name: Release Android APK
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+
+concurrency:
+  group: release-android-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: write
@@ -26,6 +33,7 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+          cache: gradle
 
       - name: Install dependencies
         run: npm ci
