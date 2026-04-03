@@ -4,8 +4,7 @@ import InsightsOutlined from '@mui/icons-material/InsightsOutlined';
 import ChevronRightRounded from '@mui/icons-material/ChevronRightRounded';
 import KeyboardArrowLeftRounded from '@mui/icons-material/KeyboardArrowLeftRounded';
 import KeyboardArrowRightRounded from '@mui/icons-material/KeyboardArrowRightRounded';
-import ExpandMoreRounded from '@mui/icons-material/ExpandMoreRounded';
-import ExpandLessRounded from '@mui/icons-material/ExpandLessRounded';
+import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
 import { Box, Button, ButtonBase, Card, CardContent, IconButton, LinearProgress, Stack, Typography } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -84,7 +83,7 @@ export const DashboardScreen = () => {
 
   const interactiveStatCardSx = {
     flex: 1,
-    minWidth: { xs: 'calc(50% - 8px)', sm: 0 },
+    minWidth: { xs: '100%', sm: 0 },
     cursor: 'pointer',
     border: '1px solid',
     borderColor: 'divider',
@@ -274,11 +273,7 @@ export const DashboardScreen = () => {
                 <Typography color="text.secondary">Review completed task history by day.</Typography>
               </Box>
             </Stack>
-            {isInsightsExpanded ? (
-              <ExpandLessRounded color="primary" />
-            ) : (
-              <ExpandMoreRounded color="primary" />
-            )}
+            <UnfoldMoreIcon color="primary" sx={{ alignSelf: 'flex-start' }} />
           </ButtonBase>
 
           {isInsightsExpanded && (
