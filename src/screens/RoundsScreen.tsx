@@ -148,7 +148,7 @@ export const RoundsScreen = () => {
   const confirmDeleteRound = () => {
     if (!roundPendingDelete) return;
     deleteRound(roundPendingDelete.id);
-    showSuccessMessage(`${roundPendingDelete.title} deleted. Tasks moved to Unassigned today tasks.`);
+    showSuccessMessage(`${roundPendingDelete.title} deleted. Tasks moved to Unassigned tasks for today.`);
     setRoundPendingDelete(null);
   };
 
@@ -183,7 +183,7 @@ export const RoundsScreen = () => {
       )}
       <Card sx={{ bgcolor: '#1a1a1a' }}>
         <CardContent>
-          <Typography variant="h6" mb={1}>Unassigned today tasks</Typography>
+          <Typography variant="h6" mb={1}>Unassigned tasks for today</Typography>
           <Stack spacing={1}>
             {unassignedTasks.map((task) => (
               <Stack direction="row" spacing={1} alignItems="center" key={task.id}>
@@ -209,7 +209,7 @@ export const RoundsScreen = () => {
               <Typography color="text.secondary">
                 {todaysTasks.length === 0
                   ? 'No tasks in Today\'s Tasks yet.'
-                  : 'All today tasks are assigned to a round.'}
+                  : 'All today\'s tasks are assigned to a round.'}
               </Typography>
             )}
           </Stack>
@@ -338,7 +338,7 @@ export const RoundsScreen = () => {
         <DialogContent>
           <Stack mt={0.5}>
             {todaysTasks.length === 0 && (
-              <Typography color="text.secondary">No tasks in today&apos;s list yet. Add from Task Bank first.</Typography>
+              <Typography color="text.secondary">No tasks in Today&apos;s Tasks yet. Add one from Task Bank first.</Typography>
             )}
             {availableTasks.length === 0 && todaysTasks.length > 0 && (
               <Typography color="text.secondary">All tasks are currently assigned to other rounds.</Typography>
@@ -362,7 +362,7 @@ export const RoundsScreen = () => {
           </Stack>
           {totalSelectedMinutes > state.settings.pomodoroMinutes && (
             <Alert severity="warning" sx={{ mt: 1 }}>
-              Total selected time is {totalSelectedMinutes} min, which is above your recommended pomodoro length of{' '}
+              Total selected time is {totalSelectedMinutes} min, which is above your recommended Pomodoro length of{' '}
               {state.settings.pomodoroMinutes} min.
             </Alert>
           )}
@@ -452,7 +452,7 @@ export const RoundsScreen = () => {
         <DialogContent>
           <Typography>
             Are you sure you want to delete &quot;{roundPendingDelete?.title}&quot;? Tasks in this round will move to
-            Unassigned today tasks.
+            Unassigned tasks for today.
           </Typography>
         </DialogContent>
         <DialogActions>

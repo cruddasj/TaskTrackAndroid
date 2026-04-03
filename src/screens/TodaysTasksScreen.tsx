@@ -191,7 +191,7 @@ export const TodaysTasksScreen = () => {
                   size="small"
                   onClick={() => {
                     toggleTask(task.id);
-                    showSuccessMessage(task.status === 'done' ? 'Task marked as todo.' : 'Task marked as done.');
+                    showSuccessMessage(task.status === 'done' ? 'Task marked as to-do.' : 'Task marked as done.');
                   }}
                   aria-label={`toggle-${task.id}`}
                   sx={taskActionButtonSx}
@@ -211,7 +211,7 @@ export const TodaysTasksScreen = () => {
               sx={{ mt: 1.25, alignSelf: 'flex-start' }}
               onClick={() => {
                 toggleTask(task.id);
-                showSuccessMessage(task.status === 'done' ? 'Task marked as todo.' : 'Task marked as done.');
+                showSuccessMessage(task.status === 'done' ? 'Task marked as to-do.' : 'Task marked as done.');
               }}
             >
               {task.status === 'done' ? 'Mark as to-do' : 'Mark as done'}
@@ -248,7 +248,7 @@ export const TodaysTasksScreen = () => {
       </IconButton>
 
       <Dialog open={open} onClose={closeDialog} fullWidth>
-        <DialogTitle>{editingTaskId ? 'Edit today task' : "Add today's task"}</DialogTitle>
+        <DialogTitle>{editingTaskId ? 'Edit today\'s task' : 'Add today\'s task'}</DialogTitle>
         <DialogContent>
           <TextField
             margin="dense"

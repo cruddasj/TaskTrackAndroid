@@ -126,7 +126,7 @@ export const DashboardScreen = () => {
                 ))}
               </Stack>
               <Button size="large" variant="contained" startIcon={<PlayArrowRounded />} onClick={() => navigate('/focus')}>
-                Open Timer
+                Open timer
               </Button>
             </>
           ) : (
@@ -145,7 +145,7 @@ export const DashboardScreen = () => {
                   startIcon={<PlayArrowRounded />}
                   onClick={() => navigate(hasTodayTasks ? '/rounds' : '/tasks-today')}
                 >
-                  {hasTodayTasks ? 'Assign tasks' : 'Add today\'s tasks'}
+                  {hasTodayTasks ? 'Assign tasks' : 'Add to Today\'s Tasks'}
                 </Button>
               )}
             </>
@@ -159,7 +159,7 @@ export const DashboardScreen = () => {
               Next round
             </Typography>
             <Typography variant="h5" mt={1} mb={2}>
-              {nextRoundTasks.length > 0 ? 'Planned next round tasks' : 'No tasks planned for the next round yet'}
+              {nextRoundTasks.length > 0 ? 'Planned tasks for the next round' : 'No tasks planned for the next round yet'}
             </Typography>
             {nextRoundTasks.length > 0 ? (
               <Stack spacing={1.25}>
