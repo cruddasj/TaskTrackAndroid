@@ -16,6 +16,17 @@ export const getDateKeyWithOffset = (daysFromToday: number): string => {
 
 export const getTomorrowKey = (): string => getDateKeyWithOffset(1);
 
+export const formatRemainingEndTime = (remainingSeconds: number, now: Date = new Date()): string => {
+  const clampedSeconds = Math.max(remainingSeconds, 0);
+  const endTime = new Date(now.getTime() + clampedSeconds * 1000);
+
+  return new Intl.DateTimeFormat('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(endTime);
+};
+
 export const normalizeOptionalDescription = (description: string): string => {
   return description.trim();
 };
