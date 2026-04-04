@@ -12,6 +12,7 @@ import { initializePushNotifications } from '../services/pushNotifications';
 import { AppState, PomodoroState, Round, Task, TaskBankItem } from '../types';
 import { buildNewRound, getDefaultRoundTitle, getRoundPlannedDate, isRoundCompleted, moveTaskInRound, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
 import { applyWorkPhaseRoundAdvance, getNextPomodoroPhase } from './pomodoroTransition';
+import { getRemainingSecondsFromClock } from './pomodoroClock';
 import { clearStoredState, createDemoState, loadState, saveState, seedState } from './storage';
 import { getAssignmentRoundUpdate, getRevivedTaskRoundUpdate } from './taskRoundHistory';
 import { getTodayKey } from '../utils';
@@ -452,7 +453,15 @@ const reducer = (state: AppState, action: Action): AppState => {
       return { ...state, pomodoro };
     }
     case 'PAUSE_POMODORO':
-      return { ...state, pomodoro: { ...state.pomodoro, isRunning: false, startedAt: null } };
+      return {
+        ...state,
+        pomodoro: {
+          ...state.pomodoro,
+          isRunning: false,
+          startedAt: null,
+          remainingSeconds: getRemainingSecondsFromClock(state.pomodoro.startedAt, state.pomodoro.totalSeconds),
+        },
+      };
     case 'COMPLETE_POMODORO':
       return {
         ...state,
@@ -485,7 +494,10 @@ const reducer = (state: AppState, action: Action): AppState => {
       if (!state.pomodoro.isRunning || state.pomodoro.remainingSeconds <= 0) return state;
       return {
         ...state,
-        pomodoro: { ...state.pomodoro, remainingSeconds: Math.max(0, state.pomodoro.remainingSeconds - 1) },
+        pomodoro: {
+          ...state.pomodoro,
+          remainingSeconds: getRemainingSecondsFromClock(state.pomodoro.startedAt, state.pomodoro.totalSeconds),
+        },
       };
     }
     case 'RESET_POMODORO': {
