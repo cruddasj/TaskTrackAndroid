@@ -218,7 +218,7 @@ export const DashboardScreen = () => {
           </CardContent>
         </Card>
         <Card
-          onClick={() => navigate('/tasks')}
+          onClick={() => navigate('/rounds')}
           sx={interactiveStatCardSx}
         >
           <CardContent>
