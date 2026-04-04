@@ -19,6 +19,7 @@ import { getRemainingSecondsFromClock } from './pomodoroClock';
 import { clearStoredState, createDemoState, loadState, saveState, seedState } from './storage';
 import { getAssignmentRoundUpdate, getRevivedTaskRoundUpdate } from './taskRoundHistory';
 import { getTodayKey } from '../utils';
+import { getActiveNotificationRemainingSeconds } from './activeNotification';
 
 type NewTask = Omit<Task, 'id' | 'status' | 'plannedDate' | 'completedAt'> & { plannedDate?: string };
 type EditableTask = Omit<Task, 'status'>;
@@ -702,6 +703,7 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
   const [state, dispatch] = useReducer(reducer, undefined, loadState);
   const [alarmActive, setAlarmActive] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isAppActive, setIsAppActive] = useState(() => document.visibilityState !== 'hidden');
   const stopAlarmRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
@@ -717,12 +719,24 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
     const syncClock = () => dispatch({ type: 'SYNC_POMODORO_CLOCK', payload: { now: Date.now() } });
     syncClock();
 
-    const onFocus = () => syncClock();
+    const onFocus = () => {
+      setIsAppActive(true);
+      syncClock();
+    };
+    const onBlur = () => {
+      setIsAppActive(false);
+    };
+    const onVisibilityChange = () => {
+      setIsAppActive(document.visibilityState !== 'hidden');
+    };
     window.addEventListener('focus', onFocus);
+    window.addEventListener('blur', onBlur);
+    document.addEventListener('visibilitychange', onVisibilityChange);
 
     let isMounted = true;
     let removeNativeListener: (() => void) | undefined;
     CapacitorApp.addListener('appStateChange', ({ isActive }) => {
+      setIsAppActive(isActive);
       if (isActive) {
         syncClock();
       }
@@ -741,6 +755,8 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
     return () => {
       isMounted = false;
       window.removeEventListener('focus', onFocus);
+      window.removeEventListener('blur', onBlur);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
       removeNativeListener?.();
     };
   }, []);
@@ -765,8 +781,9 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
       return;
     }
 
-    syncActivePomodoroNotification(state.pomodoro.phase, state.pomodoro.remainingSeconds).catch(() => undefined);
-  }, [state.pomodoro.isRunning, state.pomodoro.remainingSeconds, state.pomodoro.phase]);
+    const notificationRemainingSeconds = getActiveNotificationRemainingSeconds(state.pomodoro.remainingSeconds, isAppActive);
+    syncActivePomodoroNotification(state.pomodoro.phase, notificationRemainingSeconds).catch(() => undefined);
+  }, [isAppActive, state.pomodoro.isRunning, state.pomodoro.remainingSeconds, state.pomodoro.phase]);
 
   useEffect(() => {
     const titleByPhase: Record<PomodoroState['phase'], string> = {
