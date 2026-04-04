@@ -153,6 +153,24 @@ describe('suggestRecurringTaskBankItems', () => {
     expect(suggestions).toEqual([]);
   });
 
+  it('does not suggest recurring tasks when manually completed outside the app within recurrence window', () => {
+    const taskBank = [
+      {
+        id: 'tb1',
+        title: 'Make bread',
+        description: 'Bake sourdough',
+        category: 'Household chores',
+        estimateMinutes: 25,
+        recurrenceDays: 7,
+        lastCompletedOn: '2026-03-27',
+      },
+    ];
+
+    const suggestions = suggestRecurringTaskBankItems(taskBank, [], todayKey, new Date('2026-03-29T12:00:00.000Z'));
+
+    expect(suggestions).toEqual([]);
+  });
+
   it('suggests recurring tasks once recurrence threshold is reached', () => {
     const taskBank = [
       { id: 'tb1', title: 'Make bread', description: 'Bake sourdough', category: 'Household chores', estimateMinutes: 25, recurrenceDays: 7 },
