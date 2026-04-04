@@ -22,6 +22,11 @@ const buildState = (overrides: Partial<AppState> = {}): AppState => ({
     showFirstTimeGuidance: true,
   },
   pomodoro: {
+    sessionId: 101,
+    startTime: 1,
+    duration: 1500000,
+    remaining: null,
+    isPaused: false,
     isRunning: true,
     startedAt: 1,
     remainingSeconds: 10,
@@ -45,6 +50,11 @@ describe('pomodoro transition helpers', () => {
     const nextPhase = getNextPomodoroPhase(
       buildState({
         pomodoro: {
+          sessionId: 102,
+          startTime: 1,
+          duration: 300000,
+          remaining: null,
+          isPaused: false,
           isRunning: true,
           startedAt: 1,
           remainingSeconds: 0,
@@ -83,6 +93,11 @@ describe('pomodoro transition helpers', () => {
           { id: 'r2', title: 'Round 2', scheduledTime: '10:00', durationMinutes: 25, taskIds: ['t2'], status: 'active' },
         ],
         pomodoro: {
+          sessionId: 103,
+          startTime: 1,
+          duration: 300000,
+          remaining: null,
+          isPaused: false,
           isRunning: true,
           startedAt: 1,
           remainingSeconds: 0,

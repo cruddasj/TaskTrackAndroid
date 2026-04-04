@@ -75,20 +75,21 @@ describe('notifications service', () => {
   it('schedules a native phase-end notification', async () => {
     isNativePlatformMock.mockReturnValue(true);
 
-    await schedulePomodoroPhaseEndNotification('Done', 'Body', 'bell', 75);
+    await schedulePomodoroPhaseEndNotification(1234, 1_700_000_000_000, 75_000, 'Done', 'Body', 'bell');
 
     expect(scheduleMock).toHaveBeenCalledTimes(1);
     const payload = scheduleMock.mock.calls[0][0];
     expect(createChannelMock).toHaveBeenCalledWith(expect.objectContaining({
-      id: 'round-finish-bell-v2',
-      vibration: true,
+      id: 'pomodoro',
+      importance: 4,
     }));
     expect(payload.notifications).toHaveLength(1);
     expect(payload.notifications[0]).toEqual(expect.objectContaining({
-      id: 42,
-      channelId: 'round-finish-bell-v2',
+      id: 1234,
+      channelId: 'pomodoro',
       title: 'Done',
       body: 'Body',
+      schedule: expect.objectContaining({ allowWhileIdle: true }),
     }));
   });
 
@@ -98,7 +99,7 @@ describe('notifications service', () => {
     checkPermissionsMock.mockResolvedValue({ display: 'denied' });
     requestPermissionsMock.mockResolvedValue({ display: 'denied' });
 
-    await schedulePomodoroPhaseEndNotification('Done', 'Body', 'bell', 30);
+    await schedulePomodoroPhaseEndNotification(1234, Date.now(), 30_000, 'Done', 'Body', 'bell');
 
     expect(scheduleMock).not.toHaveBeenCalled();
   });
@@ -160,7 +161,7 @@ describe('notifications service', () => {
   it('clears the scheduled native phase-end notification', async () => {
     isNativePlatformMock.mockReturnValue(true);
 
-    await clearScheduledPomodoroPhaseEndNotification();
+    await clearScheduledPomodoroPhaseEndNotification(42);
 
     expect(cancelMock).toHaveBeenCalledWith({ notifications: [{ id: 42 }] });
   });

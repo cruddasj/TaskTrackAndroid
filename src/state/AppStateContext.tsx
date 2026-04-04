@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { App as CapacitorApp } from '@capacitor/app';
 import {
   AlarmTone,
   clearScheduledPomodoroPhaseEndNotification,
@@ -59,9 +60,11 @@ type Action =
   | { type: 'COMPLETE_POMODORO' }
   | { type: 'SKIP_POMODORO' }
   | { type: 'ABANDON_ACTIVE_ROUND' }
-  | { type: 'TICK' }
+  | { type: 'SYNC_POMODORO_CLOCK'; payload?: { now?: number } }
   | { type: 'RESET_POMODORO' }
   | { type: 'ADVANCE_POMODORO_PHASE' };
+
+const createPomodoroSessionId = (): number => Math.floor(Date.now() % 2147483000);
 
 const getPhaseSeconds = (state: AppState, phase: PomodoroState['phase']): number => {
   if (phase === 'short_break') return state.settings.shortBreakMinutes * 60;
@@ -105,7 +108,10 @@ const reducer = (state: AppState, action: Action): AppState => {
           ...state.pomodoro,
           activeTaskId,
           isRunning: activeTaskId ? state.pomodoro.isRunning : false,
+          isPaused: activeTaskId ? state.pomodoro.isPaused : false,
+          startTime: activeTaskId ? state.pomodoro.startTime : null,
           startedAt: activeTaskId ? state.pomodoro.startedAt : null,
+          remaining: activeTaskId ? state.pomodoro.remaining : null,
         },
       };
     }
@@ -222,6 +228,11 @@ const reducer = (state: AppState, action: Action): AppState => {
         tasks: unassignTasksFromRound(state.tasks, state.pomodoro.activeRoundId),
         pomodoro: {
           ...state.pomodoro,
+          sessionId: null,
+          startTime: null,
+          duration: totalSeconds * 1000,
+          remaining: null,
+          isPaused: false,
           isRunning: false,
           startedAt: null,
           phase: 'work',
@@ -463,34 +474,68 @@ const reducer = (state: AppState, action: Action): AppState => {
     case 'START_POMODORO': {
       const phase = state.pomodoro.phase;
       const totalSeconds = action.payload.minutes ? action.payload.minutes * 60 : getPhaseSeconds(state, phase);
+      const isResume = state.pomodoro.isPaused && typeof state.pomodoro.remaining === 'number' && state.pomodoro.remaining > 0;
+      const duration = isResume ? (state.pomodoro.remaining ?? totalSeconds * 1000) : totalSeconds * 1000;
+      const now = Date.now();
       const pomodoro: PomodoroState = {
         ...state.pomodoro,
+        sessionId: state.pomodoro.sessionId ?? createPomodoroSessionId(),
+        startTime: now,
+        duration,
+        remaining: null,
+        isPaused: false,
         isRunning: true,
-        startedAt: Date.now(),
-        totalSeconds,
-        remainingSeconds:
-          state.pomodoro.activeTaskId === action.payload.taskId && state.pomodoro.phase === 'work'
-            ? state.pomodoro.remainingSeconds
-            : totalSeconds,
+        startedAt: now,
+        totalSeconds: Math.ceil(duration / 1000),
+        remainingSeconds: Math.ceil(duration / 1000),
         activeTaskId: phase === 'work' ? action.payload.taskId : state.pomodoro.activeTaskId,
         activeRoundId: phase === 'work' ? action.payload.roundId : state.pomodoro.activeRoundId,
       };
       return { ...state, pomodoro };
     }
-    case 'PAUSE_POMODORO':
+    case 'PAUSE_POMODORO': {
+      const remaining = state.pomodoro.startTime
+        ? Math.max(0, state.pomodoro.startTime + state.pomodoro.duration - Date.now())
+        : state.pomodoro.remaining ?? state.pomodoro.remainingSeconds * 1000;
+      if (remaining <= 0) {
+        return {
+          ...state,
+          pomodoro: {
+            ...state.pomodoro,
+            isPaused: false,
+            isRunning: false,
+            startTime: null,
+            startedAt: null,
+            remaining: 0,
+            remainingSeconds: 0,
+          },
+        };
+      }
       return {
         ...state,
         pomodoro: {
           ...state.pomodoro,
+          isPaused: true,
           isRunning: false,
+          startTime: null,
           startedAt: null,
-          remainingSeconds: getRemainingSecondsFromClock(state.pomodoro.startedAt, state.pomodoro.totalSeconds),
+          remaining,
+          remainingSeconds: Math.ceil(remaining / 1000),
         },
       };
+    }
     case 'COMPLETE_POMODORO':
       return {
         ...state,
-        pomodoro: { ...state.pomodoro, isRunning: false, startedAt: null, remainingSeconds: 0 },
+        pomodoro: {
+          ...state.pomodoro,
+          isPaused: false,
+          isRunning: false,
+          startTime: null,
+          startedAt: null,
+          remaining: 0,
+          remainingSeconds: 0,
+        },
       };
     case 'SKIP_POMODORO': {
       const completedWorkSessions =
@@ -498,6 +543,7 @@ const reducer = (state: AppState, action: Action): AppState => {
       const nextPhase = getNextPomodoroPhase(state);
       const totalSeconds = getPhaseSeconds(state, nextPhase);
       const roundProgression = applyWorkPhaseRoundAdvance(state);
+      const now = Date.now();
 
       return {
         ...state,
@@ -505,23 +551,33 @@ const reducer = (state: AppState, action: Action): AppState => {
         tasks: roundProgression?.tasks ?? state.tasks,
         pomodoro: {
           ...state.pomodoro,
+          sessionId: createPomodoroSessionId(),
+          startTime: now,
+          duration: totalSeconds * 1000,
+          remaining: null,
+          isPaused: false,
           phase: nextPhase,
           completedWorkSessions,
           isRunning: true,
-          startedAt: Date.now(),
+          startedAt: now,
           totalSeconds,
           remainingSeconds: totalSeconds,
           activeRoundId: roundProgression ? roundProgression.nextRoundId : state.pomodoro.activeRoundId,
         },
       };
     }
-    case 'TICK': {
+    case 'SYNC_POMODORO_CLOCK': {
       if (!state.pomodoro.isRunning || state.pomodoro.remainingSeconds <= 0) return state;
+      const remainingSeconds = getRemainingSecondsFromClock(
+        state.pomodoro.startedAt,
+        state.pomodoro.totalSeconds,
+        action.payload?.now,
+      );
       return {
         ...state,
         pomodoro: {
           ...state.pomodoro,
-          remainingSeconds: getRemainingSecondsFromClock(state.pomodoro.startedAt, state.pomodoro.totalSeconds),
+          remainingSeconds,
         },
       };
     }
@@ -529,7 +585,18 @@ const reducer = (state: AppState, action: Action): AppState => {
       const totalSeconds = getPhaseSeconds(state, state.pomodoro.phase);
       return {
         ...state,
-        pomodoro: { ...state.pomodoro, isRunning: false, startedAt: null, totalSeconds, remainingSeconds: totalSeconds },
+        pomodoro: {
+          ...state.pomodoro,
+          sessionId: null,
+          startTime: null,
+          duration: totalSeconds * 1000,
+          remaining: null,
+          isPaused: false,
+          isRunning: false,
+          startedAt: null,
+          totalSeconds,
+          remainingSeconds: totalSeconds,
+        },
       };
     }
     case 'ADVANCE_POMODORO_PHASE': {
@@ -539,6 +606,7 @@ const reducer = (state: AppState, action: Action): AppState => {
       const nextPhase = getNextPomodoroPhase(state);
       const totalSeconds = getPhaseSeconds(state, nextPhase);
       const roundProgression = applyWorkPhaseRoundAdvance(state);
+      const now = Date.now();
 
       return {
         ...state,
@@ -546,10 +614,15 @@ const reducer = (state: AppState, action: Action): AppState => {
         tasks: roundProgression?.tasks ?? state.tasks,
         pomodoro: {
           ...state.pomodoro,
+          sessionId: createPomodoroSessionId(),
+          startTime: now,
+          duration: totalSeconds * 1000,
+          remaining: null,
+          isPaused: false,
           phase: nextPhase,
           completedWorkSessions,
           isRunning: true,
-          startedAt: Date.now(),
+          startedAt: now,
           totalSeconds,
           remainingSeconds: totalSeconds,
           activeRoundId: roundProgression ? roundProgression.nextRoundId : state.pomodoro.activeRoundId,
@@ -639,12 +712,44 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
   }, [state]);
 
   useEffect(() => {
-    if (!state.pomodoro.isRunning) return;
-    const timer = window.setInterval(() => {
-      dispatch({ type: 'TICK' });
-    }, 1000);
-    return () => window.clearInterval(timer);
-  }, [state.pomodoro.isRunning]);
+    const syncClock = () => dispatch({ type: 'SYNC_POMODORO_CLOCK', payload: { now: Date.now() } });
+    syncClock();
+
+    const onFocus = () => syncClock();
+    window.addEventListener('focus', onFocus);
+
+    let isMounted = true;
+    let removeNativeListener: (() => void) | undefined;
+    CapacitorApp.addListener('appStateChange', ({ isActive }) => {
+      if (isActive) {
+        syncClock();
+      }
+    })
+      .then((listener) => {
+        if (!isMounted) {
+          void listener.remove();
+          return;
+        }
+        removeNativeListener = () => {
+          void listener.remove();
+        };
+      })
+      .catch(() => undefined);
+
+    return () => {
+      isMounted = false;
+      window.removeEventListener('focus', onFocus);
+      removeNativeListener?.();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!state.pomodoro.isRunning || !state.pomodoro.startedAt || state.pomodoro.remainingSeconds <= 0) return;
+    const timeout = window.setTimeout(() => {
+      dispatch({ type: 'SYNC_POMODORO_CLOCK', payload: { now: Date.now() } });
+    }, state.pomodoro.remainingSeconds * 1000);
+    return () => window.clearTimeout(timeout);
+  }, [state.pomodoro.isRunning, state.pomodoro.startedAt, state.pomodoro.remainingSeconds]);
 
   useEffect(() => {
     const titleByPhase: Record<PomodoroState['phase'], string> = {
@@ -658,27 +763,25 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
       long_break: 'Great work. Start your next focus session.',
     };
 
-    if (!state.pomodoro.isRunning || !state.pomodoro.startedAt) {
-      clearScheduledPomodoroPhaseEndNotification().catch(() => undefined);
+    if (!state.pomodoro.isRunning || !state.pomodoro.startTime || state.pomodoro.duration <= 0 || !state.pomodoro.sessionId) {
+      clearScheduledPomodoroPhaseEndNotification(state.pomodoro.sessionId).catch(() => undefined);
       return;
     }
 
-    const secondsUntilPhaseEnd = Math.max(
-      1,
-      Math.ceil((state.pomodoro.startedAt + state.pomodoro.totalSeconds * 1000 - Date.now()) / 1000),
-    );
-
     schedulePomodoroPhaseEndNotification(
+      state.pomodoro.sessionId,
+      state.pomodoro.startTime,
+      state.pomodoro.duration,
       titleByPhase[state.pomodoro.phase],
       bodyByPhase[state.pomodoro.phase],
       state.settings.alarmTone,
-      secondsUntilPhaseEnd,
     ).catch(() => undefined);
   }, [
     state.pomodoro.isRunning,
-    state.pomodoro.startedAt,
+    state.pomodoro.sessionId,
+    state.pomodoro.startTime,
+    state.pomodoro.duration,
     state.pomodoro.phase,
-    state.pomodoro.totalSeconds,
     state.settings.alarmTone,
   ]);
 
@@ -702,7 +805,7 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
       state.settings.alarmTone,
       state.settings.alarmRepeatCount,
     ).catch(() => undefined);
-    clearScheduledPomodoroPhaseEndNotification().catch(() => undefined);
+    clearScheduledPomodoroPhaseEndNotification(state.pomodoro.sessionId).catch(() => undefined);
 
     stopAlarmRef.current?.();
     setAlarmActive(true);
@@ -739,15 +842,15 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
     setSuccessMessage(null);
   };
 
-  const clearAllData = () => {
+  const clearAllData = useCallback(() => {
     stopAlarmRef.current?.();
     stopAlarmRef.current = null;
     setAlarmActive(false);
-    clearScheduledPomodoroPhaseEndNotification().catch(() => undefined);
+    clearScheduledPomodoroPhaseEndNotification(state.pomodoro.sessionId).catch(() => undefined);
     dismissNativeAlarmNotifications().catch(() => undefined);
     clearStoredState();
     dispatch({ type: 'IMPORT_STATE', payload: { state: seedState } });
-  };
+  }, [state.pomodoro.sessionId]);
 
   const value = useMemo<AppStateContextValue>(
     () => ({
@@ -802,7 +905,7 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
       showSuccessMessage,
       clearSuccessMessage,
     }),
-    [state, alarmActive, successMessage],
+    [state, alarmActive, successMessage, clearAllData],
   );
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;

@@ -35,6 +35,11 @@ export interface Round {
 }
 
 export interface PomodoroState {
+  sessionId: number | null;
+  startTime: number | null;
+  duration: number;
+  remaining: number | null;
+  isPaused: boolean;
   isRunning: boolean;
   startedAt: number | null;
   remainingSeconds: number;
