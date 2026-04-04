@@ -4,7 +4,8 @@ import EditOutlined from '@mui/icons-material/EditOutlined';
 import PlaylistAddRounded from '@mui/icons-material/PlaylistAddRounded';
 import InfoOutlined from '@mui/icons-material/InfoOutlined';
 import SearchRounded from '@mui/icons-material/SearchRounded';
-import { Alert, Box, Button, Card, CardContent, Checkbox, Chip, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, InputAdornment, MenuItem, Stack, TextField, Typography } from '@mui/material';
+import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
+import { Alert, Box, Button, Card, CardContent, Checkbox, Chip, Collapse, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, InputAdornment, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 import { PlanningDay, PlanningDayToggle } from '../components/PlanningDayToggle';
 import { useAppState } from '../state/AppStateContext';
@@ -45,6 +46,7 @@ export const TaskBankScreen = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<'all' | string>('all');
   const [selectedRecurrenceFilter, setSelectedRecurrenceFilter] = useState<'all' | 'one-off' | 'recurring'>('all');
+  const [showSearchFilters, setShowSearchFilters] = useState(false);
   const selectedDateKey = planningDay === 'today' ? todayKey : tomorrowKey;
   const sortedTaskBank = useMemo(() => sortTaskBankItemsAlphabetically(state.taskBank), [state.taskBank]);
   const sortedCategories = useMemo(() => sortCategoriesAlphabetically(state.categories), [state.categories]);
@@ -163,45 +165,57 @@ export const TaskBankScreen = () => {
       <Card>
         <CardContent>
           <Stack spacing={1.5}>
-            <TextField
-              label="Search Task Bank"
-              fullWidth
-              placeholder="Search by task name, description, or category"
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchRounded fontSize="small" />
-                  </InputAdornment>
-                ),
-              }}
-            />
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
-              <TextField
-                label="Filter by category"
-                select
-                fullWidth
-                value={selectedCategoryFilter}
-                onChange={(event) => setSelectedCategoryFilter(event.target.value)}
-              >
-                <MenuItem value="all">All categories</MenuItem>
-                {sortedCategories.map((category) => (
-                  <MenuItem key={category} value={category}>{category}</MenuItem>
-                ))}
-              </TextField>
-              <TextField
-                label="Filter by recurrence"
-                select
-                fullWidth
-                value={selectedRecurrenceFilter}
-                onChange={(event) => setSelectedRecurrenceFilter(event.target.value as 'all' | 'one-off' | 'recurring')}
-              >
-                <MenuItem value="all">All tasks</MenuItem>
-                <MenuItem value="one-off">One-off only</MenuItem>
-                <MenuItem value="recurring">Recurring only</MenuItem>
-              </TextField>
-            </Stack>
+            <Button
+              variant="outlined"
+              onClick={() => setShowSearchFilters((current) => !current)}
+              endIcon={<UnfoldMoreIcon />}
+              sx={{ alignSelf: 'flex-start' }}
+            >
+              {showSearchFilters ? 'Hide search and filters' : 'Show search and filters'}
+            </Button>
+            <Collapse in={showSearchFilters}>
+              <Stack spacing={1.5}>
+                <TextField
+                  label="Search Task Bank"
+                  fullWidth
+                  placeholder="Search by task name, description, or category"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchRounded fontSize="small" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+                  <TextField
+                    label="Filter by category"
+                    select
+                    fullWidth
+                    value={selectedCategoryFilter}
+                    onChange={(event) => setSelectedCategoryFilter(event.target.value)}
+                  >
+                    <MenuItem value="all">All categories</MenuItem>
+                    {sortedCategories.map((category) => (
+                      <MenuItem key={category} value={category}>{category}</MenuItem>
+                    ))}
+                  </TextField>
+                  <TextField
+                    label="Filter by recurrence"
+                    select
+                    fullWidth
+                    value={selectedRecurrenceFilter}
+                    onChange={(event) => setSelectedRecurrenceFilter(event.target.value as 'all' | 'one-off' | 'recurring')}
+                  >
+                    <MenuItem value="all">All tasks</MenuItem>
+                    <MenuItem value="one-off">One-off only</MenuItem>
+                    <MenuItem value="recurring">Recurring only</MenuItem>
+                  </TextField>
+                </Stack>
+              </Stack>
+            </Collapse>
           </Stack>
         </CardContent>
       </Card>
