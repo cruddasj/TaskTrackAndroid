@@ -10,7 +10,7 @@ import {
 } from '../services/notifications';
 import { initializePushNotifications } from '../services/pushNotifications';
 import { AppState, PomodoroState, Round, Task, TaskBankItem } from '../types';
-import { buildNewRound, getDefaultRoundTitle, getRoundPlannedDate, isRoundCompleted, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
+import { buildNewRound, getDefaultRoundTitle, getRoundPlannedDate, isRoundCompleted, moveTaskInRound, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
 import { applyWorkPhaseRoundAdvance, getNextPomodoroPhase } from './pomodoroTransition';
 import { clearStoredState, createDemoState, loadState, saveState, seedState } from './storage';
 import { getAssignmentRoundUpdate, getRevivedTaskRoundUpdate } from './taskRoundHistory';
@@ -39,6 +39,7 @@ type Action =
   | { type: 'UPDATE_ROUND_TITLE'; payload: { roundId: string; title: string } }
   | { type: 'DELETE_ROUND'; payload: { roundId: string } }
   | { type: 'ASSIGN_TASKS_TO_ROUND'; payload: { roundId: string; taskIds: string[] } }
+  | { type: 'MOVE_TASK_IN_ROUND'; payload: { roundId: string; taskId: string; direction: 'up' | 'down' } }
   | { type: 'AUTO_GROUP_TASKS_FOR_DATE'; payload: { plannedDate: string } }
   | { type: 'MOVE_ROUND'; payload: { roundId: string; direction: 'up' | 'down' } }
   | { type: 'SET_POMODORO_MINUTES'; payload: { minutes: number } }
@@ -231,6 +232,22 @@ const reducer = (state: AppState, action: Action): AppState => {
             task.plannedDate === targetRoundPlannedDate && taskIdSet.has(task.id),
           ),
         })),
+      };
+    }
+    case 'MOVE_TASK_IN_ROUND': {
+      const { roundId, taskId, direction } = action.payload;
+      const targetRound = state.rounds.find((round) => round.id === roundId);
+      if (!targetRound || isRoundCompleted(targetRound)) {
+        return state;
+      }
+
+      return {
+        ...state,
+        rounds: state.rounds.map((round) =>
+          round.id === roundId
+            ? { ...round, taskIds: moveTaskInRound(round.taskIds, taskId, direction) }
+            : round,
+        ),
       };
     }
     case 'AUTO_GROUP_TASKS_FOR_DATE': {
@@ -526,6 +543,7 @@ interface AppStateContextValue {
   updateRoundTitle: (roundId: string, title: string) => void;
   deleteRound: (roundId: string) => void;
   assignTasksToRound: (roundId: string, taskIds: string[]) => void;
+  moveTaskInRound: (roundId: string, taskId: string, direction: 'up' | 'down') => void;
   autoGroupTasksForDate: (plannedDate: string) => void;
   moveRound: (roundId: string, direction: 'up' | 'down') => void;
   setPomodoroMinutes: (minutes: number) => void;
@@ -721,6 +739,7 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
         dispatch({ type: 'UPDATE_ROUND_TITLE', payload: { roundId, title } }),
       deleteRound: (roundId) => dispatch({ type: 'DELETE_ROUND', payload: { roundId } }),
       assignTasksToRound: (roundId, taskIds) => dispatch({ type: 'ASSIGN_TASKS_TO_ROUND', payload: { roundId, taskIds } }),
+      moveTaskInRound: (roundId, taskId, direction) => dispatch({ type: 'MOVE_TASK_IN_ROUND', payload: { roundId, taskId, direction } }),
       autoGroupTasksForDate: (plannedDate) => dispatch({ type: 'AUTO_GROUP_TASKS_FOR_DATE', payload: { plannedDate } }),
       moveRound: (roundId, direction) => dispatch({ type: 'MOVE_ROUND', payload: { roundId, direction } }),
       setPomodoroMinutes: (minutes) => dispatch({ type: 'SET_POMODORO_MINUTES', payload: { minutes } }),

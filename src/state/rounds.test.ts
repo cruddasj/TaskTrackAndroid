@@ -1,4 +1,4 @@
-import { advanceActiveRound, buildNewRound, getCarryForwardRound, getCarryHistoryForRound, getDefaultRoundTitle, getHighestRoundSequence, getRoundEstimatedMinutes, getRoundTaskIdsForDisplay, getVisibleRoundId, hasEmptyRoundWithoutTasks, hasRoundsWithAssignedTasks, isRoundCompleted, removeRoundAndNormalizeStatuses, sortRoundsChronologically, unassignTasksFromRound } from './rounds';
+import { advanceActiveRound, buildNewRound, getCarryForwardRound, getCarryHistoryForRound, getDefaultRoundTitle, getHighestRoundSequence, getRoundEstimatedMinutes, getRoundTaskIdsForDisplay, getVisibleRoundId, hasEmptyRoundWithoutTasks, hasRoundsWithAssignedTasks, isRoundCompleted, moveTaskInRound, removeRoundAndNormalizeStatuses, sortRoundsChronologically, unassignTasksFromRound } from './rounds';
 
 describe('round helpers', () => {
   it('detects when a round has no tasks assigned', () => {
@@ -298,6 +298,19 @@ describe('round helpers', () => {
         'r1',
       ),
     ).toEqual({ carriedFromRoundId: undefined, carriedToRoundId: 'r2' });
+  });
+
+  it('moves a round task up when a prior task exists', () => {
+    expect(moveTaskInRound(['t1', 't2', 't3'], 't2', 'up')).toEqual(['t2', 't1', 't3']);
+  });
+
+  it('moves a round task down when a next task exists', () => {
+    expect(moveTaskInRound(['t1', 't2', 't3'], 't2', 'down')).toEqual(['t1', 't3', 't2']);
+  });
+
+  it('keeps task order unchanged when movement is out of bounds', () => {
+    expect(moveTaskInRound(['t1', 't2'], 't1', 'up')).toEqual(['t1', 't2']);
+    expect(moveTaskInRound(['t1', 't2'], 't2', 'down')).toEqual(['t1', 't2']);
   });
 
 });
