@@ -52,6 +52,7 @@ export const TodaysTasksScreen = () => {
     if (task.recurrenceWeekdays && task.recurrenceWeekdays.length > 0) {
       return `on ${task.recurrenceWeekdays.map((weekday) => WEEKDAY_LABELS[weekday]).join(', ')}`;
     }
+    if (task.recurrenceDayOfMonth) return `on day ${task.recurrenceDayOfMonth} of each month`;
     if (task.recurrenceDays) return `every ${task.recurrenceDays} days`;
     return 'manual';
   };

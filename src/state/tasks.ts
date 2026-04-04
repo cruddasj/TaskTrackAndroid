@@ -71,7 +71,8 @@ export const filterTaskBankItems = (
     if (category !== 'all' && item.category !== category) return false;
 
     const hasRecurrence = Boolean(item.recurrenceDays && item.recurrenceDays > 0)
-      || Boolean(item.recurrenceWeekdays && item.recurrenceWeekdays.length > 0);
+      || Boolean(item.recurrenceWeekdays && item.recurrenceWeekdays.length > 0)
+      || Boolean(item.recurrenceDayOfMonth && item.recurrenceDayOfMonth >= 1 && item.recurrenceDayOfMonth <= 31);
     if (recurrence === 'one-off' && hasRecurrence) return false;
     if (recurrence === 'recurring' && !hasRecurrence) return false;
 
@@ -103,6 +104,8 @@ export const suggestRecurringTaskBankItems = (
 ): TaskBankItem[] => {
   const nowMs = now.getTime();
   const todayWeekday = now.getUTCDay();
+  const todayDayOfMonth = now.getUTCDate();
+  const daysInCurrentMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0)).getUTCDate();
   const completionByTitle = getLastCompletionTimeByTitle(tasks);
   const recentAppearanceByTitle = new Map<string, number>();
   tasks.forEach((task) => {
@@ -136,6 +139,11 @@ export const suggestRecurringTaskBankItems = (
       if (!hasScheduledWeekdayInPastWeek(recurrenceWeekdays)) return false;
       const lastAppearanceMs = recentAppearanceByTitle.get(titleKey);
       return lastAppearanceMs === undefined || nowMs - lastAppearanceMs >= 7 * DAY_IN_MS;
+    }
+
+    const recurrenceDayOfMonth = item.recurrenceDayOfMonth;
+    if (recurrenceDayOfMonth && recurrenceDayOfMonth >= 1 && recurrenceDayOfMonth <= 31) {
+      return todayDayOfMonth === Math.min(recurrenceDayOfMonth, daysInCurrentMonth);
     }
 
     const recurrenceDays = item.recurrenceDays;

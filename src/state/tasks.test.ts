@@ -82,6 +82,7 @@ describe('filterTaskBankItems', () => {
     { id: '1', title: 'Deep work block', description: 'No meetings', category: 'Work', estimateMinutes: 60 },
     { id: '2', title: 'Grocery restock', description: 'Buy fruit', category: 'Home', estimateMinutes: 30, recurrenceDays: 7 },
     { id: '3', title: 'Stretch break', description: '5 minute mobility', category: 'Health', estimateMinutes: 5, recurrenceWeekdays: [1, 3, 5] },
+    { id: '4', title: 'Billing review', description: 'Check subscriptions', category: 'Home', estimateMinutes: 20, recurrenceDayOfMonth: 15 },
   ];
 
   it('filters by search query across title, description, and category', () => {
@@ -95,7 +96,7 @@ describe('filterTaskBankItems', () => {
 
   it('filters by recurrence type', () => {
     expect(filterTaskBankItems(taskBank, { query: '', category: 'all', recurrence: 'one-off' }).map((item) => item.id)).toEqual(['1']);
-    expect(filterTaskBankItems(taskBank, { query: '', category: 'all', recurrence: 'recurring' }).map((item) => item.id)).toEqual(['2', '3']);
+    expect(filterTaskBankItems(taskBank, { query: '', category: 'all', recurrence: 'recurring' }).map((item) => item.id)).toEqual(['2', '3', '4']);
   });
 });
 
@@ -188,6 +189,26 @@ describe('suggestRecurringTaskBankItems', () => {
     const suggestions = suggestRecurringTaskBankItems(taskBank, tasks, '2026-03-30', new Date('2026-03-30T12:00:00.000Z'));
 
     expect(suggestions).toEqual([]);
+  });
+
+  it('suggests month-day recurring items when today matches the configured day', () => {
+    const taskBank = [
+      { id: 'tb1', title: 'Pay rent', description: 'Transfer payment', category: 'Errands', estimateMinutes: 5, recurrenceDayOfMonth: 1 },
+    ];
+
+    const suggestions = suggestRecurringTaskBankItems(taskBank, [], '2026-04-01', new Date('2026-04-01T12:00:00.000Z'));
+
+    expect(suggestions.map((item) => item.id)).toEqual(['tb1']);
+  });
+
+  it('suggests month-day recurring items on last day for shorter months', () => {
+    const taskBank = [
+      { id: 'tb1', title: 'Month-end backup', description: 'Archive files', category: 'Work', estimateMinutes: 15, recurrenceDayOfMonth: 31 },
+    ];
+
+    const suggestions = suggestRecurringTaskBankItems(taskBank, [], '2026-04-30', new Date('2026-04-30T12:00:00.000Z'));
+
+    expect(suggestions.map((item) => item.id)).toEqual(['tb1']);
   });
 });
 

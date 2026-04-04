@@ -167,6 +167,7 @@ describe('storage', () => {
             category: 'Household chores',
             estimateMinutes: 45,
             recurrenceDays: 0,
+            recurrenceDayOfMonth: 0,
           },
           {
             id: 'tb-2',
@@ -176,6 +177,7 @@ describe('storage', () => {
             estimateMinutes: 10,
             recurrenceDays: 2.7,
             recurrenceWeekdays: [2, 2, 7, -1],
+            recurrenceDayOfMonth: 15.2,
           },
         ],
       }),
@@ -183,8 +185,10 @@ describe('storage', () => {
 
     const loaded = loadState();
     expect(loaded.taskBank[0].recurrenceDays).toBeUndefined();
+    expect(loaded.taskBank[0].recurrenceDayOfMonth).toBeUndefined();
     expect(loaded.taskBank[1].recurrenceDays).toBe(3);
     expect(loaded.taskBank[1].recurrenceWeekdays).toEqual([2]);
+    expect(loaded.taskBank[1].recurrenceDayOfMonth).toBe(15);
   });
 
   it('creates demo data with historical completed tasks', () => {

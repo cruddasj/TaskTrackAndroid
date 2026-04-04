@@ -18,9 +18,10 @@ interface TaskFormState {
   description: string;
   category: string;
   estimateMinutes: string;
-  recurrenceMode: 'none' | 'days' | 'weekdays';
+  recurrenceMode: 'none' | 'days' | 'weekdays' | 'monthDay';
   recurrenceDays: string;
   recurrenceWeekdays: number[];
+  recurrenceDayOfMonth: string;
 }
 
 const emptyForm: TaskFormState = {
@@ -31,6 +32,7 @@ const emptyForm: TaskFormState = {
   recurrenceMode: 'none',
   recurrenceDays: '',
   recurrenceWeekdays: [],
+  recurrenceDayOfMonth: '',
 };
 
 export const TaskBankScreen = () => {
@@ -74,9 +76,10 @@ export const TaskBankScreen = () => {
       description: task.description,
       category: task.category,
       estimateMinutes: String(task.estimateMinutes),
-      recurrenceMode: task.recurrenceWeekdays && task.recurrenceWeekdays.length > 0 ? 'weekdays' : task.recurrenceDays ? 'days' : 'none',
+      recurrenceMode: task.recurrenceWeekdays && task.recurrenceWeekdays.length > 0 ? 'weekdays' : task.recurrenceDayOfMonth ? 'monthDay' : task.recurrenceDays ? 'days' : 'none',
       recurrenceDays: task.recurrenceDays ? String(task.recurrenceDays) : '',
       recurrenceWeekdays: task.recurrenceWeekdays ?? [],
+      recurrenceDayOfMonth: task.recurrenceDayOfMonth ? String(task.recurrenceDayOfMonth) : '',
     });
     setOpen(true);
   };
@@ -100,15 +103,21 @@ export const TaskBankScreen = () => {
     const category = form.category || state.categories[0] || 'Uncategorized';
     const estimateMinutes = Number(form.estimateMinutes);
     const recurrenceDays = Number(form.recurrenceDays);
+    const recurrenceDayOfMonth = Number(form.recurrenceDayOfMonth);
     const normalizedRecurrenceDays =
       form.recurrenceMode === 'days' && Number.isFinite(recurrenceDays) && recurrenceDays > 0 ? Math.round(recurrenceDays) : undefined;
     const normalizedRecurrenceWeekdays =
       form.recurrenceMode === 'weekdays'
         ? [...new Set(form.recurrenceWeekdays)].filter((weekday) => Number.isInteger(weekday) && weekday >= 0 && weekday <= 6).sort((a, b) => a - b)
         : undefined;
+    const normalizedRecurrenceDayOfMonth =
+      form.recurrenceMode === 'monthDay' && Number.isFinite(recurrenceDayOfMonth) && recurrenceDayOfMonth >= 1 && recurrenceDayOfMonth <= 31
+        ? Math.round(recurrenceDayOfMonth)
+        : undefined;
 
     if (!title || !Number.isFinite(estimateMinutes) || estimateMinutes <= 0) return;
     if (form.recurrenceMode === 'weekdays' && (!normalizedRecurrenceWeekdays || normalizedRecurrenceWeekdays.length === 0)) return;
+    if (form.recurrenceMode === 'monthDay' && normalizedRecurrenceDayOfMonth === undefined) return;
 
     if (editingTaskBankId) {
       updateTaskBankItem({
@@ -119,6 +128,7 @@ export const TaskBankScreen = () => {
         estimateMinutes,
         recurrenceDays: normalizedRecurrenceDays,
         recurrenceWeekdays: normalizedRecurrenceWeekdays,
+        recurrenceDayOfMonth: normalizedRecurrenceDayOfMonth,
       });
       showSuccessMessage('Task Bank item updated.');
     } else {
@@ -129,6 +139,7 @@ export const TaskBankScreen = () => {
         estimateMinutes,
         recurrenceDays: normalizedRecurrenceDays,
         recurrenceWeekdays: normalizedRecurrenceWeekdays,
+        recurrenceDayOfMonth: normalizedRecurrenceDayOfMonth,
       });
       showSuccessMessage('Task Bank item created.');
     }
@@ -247,6 +258,7 @@ export const TaskBankScreen = () => {
                 {task.recurrenceWeekdays && task.recurrenceWeekdays.length > 0 && (
                   <Chip label={`On ${task.recurrenceWeekdays.map((weekday) => WEEKDAY_LABELS[weekday]).join(', ')}`} variant="outlined" />
                 )}
+                {task.recurrenceDayOfMonth && <Chip label={`Day ${task.recurrenceDayOfMonth} of month`} variant="outlined" />}
               </Stack>
               <Button
                 size="small"
@@ -362,6 +374,7 @@ export const TaskBankScreen = () => {
             <MenuItem value="none">No repeat</MenuItem>
             <MenuItem value="days">Every X days</MenuItem>
             <MenuItem value="weekdays">Specific days of the week</MenuItem>
+            <MenuItem value="monthDay">Day of month</MenuItem>
           </TextField>
           {form.recurrenceMode === 'days' && (
             <TextField
@@ -398,6 +411,18 @@ export const TaskBankScreen = () => {
                 ))}
               </Stack>
             </Stack>
+          )}
+          {form.recurrenceMode === 'monthDay' && (
+            <TextField
+              margin="dense"
+              label="Repeat on day of month"
+              fullWidth
+              type="number"
+              inputProps={{ min: 1, max: 31 }}
+              helperText="Enter a day from 1 to 31. For shorter months, the task appears on the last day."
+              value={form.recurrenceDayOfMonth}
+              onChange={(event) => setForm((current) => ({ ...current, recurrenceDayOfMonth: event.target.value }))}
+            />
           )}
         </DialogContent>
         <DialogActions>
