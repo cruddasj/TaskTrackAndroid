@@ -61,6 +61,36 @@ describe('getCompletedTaskHistory', () => {
 
     expect(history.some((entry) => entry.dayKey === '2026-03-28')).toBe(true);
   });
+
+  it('sorts tasks alphabetically within each completed day', () => {
+    const history = getCompletedTaskHistory(
+      [
+        {
+          id: 't1',
+          title: 'zebra item',
+          description: '',
+          category: 'General',
+          estimateMinutes: 25,
+          status: 'done',
+          plannedDate: '2026-04-02',
+          completedAt: '2026-04-02T09:00:00.000Z',
+        },
+        {
+          id: 't2',
+          title: 'Alpha item',
+          description: '',
+          category: 'General',
+          estimateMinutes: 25,
+          status: 'done',
+          plannedDate: '2026-04-02',
+          completedAt: '2026-04-02T10:00:00.000Z',
+        },
+      ],
+      30,
+    );
+
+    expect(history[0]?.tasks.map((task) => task.title)).toEqual(['Alpha item', 'zebra item']);
+  });
 });
 
 describe('getCategoryTotals', () => {
