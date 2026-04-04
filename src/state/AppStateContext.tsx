@@ -10,7 +10,7 @@ import {
 } from '../services/notifications';
 import { initializePushNotifications } from '../services/pushNotifications';
 import { AppState, PomodoroState, Round, Task, TaskBankItem } from '../types';
-import { buildNewRound, getDefaultRoundTitle, getRoundPlannedDate, isRoundCompleted, moveTaskInRound, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
+import { buildNewRound, getDefaultRoundTitle, getRoundPlannedDate, isRoundCompleted, isRoundLockedByActivePomodoro, moveTaskInRound, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
 import { applyWorkPhaseRoundAdvance, getNextPomodoroPhase } from './pomodoroTransition';
 import { getRemainingSecondsFromClock } from './pomodoroClock';
 import { clearStoredState, createDemoState, loadState, saveState, seedState } from './storage';
@@ -58,6 +58,7 @@ type Action =
   | { type: 'PAUSE_POMODORO' }
   | { type: 'COMPLETE_POMODORO' }
   | { type: 'SKIP_POMODORO' }
+  | { type: 'ABANDON_ACTIVE_ROUND' }
   | { type: 'TICK' }
   | { type: 'RESET_POMODORO' }
   | { type: 'ADVANCE_POMODORO_PHASE' };
@@ -195,6 +196,9 @@ const reducer = (state: AppState, action: Action): AppState => {
       };
     case 'DELETE_ROUND': {
       const roundId = action.payload.roundId;
+      if (isRoundLockedByActivePomodoro(roundId, state.pomodoro.activeRoundId)) {
+        return state;
+      }
       const rounds = removeRoundAndNormalizeStatuses(state.rounds, roundId);
       const activeRoundId = state.pomodoro.activeRoundId === roundId ? undefined : state.pomodoro.activeRoundId;
       return {
@@ -204,6 +208,27 @@ const reducer = (state: AppState, action: Action): AppState => {
         pomodoro: {
           ...state.pomodoro,
           activeRoundId,
+        },
+      };
+    }
+    case 'ABANDON_ACTIVE_ROUND': {
+      if (!state.pomodoro.activeRoundId) {
+        return state;
+      }
+      const totalSeconds = state.settings.pomodoroMinutes * 60;
+      return {
+        ...state,
+        rounds: removeRoundAndNormalizeStatuses(state.rounds, state.pomodoro.activeRoundId),
+        tasks: unassignTasksFromRound(state.tasks, state.pomodoro.activeRoundId),
+        pomodoro: {
+          ...state.pomodoro,
+          isRunning: false,
+          startedAt: null,
+          phase: 'work',
+          totalSeconds,
+          remainingSeconds: totalSeconds,
+          activeTaskId: undefined,
+          activeRoundId: undefined,
         },
       };
     }
@@ -574,6 +599,7 @@ interface AppStateContextValue {
   pausePomodoro: () => void;
   completePomodoro: () => void;
   skipPomodoro: () => void;
+  abandonActiveRound: () => void;
   resetPomodoro: () => void;
   dismissAlarm: () => void;
   showSuccessMessage: (message: string) => void;
@@ -770,6 +796,7 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
       pausePomodoro: () => dispatch({ type: 'PAUSE_POMODORO' }),
       completePomodoro: () => dispatch({ type: 'COMPLETE_POMODORO' }),
       skipPomodoro: () => dispatch({ type: 'SKIP_POMODORO' }),
+      abandonActiveRound: () => dispatch({ type: 'ABANDON_ACTIVE_ROUND' }),
       resetPomodoro: () => dispatch({ type: 'RESET_POMODORO' }),
       dismissAlarm,
       showSuccessMessage,

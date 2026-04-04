@@ -51,6 +51,10 @@ Use this section as the source of truth whenever changing `/rounds` or `/focus` 
   - If no open round exists, the app now checks for today tasks that are still unfinished and unassigned.
   - When such tasks exist, the app auto-creates a new recovery round and assigns those tasks so the timer can continue without looping on a completed round.
 - **Break transitions do not reorder rounds**; they only change timer phase.
+- **Abandoning an active timer round**:
+  - Only the round currently tracked by Pomodoro (`activeRoundId`) can be abandoned from the Focus page.
+  - Abandon deletes that round, unassigns its tasks, and stops/resets the timer back to work phase defaults.
+  - The same active Pomodoro round is locked from deletion on the Rounds page until it is abandoned from Focus.
 
 ### Required update rule for future changes
 When you modify timer/round linkage behavior, update this AGENTS section in the same PR with:
@@ -59,5 +63,12 @@ When you modify timer/round linkage behavior, update this AGENTS section in the 
 3. Task assignment side effects (including carry-forward and unassigned-task handling).
 4. Any route-guard or visibility fallback changes (`/focus` and `/rounds`).
 5. Tests added/updated that prove the workflow.
+
+### Latest timer/round linkage update (April 4, 2026)
+1. **Trigger conditions**: round-abandon progression runs only from the Focus page abandon action for the currently tracked Pomodoro round.
+2. **Round status transitions**: abandoned active round is removed; remaining rounds for that date are normalized so the first open round becomes `active` and other open rounds become `upcoming`.
+3. **Task assignment side effects**: tasks assigned to the abandoned round are unassigned (`roundId` cleared).
+4. **Route-guard/visibility changes**: `/rounds` delete action is disabled for the Pomodoro-tracked active round and users are directed to `/focus` to abandon it.
+5. **Tests**: `src/state/rounds.test.ts` covers lock behavior via `isRoundLockedByActivePomodoro`.
 
 If a change touches timer progression and this section is not updated, treat that PR as incomplete.

@@ -37,6 +37,7 @@ import {
   getRoundEstimatedMinutes,
   getRoundTaskIdsForDisplay,
   hasEmptyRoundWithoutTasks,
+  isRoundLockedByActivePomodoro,
   isRoundCompleted,
 } from '../state/rounds';
 import { getTodayKey, getTomorrowKey } from '../utils';
@@ -225,6 +226,7 @@ export const RoundsScreen = () => {
         </CardContent>
       </Card>
       {orderedRounds.map((round) => {
+        const isActivePomodoroRound = isRoundLockedByActivePomodoro(round.id, state.pomodoro.activeRoundId);
         const displayTaskIds = getRoundTaskIdsForDisplay(round, todaysTasks);
         const estimatedMinutes = roundEstimatedMinutes[round.id] ?? 0;
         const roundDetails = round.status === 'done'
@@ -269,7 +271,7 @@ export const RoundsScreen = () => {
                     </IconButton>
                     <IconButton size="small" onClick={() => {
                       setRoundPendingDelete({ id: round.id, title: round.title });
-                    }} aria-label={`delete-round-${round.id}`}>
+                    }} aria-label={`delete-round-${round.id}`} disabled={isActivePomodoroRound}>
                       <DeleteOutlineRounded color="error" />
                     </IconButton>
                     <IconButton size="small" onClick={() => moveRound(round.id, 'up')} aria-label={`move-round-up-${round.id}`}>
@@ -349,6 +351,11 @@ export const RoundsScreen = () => {
                 useFlexGap
                 mt={(roundEstimatedMinutes[round.id] ?? 0) > state.settings.pomodoroMinutes ? 1 : 0}
               >
+                {isActivePomodoroRound && (
+                  <Typography color="warning.main" variant="body2">
+                    Active timer round cannot be deleted here. Use the timer page to abandon it.
+                  </Typography>
+                )}
                 <Button variant="outlined" onClick={() => openRoundAssignment(round.id)}>
                   {round.taskIds.length > 0 ? 'Edit tasks' : 'Assign tasks'}
                 </Button>
