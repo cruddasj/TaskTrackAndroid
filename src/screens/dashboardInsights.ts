@@ -38,7 +38,9 @@ export const getCompletedTaskHistory = (tasks: Task[], historyWindowDays: number
 
   return recentDayKeys
     .map((dayKey) => {
-      const completedTasks = tasks.filter((task) => getTaskCompletionDay(task) === dayKey);
+      const completedTasks = tasks
+        .filter((task) => getTaskCompletionDay(task) === dayKey)
+        .sort((taskA, taskB) => taskA.title.localeCompare(taskB.title, undefined, { sensitivity: 'base' }));
       return { dayKey, tasks: completedTasks };
     })
     .filter((entry) => entry.tasks.length > 0);
