@@ -7,6 +7,8 @@ export type AlarmTone = 'bell' | 'chime' | 'digital' | 'gentle' | 'pulse';
 const ALARM_REPEAT_INTERVAL_MS = 2500;
 const ANDROID_CHANNEL_VERSION = 'v2';
 const POMODORO_CHANNEL_ID = 'pomodoro';
+const ACTIVE_TIMER_CHANNEL_ID = 'pomodoro-active-timer';
+const ACTIVE_TIMER_NOTIFICATION_ID = 91_100_001;
 
 
 const triggerCompletionHaptic = async (): Promise<void> => {
@@ -45,6 +47,23 @@ const ensurePomodoroTimerChannel = async (): Promise<void> => {
     importance: 4,
     vibration: true,
   });
+};
+
+const ensureActivePomodoroTimerChannel = async (): Promise<void> => {
+  await LocalNotifications.createChannel({
+    id: ACTIVE_TIMER_CHANNEL_ID,
+    name: 'Active timer',
+    description: 'Shows the running TaskTrack timer in your notification panel.',
+    importance: 2,
+    vibration: false,
+  });
+};
+
+const formatSecondsAsClock = (seconds: number): string => {
+  const safeSeconds = Math.max(0, Math.floor(seconds));
+  const minutes = Math.floor(safeSeconds / 60);
+  const remainingSeconds = safeSeconds % 60;
+  return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
 };
 
 const ensureNativeNotificationPermission = async (): Promise<boolean> => {
@@ -155,6 +174,36 @@ export const clearScheduledPomodoroPhaseEndNotification = async (sessionId?: num
   if (!Capacitor.isNativePlatform()) return;
   if (!sessionId) return;
   await LocalNotifications.cancel({ notifications: [{ id: sessionId }] });
+};
+
+export const syncActivePomodoroNotification = async (
+  phase: 'work' | 'short_break' | 'long_break',
+  remainingSeconds: number,
+): Promise<void> => {
+  if (!Capacitor.isNativePlatform()) return;
+  const hasPermission = await ensureNativeNotificationPermission();
+  if (!hasPermission) return;
+
+  await ensureActivePomodoroTimerChannel();
+  const phaseLabel = phase === 'work' ? 'Focus round' : phase === 'short_break' ? 'Short break' : 'Long break';
+
+  await LocalNotifications.schedule({
+    notifications: [
+      {
+        id: ACTIVE_TIMER_NOTIFICATION_ID,
+        title: 'TaskTrack timer running',
+        body: `${phaseLabel}: ${formatSecondsAsClock(remainingSeconds)} remaining`,
+        channelId: ACTIVE_TIMER_CHANNEL_ID,
+        ongoing: true,
+        autoCancel: false,
+      },
+    ],
+  });
+};
+
+export const clearActivePomodoroNotification = async (): Promise<void> => {
+  if (!Capacitor.isNativePlatform()) return;
+  await LocalNotifications.cancel({ notifications: [{ id: ACTIVE_TIMER_NOTIFICATION_ID }] });
 };
 
 export const dismissNativeAlarmNotifications = async (): Promise<void> => {

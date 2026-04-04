@@ -42,12 +42,14 @@ jest.mock('@capacitor/local-notifications', () => ({
 }));
 
 import {
+  clearActivePomodoroNotification,
   clearScheduledPomodoroPhaseEndNotification,
   dismissNativeAlarmNotifications,
   notifyPomodoroComplete,
   playAlarmTone,
   requestNotificationPermissions,
   schedulePomodoroPhaseEndNotification,
+  syncActivePomodoroNotification,
   startRepeatingAlarm,
 } from './notifications';
 
@@ -164,6 +166,35 @@ describe('notifications service', () => {
     await clearScheduledPomodoroPhaseEndNotification(42);
 
     expect(cancelMock).toHaveBeenCalledWith({ notifications: [{ id: 42 }] });
+  });
+
+  it('syncs an ongoing native notification for active timer state', async () => {
+    isNativePlatformMock.mockReturnValue(true);
+
+    await syncActivePomodoroNotification('work', 301);
+
+    expect(scheduleMock).toHaveBeenCalledTimes(1);
+    const payload = scheduleMock.mock.calls[0][0];
+    expect(createChannelMock).toHaveBeenCalledWith(expect.objectContaining({
+      id: 'pomodoro-active-timer',
+      importance: 2,
+    }));
+    expect(payload.notifications[0]).toEqual(expect.objectContaining({
+      id: 91100001,
+      title: 'TaskTrack timer running',
+      body: 'Focus round: 05:01 remaining',
+      ongoing: true,
+      autoCancel: false,
+      channelId: 'pomodoro-active-timer',
+    }));
+  });
+
+  it('clears the active timer notification on native platforms', async () => {
+    isNativePlatformMock.mockReturnValue(true);
+
+    await clearActivePomodoroNotification();
+
+    expect(cancelMock).toHaveBeenCalledWith({ notifications: [{ id: 91100001 }] });
   });
 
   it('falls back to vibrate when haptics notification feedback fails', async () => {

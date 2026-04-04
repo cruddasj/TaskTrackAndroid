@@ -2,11 +2,13 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useReducer,
 import { App as CapacitorApp } from '@capacitor/app';
 import {
   AlarmTone,
+  clearActivePomodoroNotification,
   clearScheduledPomodoroPhaseEndNotification,
   dismissNativeAlarmNotifications,
   notifyPomodoroComplete,
   requestNotificationPermissions,
   schedulePomodoroPhaseEndNotification,
+  syncActivePomodoroNotification,
   startRepeatingAlarm,
 } from '../services/notifications';
 import { initializePushNotifications } from '../services/pushNotifications';
@@ -745,11 +747,26 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
 
   useEffect(() => {
     if (!state.pomodoro.isRunning || !state.pomodoro.startedAt || state.pomodoro.remainingSeconds <= 0) return;
+    const interval = window.setInterval(() => {
+      dispatch({ type: 'SYNC_POMODORO_CLOCK', payload: { now: Date.now() } });
+    }, 1000);
     const timeout = window.setTimeout(() => {
       dispatch({ type: 'SYNC_POMODORO_CLOCK', payload: { now: Date.now() } });
     }, state.pomodoro.remainingSeconds * 1000);
-    return () => window.clearTimeout(timeout);
+    return () => {
+      window.clearInterval(interval);
+      window.clearTimeout(timeout);
+    };
   }, [state.pomodoro.isRunning, state.pomodoro.startedAt, state.pomodoro.remainingSeconds]);
+
+  useEffect(() => {
+    if (!state.pomodoro.isRunning || state.pomodoro.remainingSeconds <= 0) {
+      clearActivePomodoroNotification().catch(() => undefined);
+      return;
+    }
+
+    syncActivePomodoroNotification(state.pomodoro.phase, state.pomodoro.remainingSeconds).catch(() => undefined);
+  }, [state.pomodoro.isRunning, state.pomodoro.remainingSeconds, state.pomodoro.phase]);
 
   useEffect(() => {
     const titleByPhase: Record<PomodoroState['phase'], string> = {
