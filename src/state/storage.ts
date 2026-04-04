@@ -198,6 +198,7 @@ export const normalizeState = (raw: Partial<AppState>): AppState => {
       estimateMinutes: task.estimateMinutes,
       recurrenceDays: undefined,
       recurrenceWeekdays: undefined,
+      recurrenceDayOfMonth: undefined,
     })) ??
     defaultState.taskBank;
   return {
@@ -221,6 +222,12 @@ export const normalizeState = (raw: Partial<AppState>): AppState => {
           ? [...new Set(item.recurrenceWeekdays)]
             .filter((weekday): weekday is number => typeof weekday === 'number' && Number.isInteger(weekday) && weekday >= 0 && weekday <= 6)
             .sort((a, b) => a - b)
+          : undefined,
+      recurrenceDayOfMonth:
+        typeof item.recurrenceDayOfMonth === 'number' && Number.isFinite(item.recurrenceDayOfMonth)
+          && Math.round(item.recurrenceDayOfMonth) >= 1
+          && Math.round(item.recurrenceDayOfMonth) <= 31
+          ? Math.round(item.recurrenceDayOfMonth)
           : undefined,
     })),
     rounds: raw.rounds?.map((round) => ({
