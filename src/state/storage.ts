@@ -48,6 +48,11 @@ const defaultState: AppState = {
     showFirstTimeGuidance: DEFAULT_SHOW_FIRST_TIME_GUIDANCE,
   },
   pomodoro: {
+    sessionId: null,
+    startTime: null,
+    duration: DEFAULT_POMODORO_MINUTES * 60 * 1000,
+    remaining: null,
+    isPaused: false,
     isRunning: false,
     startedAt: null,
     totalSeconds: DEFAULT_POMODORO_MINUTES * 60,
@@ -173,6 +178,11 @@ export const createDemoState = (state: AppState): AppState => {
     ],
     pomodoro: {
       ...state.pomodoro,
+      sessionId: null,
+      startTime: null,
+      duration: state.settings.pomodoroMinutes * 60 * 1000,
+      remaining: null,
+      isPaused: false,
       isRunning: false,
       startedAt: null,
       totalSeconds: state.settings.pomodoroMinutes * 60,

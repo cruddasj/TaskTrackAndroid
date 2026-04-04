@@ -20,6 +20,11 @@ const buildState = (overrides: Partial<AppState> = {}): AppState => ({
     showFirstTimeGuidance: true,
   },
   pomodoro: {
+    sessionId: null,
+    startTime: null,
+    duration: 1_500_000,
+    remaining: null,
+    isPaused: false,
     isRunning: false,
     startedAt: null,
     remainingSeconds: 1500,

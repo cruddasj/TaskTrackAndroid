@@ -8,6 +8,7 @@ TaskTrack is a Pomodoro-driven task planner designed for daily execution. You ca
 - Supports a reusable **Task Bank** plus **Today's Tasks**, including duplicate prevention, quick-add actions, and recurring-task suggestions based on either interval rules (every X days) or weekday rules (for example, Sundays, with overdue catch-up suggestions if missed in the previous week).
 - Includes round management and assignment flows (auto-grouping by category, manual assignment, unassigned-task visibility, reordering, deletion recovery) with mobile-friendly controls and beginner-focused guidance copy.
 - Runs full work/break timer cycles with configurable durations, alarm tone/volume/repeat settings, local persistence, and recent activity insights/history used for recurring suggestions.
+- Uses native local-notification scheduling for Pomodoro phase completion on Android so sessions remain reliable when the app is backgrounded or closed, including pause/resume by cancelling and rescheduling the same session notification id.
 
 ## Tech stack
 
@@ -53,6 +54,14 @@ The app schedules native local notifications with sound references in the format
 - `res://raw/alarm_pulse`
 
 If you want custom sounds, add corresponding files under `android/app/src/main/res/raw/`.
+
+## Android Pomodoro background reliability notes
+
+- Pomodoro phase timers are scheduled through Capacitor Local Notifications (`allowWhileIdle: true`) instead of relying on a continuous JavaScript interval in the background.
+- Pausing a running Pomodoro cancels its scheduled native notification and stores remaining duration.
+- Resuming starts a new native schedule using the stored remaining duration and the same session id to avoid duplicates.
+- When you generate/update the Android project, include exact-alarm support in `android/app/src/main/AndroidManifest.xml`:
+  - `<uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />`
 
 
 ## Dependency maintenance

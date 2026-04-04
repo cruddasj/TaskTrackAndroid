@@ -6,7 +6,7 @@ export type AlarmTone = 'bell' | 'chime' | 'digital' | 'gentle' | 'pulse';
 
 const ALARM_REPEAT_INTERVAL_MS = 2500;
 const ANDROID_CHANNEL_VERSION = 'v2';
-const POMODORO_PHASE_END_NOTIFICATION_ID = 42;
+const POMODORO_CHANNEL_ID = 'pomodoro';
 
 
 const triggerCompletionHaptic = async (): Promise<void> => {
@@ -35,6 +35,16 @@ const ensureAndroidAlarmChannel = async (tone: AlarmTone): Promise<string> => {
     vibration: true,
   });
   return channelId;
+};
+
+const ensurePomodoroTimerChannel = async (): Promise<void> => {
+  await LocalNotifications.createChannel({
+    id: POMODORO_CHANNEL_ID,
+    name: 'Pomodoro Timer',
+    description: 'Scheduled Pomodoro timer completion reminders.',
+    importance: 4,
+    vibration: true,
+  });
 };
 
 const ensureNativeNotificationPermission = async (): Promise<boolean> => {
@@ -99,15 +109,19 @@ export const notifyPomodoroComplete = async (
 };
 
 export const schedulePomodoroPhaseEndNotification = async (
+  sessionId: number,
+  startTime: number,
+  durationMs: number,
   title: string,
   body: string,
   tone: AlarmTone,
-  remainingSeconds: number,
 ): Promise<void> => {
-  if (!Capacitor.isNativePlatform() || remainingSeconds <= 0) return;
+  if (!Capacitor.isNativePlatform() || durationMs <= 0) return;
 
   const hasPermission = await ensureNativeNotificationPermission();
   if (!hasPermission) return;
+
+  await ensurePomodoroTimerChannel();
 
   let channelId: string | undefined;
   try {
@@ -116,19 +130,19 @@ export const schedulePomodoroPhaseEndNotification = async (
     channelId = undefined;
   }
 
-  const fireAt = new Date(Date.now() + Math.max(1, Math.round(remainingSeconds)) * 1000);
+  const fireAt = new Date(startTime + durationMs);
 
-  await LocalNotifications.cancel({ notifications: [{ id: POMODORO_PHASE_END_NOTIFICATION_ID }] });
+  await LocalNotifications.cancel({ notifications: [{ id: sessionId }] });
   await LocalNotifications.schedule({
     notifications: [
       {
-        id: POMODORO_PHASE_END_NOTIFICATION_ID,
+        id: sessionId,
         title,
         body,
-        schedule: { at: fireAt },
+        schedule: { at: fireAt, allowWhileIdle: true },
+        channelId: POMODORO_CHANNEL_ID,
         ...(channelId
           ? {
-            channelId,
             sound: `res://raw/alarm_${tone}`,
           }
           : undefined),
@@ -137,9 +151,10 @@ export const schedulePomodoroPhaseEndNotification = async (
   });
 };
 
-export const clearScheduledPomodoroPhaseEndNotification = async (): Promise<void> => {
+export const clearScheduledPomodoroPhaseEndNotification = async (sessionId?: number | null): Promise<void> => {
   if (!Capacitor.isNativePlatform()) return;
-  await LocalNotifications.cancel({ notifications: [{ id: POMODORO_PHASE_END_NOTIFICATION_ID }] });
+  if (!sessionId) return;
+  await LocalNotifications.cancel({ notifications: [{ id: sessionId }] });
 };
 
 export const dismissNativeAlarmNotifications = async (): Promise<void> => {
