@@ -5,6 +5,7 @@ import UploadFileRounded from '@mui/icons-material/UploadFileRounded';
 import VolumeUpRounded from '@mui/icons-material/VolumeUpRounded';
 import { Alert, Box, Button, Card, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, MenuItem, Stack, Switch, TextField, Typography } from '@mui/material';
 import { ChangeEvent, useMemo, useRef, useState } from 'react';
+import { ALARM_TONES, AlarmTone, getAlarmToneLabel } from '../constants/alarmTones';
 import { playAlarmTone } from '../services/notifications';
 import { useAppState } from '../state/AppStateContext';
 import { createBackupJson, importBackupJson } from '../state/backup';
@@ -297,15 +298,13 @@ export const SettingsScreen = () => {
               label="Alarm tone"
               value={state.settings.alarmTone}
               onChange={(event) => {
-                setAlarmTone(event.target.value as 'bell' | 'chime' | 'digital' | 'gentle' | 'pulse');
+                setAlarmTone(event.target.value as AlarmTone);
                 showSuccessMessage('Alarm tone updated.');
               }}
             >
-              <MenuItem value="bell">Bell</MenuItem>
-              <MenuItem value="chime">Chime</MenuItem>
-              <MenuItem value="digital">Digital</MenuItem>
-              <MenuItem value="gentle">Gentle</MenuItem>
-              <MenuItem value="pulse">Pulse</MenuItem>
+              {ALARM_TONES.map((tone) => (
+                <MenuItem key={tone} value={tone}>{getAlarmToneLabel(tone)}</MenuItem>
+              ))}
             </TextField>
             <TextField
               label="Alarm volume (%)"

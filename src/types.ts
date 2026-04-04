@@ -1,3 +1,5 @@
+import { AlarmTone } from './constants/alarmTones';
+
 export type TaskStatus = 'todo' | 'in_progress' | 'done';
 
 export interface Task {
@@ -62,7 +64,7 @@ export interface AppState {
     longBreakMinutes: number;
     sessionsBeforeLongBreak: number;
     sessionReviewGraceSeconds: number;
-    alarmTone: 'bell' | 'chime' | 'digital' | 'gentle' | 'pulse';
+    alarmTone: AlarmTone;
     alarmVolume: number;
     alarmRepeatCount: number;
     showFirstTimeGuidance: boolean;

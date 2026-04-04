@@ -92,6 +92,30 @@ describe('storage', () => {
     expect(loadState().settings.alarmVolume).toBe(100);
   });
 
+  it('normalizes legacy and invalid alarm tone values', () => {
+    localStorage.setItem(
+      'tasktrack.state.v2',
+      JSON.stringify({
+        settings: {
+          alarmTone: 'chime',
+        },
+      }),
+    );
+
+    expect(loadState().settings.alarmTone).toBe('chirp');
+
+    localStorage.setItem(
+      'tasktrack.state.v2',
+      JSON.stringify({
+        settings: {
+          alarmTone: 'not-a-tone',
+        },
+      }),
+    );
+
+    expect(loadState().settings.alarmTone).toBe('clock_bell');
+  });
+
   it('defaults first-time guidance setting to true when missing from persisted state', () => {
     localStorage.setItem(
       'tasktrack.state.v2',
