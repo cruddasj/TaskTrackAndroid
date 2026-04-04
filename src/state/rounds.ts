@@ -127,6 +127,9 @@ export const removeRoundAndNormalizeStatuses = (rounds: Round[], roundId: string
 export const unassignTasksFromRound = (tasks: Task[], roundId: string): Task[] =>
   tasks.map((task) => (task.roundId === roundId ? { ...task, roundId: undefined } : task));
 
+export const isRoundLockedByActivePomodoro = (roundId: string, activeRoundId?: string): boolean =>
+  roundId === activeRoundId;
+
 export const advanceActiveRound = (rounds: Round[], currentRoundId?: string): { rounds: Round[]; nextRoundId?: string } => {
   const openRounds = rounds.filter((round) => round.status !== 'done');
   if (openRounds.length === 0) {

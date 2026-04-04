@@ -1,4 +1,4 @@
-import { advanceActiveRound, buildNewRound, getCarryForwardRound, getCarryHistoryForRound, getDefaultRoundTitle, getHighestRoundSequence, getRoundEstimatedMinutes, getRoundTaskIdsForDisplay, getVisibleRoundId, hasEmptyRoundWithoutTasks, hasRoundsWithAssignedTasks, isRoundCompleted, moveTaskInRound, removeRoundAndNormalizeStatuses, sortRoundsChronologically, unassignTasksFromRound } from './rounds';
+import { advanceActiveRound, buildNewRound, getCarryForwardRound, getCarryHistoryForRound, getDefaultRoundTitle, getHighestRoundSequence, getRoundEstimatedMinutes, getRoundTaskIdsForDisplay, getVisibleRoundId, hasEmptyRoundWithoutTasks, hasRoundsWithAssignedTasks, isRoundCompleted, isRoundLockedByActivePomodoro, moveTaskInRound, removeRoundAndNormalizeStatuses, sortRoundsChronologically, unassignTasksFromRound } from './rounds';
 
 describe('round helpers', () => {
   it('detects when a round has no tasks assigned', () => {
@@ -97,6 +97,14 @@ describe('round helpers', () => {
 
     expect(tasks[0].roundId).toBeUndefined();
     expect(tasks[1].roundId).toBe('r2');
+  });
+
+  it('locks an active pomodoro round from deletion', () => {
+    expect(isRoundLockedByActivePomodoro('r1', 'r1')).toBe(true);
+  });
+
+  it('allows deleting a non-active pomodoro round', () => {
+    expect(isRoundLockedByActivePomodoro('r1', 'r2')).toBe(false);
   });
 
   it('advances to the next open round after a break', () => {

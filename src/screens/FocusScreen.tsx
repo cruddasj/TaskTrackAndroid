@@ -27,11 +27,13 @@ export const FocusScreen = () => {
     toggleTask,
     assignTasksToRound,
     createRound,
+    abandonActiveRound,
     showSuccessMessage,
     successMessage,
     clearSuccessMessage,
   } = useAppState();
   const [sessionReviewOpen, setSessionReviewOpen] = useState(false);
+  const [abandonRoundDialogOpen, setAbandonRoundDialogOpen] = useState(false);
   const [confirmedDoneIds, setConfirmedDoneIds] = useState<string[]>([]);
   const requestedRoundId = searchParams.get('roundId') ?? undefined;
   const todayKey = getTodayKey();
@@ -45,6 +47,7 @@ export const FocusScreen = () => {
     () => todayRounds.find((round) => round.id === visibleRoundId),
     [todayRounds, visibleRoundId],
   );
+  const canAbandonActiveRound = !!activeRound && state.pomodoro.activeRoundId === activeRound.id;
 
   const roundTasks = useMemo(() => {
     if (activeRound) {
@@ -273,6 +276,22 @@ export const FocusScreen = () => {
               Break in progress. Tasks are hidden until your next round starts.
             </Alert>
           )}
+          {canAbandonActiveRound && (
+            <Stack spacing={1} width="100%" mt={3} pt={2}>
+              <Typography color="text.secondary" textAlign="center">
+                Need to stop this round completely?
+              </Typography>
+              <Button
+                color="error"
+                variant="contained"
+                size="large"
+                fullWidth
+                onClick={() => setAbandonRoundDialogOpen(true)}
+              >
+                Abandon this round
+              </Button>
+            </Stack>
+          )}
         </Stack>
       </Stack>
 
@@ -305,6 +324,29 @@ export const FocusScreen = () => {
         <DialogActions sx={{ px: 3, pb: 3 }}>
           <Button variant="contained" fullWidth onClick={confirmSessionRollover}>
             Confirm and continue
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={abandonRoundDialogOpen} onClose={() => setAbandonRoundDialogOpen(false)} fullWidth maxWidth="xs">
+        <DialogTitle>Abandon this round?</DialogTitle>
+        <DialogContent>
+          <Typography color="text.secondary">
+            The timer will stop, this round will be deleted, and its tasks will move back to unassigned tasks.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 3 }}>
+          <Button variant="outlined" onClick={() => setAbandonRoundDialogOpen(false)}>Cancel</Button>
+          <Button
+            color="error"
+            variant="contained"
+            onClick={() => {
+              abandonActiveRound();
+              setAbandonRoundDialogOpen(false);
+              showSuccessMessage('Round abandoned. Timer stopped and tasks moved to unassigned.');
+              navigate('/rounds');
+            }}
+          >
+            Abandon round
           </Button>
         </DialogActions>
       </Dialog>
