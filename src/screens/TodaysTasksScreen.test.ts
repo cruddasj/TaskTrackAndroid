@@ -1,4 +1,4 @@
-import { getTaskPrimaryActionLabel, getTaskSecondaryActionLabel, shouldShowDoneHeading } from './todaysTasksActions';
+import { getTaskPrimaryActionLabel, getTaskSecondaryActionLabel, shouldShowDoneHeading, shouldShowTodoSection } from './todaysTasksActions';
 import { getPlanningDayFromQuery } from './planningDayQuery';
 
 describe('getTaskPrimaryActionLabel', () => {
@@ -17,6 +17,17 @@ describe('getTaskSecondaryActionLabel', () => {
   it('returns move-to-tomorrow action only for today tasks', () => {
     expect(getTaskSecondaryActionLabel('today')).toBe('Move to tomorrow');
     expect(getTaskSecondaryActionLabel('tomorrow')).toBeNull();
+  });
+});
+
+
+describe('shouldShowTodoSection', () => {
+  it('hides to-do section when there are no to-do tasks', () => {
+    expect(shouldShowTodoSection(0)).toBe(false);
+  });
+
+  it('shows to-do section when at least one to-do task remains', () => {
+    expect(shouldShowTodoSection(1)).toBe(true);
   });
 });
 
