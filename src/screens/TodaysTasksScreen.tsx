@@ -6,6 +6,7 @@ import CircleOutlined from '@mui/icons-material/CircleOutlined';
 import { Alert, Box, Button, Card, CardContent, Checkbox, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 import { getDefaultSelectedRecurringSuggestionIds, getSelectedRecurringSuggestions } from './todaysTaskSuggestions';
+import { getTaskPrimaryActionLabel } from './todaysTasksActions';
 import { PlanningDay, PlanningDayToggle } from '../components/PlanningDayToggle';
 import { useAppState } from '../state/AppStateContext';
 import { hasDuplicateTodayTaskTitle, sortCategoriesAlphabetically, sortTasksAlphabetically, suggestRecurringTaskBankItems, WEEKDAY_LABELS } from '../state/tasks';
@@ -17,6 +18,11 @@ interface TaskFormState {
   description: string;
   category: string;
   estimateMinutes: string;
+}
+
+interface TaskPrimaryAction {
+  label: string;
+  onClick: () => void;
 }
 
 const emptyForm: TaskFormState = {
@@ -162,6 +168,26 @@ export const TodaysTasksScreen = () => {
     setTaskPendingDelete(null);
   };
 
+  const getTaskPrimaryAction = (task: Task): TaskPrimaryAction => {
+    if (planningDay === 'tomorrow') {
+      return {
+        label: getTaskPrimaryActionLabel(planningDay, task.status),
+        onClick: () => {
+          updateTask({ ...task, plannedDate: todayKey });
+          showSuccessMessage('Task moved to today.');
+        },
+      };
+    }
+
+    return {
+      label: getTaskPrimaryActionLabel(planningDay, task.status),
+      onClick: () => {
+        toggleTask(task.id);
+        showSuccessMessage(task.status === 'done' ? 'Task marked as to-do.' : 'Task marked as done.');
+      },
+    };
+  };
+
   return (
     <Stack spacing={2}>
       <Box>
@@ -183,9 +209,11 @@ export const TodaysTasksScreen = () => {
         </CardContent>
       </Card>
 
-      {tasksForSelectedDay.map((task) => (
-        <Card key={task.id}>
-          <CardContent>
+      {tasksForSelectedDay.map((task) => {
+        const primaryAction = getTaskPrimaryAction(task);
+        return (
+          <Card key={task.id}>
+            <CardContent>
             <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={1} spacing={1.5}>
               <Typography variant="h5">{task.title}</Typography>
               <Stack direction="row" spacing={0.5} sx={taskActionRowSx}>
@@ -222,16 +250,14 @@ export const TodaysTasksScreen = () => {
             <Button
               size="small"
               sx={{ mt: 1.25, alignSelf: 'flex-start' }}
-              onClick={() => {
-                toggleTask(task.id);
-                showSuccessMessage(task.status === 'done' ? 'Task marked as to-do.' : 'Task marked as done.');
-              }}
+              onClick={primaryAction.onClick}
             >
-              {task.status === 'done' ? 'Mark as to-do' : 'Mark as done'}
+              {primaryAction.label}
             </Button>
-          </CardContent>
-        </Card>
-      ))}
+            </CardContent>
+          </Card>
+        );
+      })}
 
       {tasksForSelectedDay.length === 0 && (
         <Card>
