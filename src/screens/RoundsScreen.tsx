@@ -43,7 +43,7 @@ import { getTodayKey, getTomorrowKey } from '../utils';
 import { shouldShowCategoryGroupingSuggestion } from './roundsScreenVisibility';
 
 export const RoundsScreen = () => {
-  const { state, assignTasksToRound, autoGroupTasksForDate, moveRound, createRound, deleteRound, updateRoundTitle, showSuccessMessage } = useAppState();
+  const { state, assignTasksToRound, autoGroupTasksForDate, moveRound, moveTaskInRound, createRound, deleteRound, updateRoundTitle, showSuccessMessage } = useAppState();
   const [editingRoundId, setEditingRoundId] = useState<string | null>(null);
   const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
   const [createRoundOpen, setCreateRoundOpen] = useState(false);
@@ -298,15 +298,36 @@ export const RoundsScreen = () => {
                     ? `(Not completed in this round, carried over from ${carriedFromRound.title} to ${carriedToRound.title})`
                     : `(Not completed in this round, carried over to ${carriedToRound.title})`
                   : null;
+                const taskOrderIndex = round.taskIds.indexOf(task.id);
                 return (
                   <Stack direction="row" spacing={1} alignItems="center" key={task.id}>
                     {task.status === 'done' && !carriedMessage
                       ? <CheckCircleRounded fontSize="small" color="success" />
                       : <CircleOutlined fontSize="small" color="disabled" />}
-                    <Typography>
+                    <Typography sx={{ flex: 1 }}>
                       {task.title}
                       {carriedMessage ? ` ${carriedMessage}` : ''}
                     </Typography>
+                    {round.status !== 'done' && task.roundId === round.id && (
+                      <Stack direction="row" spacing={0.25}>
+                        <IconButton
+                          size="small"
+                          aria-label={`move-task-up-${round.id}-${task.id}`}
+                          onClick={() => moveTaskInRound(round.id, task.id, 'up')}
+                          disabled={taskOrderIndex <= 0}
+                        >
+                          <ArrowDropUpRounded fontSize="small" />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          aria-label={`move-task-down-${round.id}-${task.id}`}
+                          onClick={() => moveTaskInRound(round.id, task.id, 'down')}
+                          disabled={taskOrderIndex < 0 || taskOrderIndex >= round.taskIds.length - 1}
+                        >
+                          <ArrowDropDownRounded fontSize="small" />
+                        </IconButton>
+                      </Stack>
+                    )}
                   </Stack>
                 );
               })}

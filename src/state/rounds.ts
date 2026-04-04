@@ -26,6 +26,19 @@ export const getRoundTaskIdsForDisplay = (round: Round, tasks: Task[]): string[]
   return Array.from(displayTaskIds);
 };
 
+export const moveTaskInRound = (taskIds: string[], taskId: string, direction: 'up' | 'down'): string[] => {
+  const currentIndex = taskIds.indexOf(taskId);
+  if (currentIndex < 0) return taskIds;
+
+  const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+  if (targetIndex < 0 || targetIndex >= taskIds.length) return taskIds;
+
+  const nextTaskIds = [...taskIds];
+  const [movingTaskId] = nextTaskIds.splice(currentIndex, 1);
+  nextTaskIds.splice(targetIndex, 0, movingTaskId);
+  return nextTaskIds;
+};
+
 
 type CarryHistory = {
   carriedFromRoundId?: string;
