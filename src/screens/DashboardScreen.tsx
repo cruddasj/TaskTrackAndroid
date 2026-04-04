@@ -1,5 +1,6 @@
 import PlayArrowRounded from '@mui/icons-material/PlayArrowRounded';
 import CheckCircleRounded from '@mui/icons-material/CheckCircleRounded';
+import CircleOutlined from '@mui/icons-material/CircleOutlined';
 import InsightsOutlined from '@mui/icons-material/InsightsOutlined';
 import ChevronRightRounded from '@mui/icons-material/ChevronRightRounded';
 import KeyboardArrowLeftRounded from '@mui/icons-material/KeyboardArrowLeftRounded';
@@ -97,6 +98,10 @@ export const DashboardScreen = () => {
     },
   } as const;
 
+  const renderTaskStatusIcon = (isDone: boolean, color: string) => (isDone
+    ? <CheckCircleRounded sx={{ color }} fontSize="small" />
+    : <CircleOutlined sx={{ color }} fontSize="small" />);
+
   return (
     <Stack spacing={3}>
       <Box>
@@ -122,7 +127,7 @@ export const DashboardScreen = () => {
               <Stack spacing={1.25} mb={2.5}>
                 {currentRoundTasks.map((task) => (
                   <Stack key={task.id} direction="row" spacing={1} alignItems="center">
-                    <CheckCircleRounded color="primary" fontSize="small" />
+                    {renderTaskStatusIcon(task.status === 'done', 'primary.main')}
                     <Typography>{task.title}</Typography>
                   </Stack>
                 ))}
@@ -167,7 +172,7 @@ export const DashboardScreen = () => {
               <Stack spacing={1.25}>
                 {nextRoundTasks.map((task) => (
                   <Stack key={task.id} direction="row" spacing={1} alignItems="center">
-                    <CheckCircleRounded sx={{ color: '#60aeff' }} fontSize="small" />
+                    {renderTaskStatusIcon(task.status === 'done', '#60aeff')}
                     <Typography>{task.title}</Typography>
                   </Stack>
                 ))}
@@ -270,7 +275,10 @@ export const DashboardScreen = () => {
           {tomorrowTasks.length > 0 ? (
             <Stack spacing={0.75}>
               {tomorrowTasks.slice(0, 3).map((task) => (
-                <Typography key={task.id} color="text.secondary">• {task.title}</Typography>
+                <Stack key={task.id} direction="row" spacing={1} alignItems="center">
+                  {renderTaskStatusIcon(task.status === 'done', '#c97dff')}
+                  <Typography color="text.secondary">{task.title}</Typography>
+                </Stack>
               ))}
               {tomorrowTasks.length > 3 && <Typography color="text.secondary">+{tomorrowTasks.length - 3} more</Typography>}
             </Stack>
