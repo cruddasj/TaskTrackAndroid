@@ -13,6 +13,7 @@ import { areAllTasksCompletedForDate } from '../state/tasks';
 import type { Task } from '../types';
 import { formatRemainingEndTime, formatTime, getTodayKey } from '../utils';
 import { canMarkTaskDone, getMarkTaskDoneBlockedMessage } from './focusTaskToggle';
+import { allowScreenSleep, keepScreenAwake } from '../services/keepAwake';
 import { getWorkSkipOutcome } from './focusSkip';
 
 export const FocusScreen = () => {
@@ -74,6 +75,14 @@ export const FocusScreen = () => {
   const allTodaysTasksDone = areAllTasksCompletedForDate(state.tasks, todayKey);
   const canMarkTasksDone = canMarkTaskDone(state.pomodoro.isRunning);
   const blockedTaskDoneMessage = getMarkTaskDoneBlockedMessage(state.pomodoro.isRunning);
+
+  useEffect(() => {
+    keepScreenAwake().catch(() => undefined);
+
+    return () => {
+      allowScreenSleep().catch(() => undefined);
+    };
+  }, []);
 
   useEffect(() => {
     if (state.pomodoro.remainingSeconds !== 0 || state.pomodoro.isRunning || unfinishedRoundTasks.length === 0) return;
