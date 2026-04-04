@@ -19,7 +19,6 @@ import { getRemainingSecondsFromClock } from './pomodoroClock';
 import { clearStoredState, createDemoState, loadState, saveState, seedState } from './storage';
 import { getAssignmentRoundUpdate, getRevivedTaskRoundUpdate } from './taskRoundHistory';
 import { getTodayKey } from '../utils';
-import { getActiveNotificationRemainingSeconds } from './activeNotification';
 
 type NewTask = Omit<Task, 'id' | 'status' | 'plannedDate' | 'completedAt'> & { plannedDate?: string };
 type EditableTask = Omit<Task, 'status'>;
@@ -705,6 +704,11 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isAppActive, setIsAppActive] = useState(() => document.visibilityState !== 'hidden');
   const stopAlarmRef = useRef<(() => void) | null>(null);
+  const activeNotificationSyncRef = useRef({
+    isAppActive: document.visibilityState !== 'hidden',
+    isRunning: state.pomodoro.isRunning,
+    phase: state.pomodoro.phase,
+  });
 
   useEffect(() => {
     requestNotificationPermissions().catch(() => undefined);
@@ -776,14 +780,26 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
   }, [state.pomodoro.isRunning, state.pomodoro.startedAt, state.pomodoro.remainingSeconds]);
 
   useEffect(() => {
-    if (!state.pomodoro.isRunning || state.pomodoro.remainingSeconds <= 0) {
+    const previousState = activeNotificationSyncRef.current;
+    const nextState = {
+      isAppActive,
+      isRunning: state.pomodoro.isRunning,
+      phase: state.pomodoro.phase,
+    };
+    activeNotificationSyncRef.current = nextState;
+
+    if (isAppActive || !state.pomodoro.isRunning || state.pomodoro.remainingSeconds <= 0) {
       clearActivePomodoroNotification().catch(() => undefined);
       return;
     }
 
-    const notificationRemainingSeconds = getActiveNotificationRemainingSeconds(state.pomodoro.remainingSeconds, isAppActive);
-    syncActivePomodoroNotification(state.pomodoro.phase, notificationRemainingSeconds).catch(() => undefined);
-  }, [isAppActive, state.pomodoro.isRunning, state.pomodoro.remainingSeconds, state.pomodoro.phase]);
+    const becameInactive = previousState.isAppActive && !isAppActive;
+    const runningStateChanged = previousState.isRunning !== state.pomodoro.isRunning;
+    const phaseChanged = previousState.phase !== state.pomodoro.phase;
+    if (!becameInactive && !runningStateChanged && !phaseChanged) return;
+
+    syncActivePomodoroNotification(state.pomodoro.phase, state.pomodoro.remainingSeconds).catch(() => undefined);
+  }, [isAppActive, state.pomodoro.isRunning, state.pomodoro.phase, state.pomodoro.remainingSeconds]);
 
   useEffect(() => {
     const titleByPhase: Record<PomodoroState['phase'], string> = {
