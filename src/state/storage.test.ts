@@ -24,6 +24,7 @@ describe('storage', () => {
         alarmRepeatCount: 5,
         sessionReviewGraceSeconds: 90,
         showFirstTimeGuidance: false,
+        hasSeenWelcomeModal: true,
       },
     };
 
@@ -33,6 +34,7 @@ describe('storage', () => {
     expect(loadState().settings.alarmRepeatCount).toBe(5);
     expect(loadState().settings.sessionReviewGraceSeconds).toBe(90);
     expect(loadState().settings.showFirstTimeGuidance).toBe(false);
+    expect(loadState().settings.hasSeenWelcomeModal).toBe(true);
   });
 
   it('clears persisted app state from localStorage', () => {
@@ -127,6 +129,7 @@ describe('storage', () => {
     );
 
     expect(loadState().settings.showFirstTimeGuidance).toBe(true);
+    expect(loadState().settings.hasSeenWelcomeModal).toBe(false);
   });
 
   it('normalizes invalid session review timeout values', () => {
