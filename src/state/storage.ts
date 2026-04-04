@@ -209,6 +209,7 @@ export const normalizeState = (raw: Partial<AppState>): AppState => {
       description: task.description,
       category: task.category,
       estimateMinutes: task.estimateMinutes,
+      lastCompletedOn: undefined,
       recurrenceDays: undefined,
       recurrenceWeekdays: undefined,
       recurrenceDayOfMonth: undefined,
@@ -229,6 +230,10 @@ export const normalizeState = (raw: Partial<AppState>): AppState => {
       recurrenceDays:
         item.recurrenceDays && item.recurrenceDays > 0
           ? Math.round(item.recurrenceDays)
+          : undefined,
+      lastCompletedOn:
+        typeof item.lastCompletedOn === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(item.lastCompletedOn)
+          ? item.lastCompletedOn
           : undefined,
       recurrenceWeekdays:
         item.recurrenceWeekdays && item.recurrenceWeekdays.length > 0

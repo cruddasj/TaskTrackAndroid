@@ -28,6 +28,7 @@ interface TaskFormState {
   description: string;
   category: string;
   estimateMinutes: string;
+  lastCompletedOn: string;
   recurrenceMode: TaskBankRecurrenceMode;
   recurrenceDays: string;
   recurrenceWeekdays: number[];
@@ -39,6 +40,7 @@ const emptyForm: TaskFormState = {
   description: '',
   category: '',
   estimateMinutes: '25',
+  lastCompletedOn: '',
   recurrenceMode: 'none',
   recurrenceDays: '',
   recurrenceWeekdays: [],
@@ -104,6 +106,7 @@ export const TaskBankScreen = () => {
       description: task.description,
       category: task.category,
       estimateMinutes: String(task.estimateMinutes),
+      lastCompletedOn: task.lastCompletedOn ?? '',
       recurrenceMode: getTaskBankFormRecurrenceMode(task),
       recurrenceDays: task.recurrenceDays ? String(task.recurrenceDays) : '',
       recurrenceWeekdays: task.recurrenceWeekdays ?? [],
@@ -130,6 +133,8 @@ export const TaskBankScreen = () => {
     const description = normalizeOptionalDescription(form.description);
     const category = form.category || state.categories[0] || 'Uncategorized';
     const estimateMinutes = Number(form.estimateMinutes);
+    const lastCompletedOn = form.lastCompletedOn.trim();
+    const normalizedLastCompletedOn = /^\d{4}-\d{2}-\d{2}$/.test(lastCompletedOn) ? lastCompletedOn : undefined;
     const recurrenceDayOfMonth = Number(form.recurrenceDayOfMonth);
     const normalizedRecurrenceDays = getNormalizedRecurrenceDays(form.recurrenceMode, form.recurrenceDays);
     const normalizedRecurrenceWeekdays =
@@ -152,6 +157,7 @@ export const TaskBankScreen = () => {
         description,
         category,
         estimateMinutes,
+        lastCompletedOn: normalizedLastCompletedOn,
         recurrenceDays: normalizedRecurrenceDays,
         recurrenceWeekdays: normalizedRecurrenceWeekdays,
         recurrenceDayOfMonth: normalizedRecurrenceDayOfMonth,
@@ -163,6 +169,7 @@ export const TaskBankScreen = () => {
         description,
         category,
         estimateMinutes,
+        lastCompletedOn: normalizedLastCompletedOn,
         recurrenceDays: normalizedRecurrenceDays,
         recurrenceWeekdays: normalizedRecurrenceWeekdays,
         recurrenceDayOfMonth: normalizedRecurrenceDayOfMonth,
@@ -258,7 +265,10 @@ export const TaskBankScreen = () => {
       </Card>
       {filteredTaskBank.map((task) => {
         const titleKey = task.title.trim().toLocaleLowerCase();
-        const lastCompletedAtMs = lastCompletionByTitle.get(titleKey);
+        const trackedLastCompletedAtMs = lastCompletionByTitle.get(titleKey);
+        const manualLastCompletedAtMs = task.lastCompletedOn ? new Date(`${task.lastCompletedOn}T00:00:00.000Z`).getTime() : undefined;
+        const lastCompletedAtMs = Math.max(trackedLastCompletedAtMs ?? Number.NEGATIVE_INFINITY, manualLastCompletedAtMs ?? Number.NEGATIVE_INFINITY);
+        const hasCompletionDate = Number.isFinite(lastCompletedAtMs);
         return (
           <Card key={task.id}>
             <CardContent>
@@ -304,7 +314,7 @@ export const TaskBankScreen = () => {
               >
                 {`Add to ${planningDay}'s tasks`}
               </Button>
-              {lastCompletedAtMs !== undefined && (
+              {hasCompletionDate && (
                 <Typography variant="body2" color="text.secondary">
                   Last completed on {formatLastCompletedLabel(lastCompletedAtMs)}
                 </Typography>
@@ -402,6 +412,16 @@ export const TaskBankScreen = () => {
             inputProps={{ min: 1 }}
             value={form.estimateMinutes}
             onChange={(event) => setForm((current) => ({ ...current, estimateMinutes: event.target.value }))}
+          />
+          <TextField
+            margin="dense"
+            label="Last completed date (optional)"
+            fullWidth
+            type="date"
+            helperText="Use this when you completed the task outside TaskTrack."
+            value={form.lastCompletedOn}
+            onChange={(event) => setForm((current) => ({ ...current, lastCompletedOn: event.target.value }))}
+            InputLabelProps={{ shrink: true }}
           />
           <TextField
             margin="dense"

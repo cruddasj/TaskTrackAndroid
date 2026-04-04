@@ -21,6 +21,7 @@ export interface TaskBankItem {
   description: string;
   category: string;
   estimateMinutes: number;
+  lastCompletedOn?: string;
   recurrenceDays?: number;
   recurrenceWeekdays?: number[];
   recurrenceDayOfMonth?: number;

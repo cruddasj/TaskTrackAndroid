@@ -187,8 +187,10 @@ export const suggestRecurringTaskBankItems = (
 
     const recurrenceDays = item.recurrenceDays;
     if (!recurrenceDays || recurrenceDays <= 0) return false;
-    const lastCompletedMs = completionByTitle.get(titleKey);
-    if (lastCompletedMs === undefined) return true;
+    const trackedLastCompletedMs = completionByTitle.get(titleKey);
+    const manualLastCompletedMs = item.lastCompletedOn ? parseDayKeyToUtcMs(item.lastCompletedOn) : undefined;
+    const lastCompletedMs = Math.max(trackedLastCompletedMs ?? Number.NEGATIVE_INFINITY, manualLastCompletedMs ?? Number.NEGATIVE_INFINITY);
+    if (!Number.isFinite(lastCompletedMs)) return true;
     return nowMs - lastCompletedMs >= recurrenceDays * DAY_IN_MS;
   });
 };

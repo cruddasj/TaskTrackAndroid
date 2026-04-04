@@ -193,6 +193,7 @@ describe('storage', () => {
             description: 'Bake',
             category: 'Household chores',
             estimateMinutes: 45,
+            lastCompletedOn: '2026/03/01',
             recurrenceDays: 0,
             recurrenceDayOfMonth: 0,
           },
@@ -202,6 +203,7 @@ describe('storage', () => {
             description: 'Mist',
             category: 'Health and wellbeing',
             estimateMinutes: 10,
+            lastCompletedOn: '2026-03-28',
             recurrenceDays: 2.7,
             recurrenceWeekdays: [2, 2, 7, -1],
             recurrenceDayOfMonth: 15.2,
@@ -211,8 +213,10 @@ describe('storage', () => {
     );
 
     const loaded = loadState();
+    expect(loaded.taskBank[0].lastCompletedOn).toBeUndefined();
     expect(loaded.taskBank[0].recurrenceDays).toBeUndefined();
     expect(loaded.taskBank[0].recurrenceDayOfMonth).toBeUndefined();
+    expect(loaded.taskBank[1].lastCompletedOn).toBe('2026-03-28');
     expect(loaded.taskBank[1].recurrenceDays).toBe(3);
     expect(loaded.taskBank[1].recurrenceWeekdays).toEqual([2]);
     expect(loaded.taskBank[1].recurrenceDayOfMonth).toBe(15);
