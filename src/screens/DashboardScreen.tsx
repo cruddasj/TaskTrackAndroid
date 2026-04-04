@@ -12,7 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
 import { formatFocusTimeSpent, getGreeting } from './greeting';
 import { getTodayKey, getTomorrowKey } from '../utils';
-import { getDashboardHeroCopy, getTodayRoundMetrics } from './dashboardMetrics';
+import { getDashboardHeroCopy, getTodayRoundMetrics, shouldShowCurrentRoundTasks } from './dashboardMetrics';
 import { formatHistoryDayLabel, getCategoryTotals, getCompletedTaskHistory } from './dashboardInsights';
 
 const HISTORY_WINDOW_DAYS = 30;
@@ -52,6 +52,7 @@ export const DashboardScreen = () => {
     allTodaysTasksDone,
     currentRoundTaskCount: currentRoundTasks.length,
   });
+  const showCurrentRoundTasks = shouldShowCurrentRoundTasks(state.pomodoro.phase);
 
   const [isInsightsExpanded, setIsInsightsExpanded] = useState(false);
   const [completedHistoryIndex, setCompletedHistoryIndex] = useState(0);
@@ -121,7 +122,7 @@ export const DashboardScreen = () => {
             <Typography color="text.secondary" mb={2}>
               Great job. You finished every planned task for today, so you can stop for today.
             </Typography>
-          ) : currentRoundTasks.length > 0 ? (
+          ) : showCurrentRoundTasks && currentRoundTasks.length > 0 ? (
             <>
               <Typography color="text.secondary" mb={2}>These tasks are queued for your current round.</Typography>
               <Stack spacing={1.25} mb={2.5}>

@@ -16,6 +16,7 @@ This repository contains TaskTrack Android (React + Capacitor). Keep changes foc
 - Keep setup and settings language beginner-friendly.
 - Use green-styled guidance callouts/alerts consistently across the app (avoid blue guidance styling).
 - For any expand/collapse interaction, use the same `UnfoldMore` icon style used by the Dashboard Insights card for consistency.
+- On the Dashboard hero card, when Pomodoro phase is `short_break` or `long_break`, never render current-round task lists; show break-in-progress messaging only.
 
 ## Alarm and timer behavior
 - Any change to Pomodoro alarms should consider both web and native behavior.

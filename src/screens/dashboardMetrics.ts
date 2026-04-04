@@ -49,3 +49,5 @@ export const getDashboardHeroCopy = (options: {
     title: currentRoundTaskCount > 0 ? 'Your current round tasks' : 'Ready to plan your current round?',
   };
 };
+
+export const shouldShowCurrentRoundTasks = (phase: 'work' | 'short_break' | 'long_break') => phase === 'work';
