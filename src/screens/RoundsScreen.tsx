@@ -41,7 +41,7 @@ import {
   isRoundCompleted,
 } from '../state/rounds';
 import { getTodayKey, getTomorrowKey } from '../utils';
-import { shouldShowCategoryGroupingSuggestion } from './roundsScreenVisibility';
+import { getUnassignedTodoTasks, shouldShowCategoryGroupingSuggestion } from './roundsScreenVisibility';
 
 export const RoundsScreen = () => {
   const { state, assignTasksToRound, autoGroupTasksForDate, moveRound, moveTaskInRound, createRound, deleteRound, updateRoundTitle, showSuccessMessage } = useAppState();
@@ -96,9 +96,10 @@ export const RoundsScreen = () => {
     () => orderedRounds.filter((round) => round.status !== 'done'),
     [orderedRounds],
   );
+  const roundIds = useMemo(() => new Set(orderedRounds.map((round) => round.id)), [orderedRounds]);
   const unassignedTasks = useMemo(
-    () => todaysTasks.filter((task) => !task.roundId || !orderedRounds.some((round) => round.id === task.roundId)),
-    [todaysTasks, orderedRounds],
+    () => getUnassignedTodoTasks(todaysTasks, roundIds),
+    [todaysTasks, roundIds],
   );
   const showCategoryGroupingSuggestion = useMemo(
     () => shouldShowCategoryGroupingSuggestion(todaysTasks),
@@ -193,7 +194,7 @@ export const RoundsScreen = () => {
       )}
       <Card sx={{ bgcolor: '#1a1a1a' }}>
         <CardContent>
-          <Typography variant="h6" mb={1}>Unassigned tasks for {planningDay}</Typography>
+          <Typography variant="h6" mb={1}>Unassigned to-do tasks for {planningDay}</Typography>
           <Stack spacing={1}>
             {unassignedTasks.map((task) => (
               <Stack direction="row" spacing={1} alignItems="center" key={task.id}>
@@ -219,7 +220,7 @@ export const RoundsScreen = () => {
               <Typography color="text.secondary">
                 {todaysTasks.length === 0
                   ? `No tasks in ${planningDay}'s list yet.`
-                  : `All ${planningDay}'s tasks are assigned to a round.`}
+                  : `All ${planningDay}'s to-do tasks are assigned to a round.`}
               </Typography>
             )}
           </Stack>
