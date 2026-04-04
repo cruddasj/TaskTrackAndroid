@@ -169,6 +169,7 @@ describe('notifications service', () => {
   });
 
   it('syncs an ongoing native notification for active timer state', async () => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-04-04T09:00:00Z'));
     isNativePlatformMock.mockReturnValue(true);
 
     await syncActivePomodoroNotification('work', 301);
@@ -182,7 +183,7 @@ describe('notifications service', () => {
     expect(payload.notifications[0]).toEqual(expect.objectContaining({
       id: 91100001,
       title: 'TaskTrack timer running',
-      body: 'Focus round: 05:01 remaining',
+      body: 'Focus round ends at 09:05',
       ongoing: true,
       autoCancel: false,
       channelId: 'pomodoro-active-timer',

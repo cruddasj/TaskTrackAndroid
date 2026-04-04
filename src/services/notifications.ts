@@ -1,6 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 import { Haptics, NotificationType } from '@capacitor/haptics';
 import { LocalNotifications } from '@capacitor/local-notifications';
+import { formatRemainingEndTime } from '../utils';
 
 export type AlarmTone = 'bell' | 'chime' | 'digital' | 'gentle' | 'pulse';
 
@@ -57,13 +58,6 @@ const ensureActivePomodoroTimerChannel = async (): Promise<void> => {
     importance: 2,
     vibration: false,
   });
-};
-
-const formatSecondsAsClock = (seconds: number): string => {
-  const safeSeconds = Math.max(0, Math.floor(seconds));
-  const minutes = Math.floor(safeSeconds / 60);
-  const remainingSeconds = safeSeconds % 60;
-  return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
 };
 
 const ensureNativeNotificationPermission = async (): Promise<boolean> => {
@@ -192,7 +186,7 @@ export const syncActivePomodoroNotification = async (
       {
         id: ACTIVE_TIMER_NOTIFICATION_ID,
         title: 'TaskTrack timer running',
-        body: `${phaseLabel}: ${formatSecondsAsClock(remainingSeconds)} remaining`,
+        body: `${phaseLabel} ends at ${formatRemainingEndTime(remainingSeconds)}`,
         channelId: ACTIVE_TIMER_CHANNEL_ID,
         ongoing: true,
         autoCancel: false,
