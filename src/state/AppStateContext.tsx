@@ -714,6 +714,7 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isAppActive, setIsAppActive] = useState(() => document.visibilityState !== 'hidden');
   const stopAlarmRef = useRef<(() => void) | null>(null);
+  const handledCompletionAlarmKeyRef = useRef<string | null>(null);
   const activeNotificationSyncRef = useRef({
     isAppActive: document.visibilityState !== 'hidden',
     isRunning: state.pomodoro.isRunning,
@@ -846,7 +847,14 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
   ]);
 
   useEffect(() => {
-    if (state.pomodoro.remainingSeconds !== 0 || !state.pomodoro.isRunning) return;
+    if (state.pomodoro.remainingSeconds !== 0 || !state.pomodoro.isRunning) {
+      handledCompletionAlarmKeyRef.current = null;
+      return;
+    }
+
+    const completionAlarmKey = `${state.pomodoro.sessionId ?? 'no-session'}:${state.pomodoro.phase}:${state.pomodoro.startTime ?? 0}`;
+    if (handledCompletionAlarmKeyRef.current === completionAlarmKey) return;
+    handledCompletionAlarmKeyRef.current = completionAlarmKey;
 
     const titleByPhase: Record<PomodoroState['phase'], string> = {
       work: 'Focus session complete',
@@ -885,7 +893,7 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
     }
 
     dispatch({ type: 'ADVANCE_POMODORO_PHASE' });
-  }, [state, state.pomodoro.remainingSeconds, state.pomodoro.isRunning, state.pomodoro.phase, state.settings.alarmTone, state.settings.alarmRepeatCount, state.settings.alarmVolume]);
+  }, [state, state.pomodoro.remainingSeconds, state.pomodoro.isRunning, state.pomodoro.phase, state.pomodoro.sessionId, state.pomodoro.startTime, state.settings.alarmTone, state.settings.alarmRepeatCount, state.settings.alarmVolume]);
 
   const dismissAlarm = () => {
     stopAlarmRef.current?.();
