@@ -10,6 +10,7 @@ import { useAppState } from '../state/AppStateContext';
 import { createBackupJson, importBackupJson } from '../state/backup';
 import { exportBackupFile } from '../services/backupExport';
 import { getAlphabeticalCategories } from './settingsCategories';
+import { getBackupExportSuccessMessage } from './settingsBackupMessages';
 
 export const SettingsScreen = () => {
   const {
@@ -58,17 +59,8 @@ export const SettingsScreen = () => {
   const handleExportBackup = async () => {
     const backupJson = await createBackupJson(state, backupPassword);
     const fileName = `tasktrack-backup-${new Date().toISOString().slice(0, 10)}.json`;
-    const exportMethod = await exportBackupFile(backupJson, fileName);
-
-    showSuccessMessage(
-      exportMethod === 'filesystem'
-        ? hasBackupPassword
-          ? 'Encrypted backup saved to your Android files.'
-          : 'Backup saved to your Android files.'
-        : hasBackupPassword
-          ? 'Encrypted backup exported.'
-          : 'Backup exported.',
-    );
+    const exportResult = await exportBackupFile(backupJson, fileName);
+    showSuccessMessage(getBackupExportSuccessMessage(exportResult, hasBackupPassword));
   };
 
   const handleImportBackup = async (event: ChangeEvent<HTMLInputElement>) => {
