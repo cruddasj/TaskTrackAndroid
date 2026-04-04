@@ -1,4 +1,4 @@
-import { shouldShowCategoryGroupingSuggestion } from './roundsScreenVisibility';
+import { getUnassignedTodoTasks, shouldShowCategoryGroupingSuggestion } from './roundsScreenVisibility';
 import { Task } from '../types';
 
 const buildTask = (overrides: Partial<Task> = {}): Task => ({
@@ -36,5 +36,23 @@ describe('shouldShowCategoryGroupingSuggestion', () => {
 
   it('returns false when there are no today tasks', () => {
     expect(shouldShowCategoryGroupingSuggestion([])).toBe(false);
+  });
+});
+
+describe('getUnassignedTodoTasks', () => {
+  it('returns only unfinished tasks that are unassigned', () => {
+    const tasks = [
+      buildTask({ id: 'task-1', status: 'todo' }),
+      buildTask({ id: 'task-2', status: 'in_progress' }),
+      buildTask({ id: 'task-3', status: 'done' }),
+      buildTask({ id: 'task-4', status: 'todo', roundId: 'round-1' }),
+      buildTask({ id: 'task-5', status: 'todo', roundId: 'missing-round' }),
+    ];
+
+    expect(getUnassignedTodoTasks(tasks, new Set(['round-1']))).toEqual([
+      expect.objectContaining({ id: 'task-1' }),
+      expect.objectContaining({ id: 'task-2' }),
+      expect.objectContaining({ id: 'task-5' }),
+    ]);
   });
 });
