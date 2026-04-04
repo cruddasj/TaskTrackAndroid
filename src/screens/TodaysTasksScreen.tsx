@@ -7,6 +7,7 @@ import { Alert, Box, Button, Card, CardContent, Checkbox, Chip, Dialog, DialogAc
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getDefaultSelectedRecurringSuggestionIds, getSelectedRecurringSuggestions } from './todaysTaskSuggestions';
+import { getTaskSections } from './todaysTaskSections';
 import { getTaskPrimaryActionLabel } from './todaysTasksActions';
 import { getPlanningDayFromQuery } from './planningDayQuery';
 import { PlanningDay, PlanningDayToggle } from '../components/PlanningDayToggle';
@@ -44,6 +45,10 @@ export const TodaysTasksScreen = () => {
   const tasksForSelectedDay = useMemo(
     () => sortTasksAlphabetically(state.tasks.filter((task) => task.plannedDate === selectedDateKey)),
     [selectedDateKey, state.tasks],
+  );
+  const { todo: todoTasksForSelectedDay, done: doneTasksForSelectedDay } = useMemo(
+    () => getTaskSections(tasksForSelectedDay),
+    [tasksForSelectedDay],
   );
   const [open, setOpen] = useState(false);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
@@ -195,6 +200,56 @@ export const TodaysTasksScreen = () => {
     };
   };
 
+  const renderTaskCard = (task: Task) => {
+    const primaryAction = getTaskPrimaryAction(task);
+    return (
+      <Card key={task.id}>
+        <CardContent>
+          <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={1} spacing={1.5}>
+            <Typography variant="h5">{task.title}</Typography>
+            <Stack direction="row" spacing={0.5} sx={taskActionRowSx}>
+              <IconButton size="small" onClick={() => openEditDialog(task)} aria-label={`edit-${task.id}`} sx={taskActionButtonSx}>
+                <EditOutlined fontSize="small" />
+              </IconButton>
+              <IconButton
+                size="small"
+                onClick={() => requestDeleteTask(task)}
+                aria-label={`delete-${task.id}`}
+                sx={taskActionButtonSx}
+              >
+                <DeleteOutlineRounded sx={{ fontSize: 18 }} color="error" />
+              </IconButton>
+              <IconButton
+                size="small"
+                onClick={() => {
+                  toggleTask(task.id);
+                  showSuccessMessage(task.status === 'done' ? 'Task marked as to-do.' : 'Task marked as done.');
+                }}
+                aria-label={`toggle-${task.id}`}
+                sx={taskActionButtonSx}
+              >
+                {task.status === 'done' ? <CheckCircleRounded color="success" /> : <CircleOutlined color="disabled" />}
+              </IconButton>
+            </Stack>
+          </Stack>
+          {task.description && <Typography color="text.secondary" mb={2}>{task.description}</Typography>}
+          <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+            <Chip label={task.category} />
+            <Chip label={`${task.estimateMinutes} min`} variant="outlined" />
+            {task.roundId && <Chip label="Assigned to round" color="secondary" variant="outlined" />}
+          </Stack>
+          <Button
+            size="small"
+            sx={{ mt: 1.25, alignSelf: 'flex-start' }}
+            onClick={primaryAction.onClick}
+          >
+            {primaryAction.label}
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  };
+
   return (
     <Stack spacing={2}>
       <Box>
@@ -216,55 +271,15 @@ export const TodaysTasksScreen = () => {
         </CardContent>
       </Card>
 
-      {tasksForSelectedDay.map((task) => {
-        const primaryAction = getTaskPrimaryAction(task);
-        return (
-          <Card key={task.id}>
-            <CardContent>
-            <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={1} spacing={1.5}>
-              <Typography variant="h5">{task.title}</Typography>
-              <Stack direction="row" spacing={0.5} sx={taskActionRowSx}>
-                <IconButton size="small" onClick={() => openEditDialog(task)} aria-label={`edit-${task.id}`} sx={taskActionButtonSx}>
-                  <EditOutlined fontSize="small" />
-                </IconButton>
-                <IconButton
-                  size="small"
-                  onClick={() => requestDeleteTask(task)}
-                  aria-label={`delete-${task.id}`}
-                  sx={taskActionButtonSx}
-                >
-                  <DeleteOutlineRounded sx={{ fontSize: 18 }} color="error" />
-                </IconButton>
-                <IconButton
-                  size="small"
-                  onClick={() => {
-                    toggleTask(task.id);
-                    showSuccessMessage(task.status === 'done' ? 'Task marked as to-do.' : 'Task marked as done.');
-                  }}
-                  aria-label={`toggle-${task.id}`}
-                  sx={taskActionButtonSx}
-                >
-                  {task.status === 'done' ? <CheckCircleRounded color="success" /> : <CircleOutlined color="disabled" />}
-                </IconButton>
-              </Stack>
-            </Stack>
-            {task.description && <Typography color="text.secondary" mb={2}>{task.description}</Typography>}
-            <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
-              <Chip label={task.category} />
-              <Chip label={`${task.estimateMinutes} min`} variant="outlined" />
-              {task.roundId && <Chip label="Assigned to round" color="secondary" variant="outlined" />}
-            </Stack>
-            <Button
-              size="small"
-              sx={{ mt: 1.25, alignSelf: 'flex-start' }}
-              onClick={primaryAction.onClick}
-            >
-              {primaryAction.label}
-            </Button>
-            </CardContent>
-          </Card>
-        );
-      })}
+      {tasksForSelectedDay.length > 0 && (
+        <Stack spacing={1.5}>
+          <Typography variant="h6">To-do ({todoTasksForSelectedDay.length})</Typography>
+          {todoTasksForSelectedDay.map(renderTaskCard)}
+
+          <Typography variant="h6" mt={1}>Done ({doneTasksForSelectedDay.length})</Typography>
+          {doneTasksForSelectedDay.map(renderTaskCard)}
+        </Stack>
+      )}
 
       {tasksForSelectedDay.length === 0 && (
         <Card>
