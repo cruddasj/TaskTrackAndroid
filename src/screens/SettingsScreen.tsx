@@ -132,6 +132,25 @@ export const SettingsScreen = () => {
       <Card>
         <CardContent>
           <Stack spacing={2}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={state.settings.showFirstTimeGuidance}
+                  onChange={(_, checked) => {
+                    setShowFirstTimeGuidance(checked);
+                    showSuccessMessage(`First-time guidance ${checked ? 'enabled' : 'hidden'}.`);
+                  }}
+                />
+              }
+              label="Show first-time guidance across the app"
+            />
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent>
+          <Stack spacing={2}>
             <Typography variant="h5">Pomodoro timing</Typography>
             {state.settings.showFirstTimeGuidance ? (
               <Alert severity="success" icon={<InfoOutlined fontSize="inherit" />} sx={guidanceAlertSx}>
@@ -305,25 +324,6 @@ export const SettingsScreen = () => {
                 Add
               </Button>
             </Stack>
-          </Stack>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent>
-          <Stack spacing={2}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={state.settings.showFirstTimeGuidance}
-                  onChange={(_, checked) => {
-                    setShowFirstTimeGuidance(checked);
-                    showSuccessMessage(`First-time guidance ${checked ? 'enabled' : 'hidden'}.`);
-                  }}
-                />
-              }
-              label="Show first-time guidance across the app"
-            />
           </Stack>
         </CardContent>
       </Card>
