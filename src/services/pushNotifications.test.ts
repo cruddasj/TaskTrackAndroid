@@ -64,21 +64,14 @@ describe('push notification service', () => {
     expect(registerMock).not.toHaveBeenCalled();
   });
 
-  it('creates high-priority channel and registers on android', async () => {
+  it('skips android registration to avoid Firebase crashes when messaging is not configured', async () => {
     getPlatformMock.mockReturnValue('android');
 
     await initializePushNotifications();
 
-    expect(createChannelMock).toHaveBeenCalledWith({
-      id: 'tasktrack-high-priority',
-      name: 'TaskTrack alerts',
-      description: 'High-priority TaskTrack notifications.',
-      importance: 5,
-      visibility: 1,
-      vibration: true,
-    });
-    expect(addListenerMock).toHaveBeenCalledTimes(4);
-    expect(checkPermissionsMock).toHaveBeenCalledTimes(1);
-    expect(registerMock).toHaveBeenCalledTimes(1);
+    expect(createChannelMock).not.toHaveBeenCalled();
+    expect(addListenerMock).not.toHaveBeenCalled();
+    expect(checkPermissionsMock).not.toHaveBeenCalled();
+    expect(registerMock).not.toHaveBeenCalled();
   });
 });

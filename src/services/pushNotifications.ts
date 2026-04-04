@@ -2,19 +2,6 @@ import { Capacitor } from '@capacitor/core';
 import { PushNotifications } from '@capacitor/push-notifications';
 
 let pushNotificationsInitialized = false;
-const ANDROID_HIGH_PRIORITY_CHANNEL_ID = 'tasktrack-high-priority';
-
-const ensureAndroidHighPriorityChannel = async (): Promise<void> => {
-  if (Capacitor.getPlatform() !== 'android') return;
-  await PushNotifications.createChannel({
-    id: ANDROID_HIGH_PRIORITY_CHANNEL_ID,
-    name: 'TaskTrack alerts',
-    description: 'High-priority TaskTrack notifications.',
-    importance: 5,
-    visibility: 1,
-    vibration: true,
-  });
-};
 
 export const resetPushNotificationsInitializationForTests = (): void => {
   pushNotificationsInitialized = false;
@@ -23,13 +10,12 @@ export const resetPushNotificationsInitializationForTests = (): void => {
 export const initializePushNotifications = async (): Promise<void> => {
   if (!Capacitor.isNativePlatform() || pushNotificationsInitialized) return;
 
-  pushNotificationsInitialized = true;
-
-  try {
-    await ensureAndroidHighPriorityChannel();
-  } catch (error) {
-    console.warn('Unable to initialize Android high-priority push channel.', error);
+  if (Capacitor.getPlatform() === 'android') {
+    console.info('Skipping Android push registration until Firebase messaging is configured.');
+    return;
   }
+
+  pushNotificationsInitialized = true;
 
   await PushNotifications.addListener('registration', (token) => {
     console.info('Push registration token received.', token.value);
