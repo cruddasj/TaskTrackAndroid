@@ -1,5 +1,5 @@
 import { formatFocusTimeSpent, getGreeting } from './greeting';
-import { getDashboardHeroCopy, getTodayRoundMetrics } from './dashboardMetrics';
+import { getDashboardHeroCopy, getTodayRoundMetrics, shouldShowCurrentRoundTasks } from './dashboardMetrics';
 
 describe('getGreeting', () => {
   it('returns afternoon at 6pm', () => {
@@ -98,5 +98,16 @@ describe('getDashboardHeroCopy', () => {
       overline: 'Break in progress',
       title: 'Break in progress',
     });
+  });
+});
+
+describe('shouldShowCurrentRoundTasks', () => {
+  it('returns true during work phases', () => {
+    expect(shouldShowCurrentRoundTasks('work')).toBe(true);
+  });
+
+  it('returns false during break phases', () => {
+    expect(shouldShowCurrentRoundTasks('short_break')).toBe(false);
+    expect(shouldShowCurrentRoundTasks('long_break')).toBe(false);
   });
 });
