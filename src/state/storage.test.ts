@@ -15,13 +15,12 @@ describe('storage', () => {
     expect(loaded.taskBank).toEqual([]);
   });
 
-  it('saves and loads state with alarm repeat count and volume', () => {
+  it('saves and loads state with alarm volume', () => {
     const updated = {
       ...seedState,
       settings: {
         ...seedState.settings,
         alarmVolume: 45,
-        alarmRepeatCount: 5,
         sessionReviewGraceSeconds: 90,
         showFirstTimeGuidance: false,
         hasSeenWelcomeModal: true,
@@ -31,7 +30,6 @@ describe('storage', () => {
     saveState(updated);
 
     expect(loadState().settings.alarmVolume).toBe(45);
-    expect(loadState().settings.alarmRepeatCount).toBe(5);
     expect(loadState().settings.sessionReviewGraceSeconds).toBe(90);
     expect(loadState().settings.showFirstTimeGuidance).toBe(false);
     expect(loadState().settings.hasSeenWelcomeModal).toBe(true);
@@ -46,29 +44,7 @@ describe('storage', () => {
     expect(localStorage.getItem('tasktrack.state.v2')).toBeNull();
   });
 
-  it('normalizes invalid alarm repeat counts to defaults and caps oversized values', () => {
-    localStorage.setItem(
-      'tasktrack.state.v2',
-      JSON.stringify({
-        settings: {
-          alarmRepeatCount: 0,
-        },
-      }),
-    );
 
-    expect(loadState().settings.alarmRepeatCount).toBe(3);
-
-    localStorage.setItem(
-      'tasktrack.state.v2',
-      JSON.stringify({
-        settings: {
-          alarmRepeatCount: 33,
-        },
-      }),
-    );
-
-    expect(loadState().settings.alarmRepeatCount).toBe(10);
-  });
 
   it('normalizes invalid alarm volumes to defaults and caps oversized values', () => {
     localStorage.setItem(
