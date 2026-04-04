@@ -8,12 +8,16 @@ jest.mock('@capacitor/core', () => ({
   },
 }));
 
-jest.mock('@capacitor-community/keep-awake', () => ({
-  KeepAwake: {
-    keepAwake: keepAwakeMock,
-    allowSleep: allowSleepMock,
-  },
-}));
+jest.mock(
+  '@capacitor-community/keep-awake',
+  () => ({
+    KeepAwake: {
+      keepAwake: keepAwakeMock,
+      allowSleep: allowSleepMock,
+    },
+  }),
+  { virtual: true },
+);
 
 import { allowScreenSleep, keepScreenAwake } from './keepAwake';
 

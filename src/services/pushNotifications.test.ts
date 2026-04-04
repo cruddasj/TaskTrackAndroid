@@ -4,6 +4,7 @@ const addListenerMock = jest.fn().mockResolvedValue({ remove: jest.fn() });
 const checkPermissionsMock = jest.fn();
 const requestPermissionsMock = jest.fn();
 const registerMock = jest.fn();
+const createChannelMock = jest.fn();
 
 jest.mock('@capacitor/core', () => ({
   Capacitor: {
@@ -20,6 +21,7 @@ jest.mock(
       checkPermissions: checkPermissionsMock,
       requestPermissions: requestPermissionsMock,
       register: registerMock,
+      createChannel: createChannelMock,
     },
   }),
   { virtual: true },
@@ -62,13 +64,21 @@ describe('push notification service', () => {
     expect(registerMock).not.toHaveBeenCalled();
   });
 
-  it('does not register on android without firebase setup', async () => {
+  it('creates high-priority channel and registers on android', async () => {
     getPlatformMock.mockReturnValue('android');
 
     await initializePushNotifications();
 
-    expect(addListenerMock).not.toHaveBeenCalled();
-    expect(checkPermissionsMock).not.toHaveBeenCalled();
-    expect(registerMock).not.toHaveBeenCalled();
+    expect(createChannelMock).toHaveBeenCalledWith({
+      id: 'tasktrack-high-priority',
+      name: 'TaskTrack alerts',
+      description: 'High-priority TaskTrack notifications.',
+      importance: 5,
+      visibility: 1,
+      vibration: true,
+    });
+    expect(addListenerMock).toHaveBeenCalledTimes(4);
+    expect(checkPermissionsMock).toHaveBeenCalledTimes(1);
+    expect(registerMock).toHaveBeenCalledTimes(1);
   });
 });
