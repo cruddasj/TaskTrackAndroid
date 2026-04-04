@@ -224,6 +224,10 @@ describe('notifications service', () => {
     playAlarmTone('digital');
 
     expect(AudioMock).toHaveBeenCalledTimes(4);
+    expect(AudioMock).toHaveBeenNthCalledWith(1, expect.stringContaining('custom_alarm_sounds/alarm_clock_bell.mp3'));
+    expect(AudioMock).toHaveBeenNthCalledWith(2, expect.stringContaining('custom_alarm_sounds/alarm_fallout.mp3'));
+    expect(AudioMock).toHaveBeenNthCalledWith(3, expect.stringContaining('custom_alarm_sounds/alarm_chirp.mp3'));
+    expect(AudioMock).toHaveBeenNthCalledWith(4, expect.stringContaining('custom_alarm_sounds/alarm_digital.mp3'));
   });
 
   it('plays a finite number of repeats and calls completion callback once', () => {
