@@ -12,6 +12,8 @@ export const getTaskSecondaryActionLabel = (planningDay: PlanningDay): string | 
   return null;
 };
 
+export const shouldShowTodoSection = (todoTaskCount: number): boolean => todoTaskCount > 0;
+
 export const shouldShowDoneHeading = (planningDay: PlanningDay, doneTaskCount: number): boolean => {
   if (planningDay === 'tomorrow') return doneTaskCount > 0;
   return true;

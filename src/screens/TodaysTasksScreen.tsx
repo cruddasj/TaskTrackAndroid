@@ -8,7 +8,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getDefaultSelectedRecurringSuggestionIds, getSelectedRecurringSuggestions } from './todaysTaskSuggestions';
 import { getTaskSections } from './todaysTaskSections';
-import { getTaskPrimaryActionLabel, getTaskSecondaryActionLabel, shouldShowDoneHeading } from './todaysTasksActions';
+import { getTaskPrimaryActionLabel, getTaskSecondaryActionLabel, shouldShowDoneHeading, shouldShowTodoSection } from './todaysTasksActions';
 import { getPlanningDayFromQuery } from './planningDayQuery';
 import { PlanningDay, PlanningDayToggle } from '../components/PlanningDayToggle';
 import { useAppState } from '../state/AppStateContext';
@@ -286,8 +286,12 @@ export const TodaysTasksScreen = () => {
 
       {tasksForSelectedDay.length > 0 && (
         <Stack spacing={1.5}>
-          <Typography variant="h6">To-do ({todoTasksForSelectedDay.length})</Typography>
-          {todoTasksForSelectedDay.map(renderTaskCard)}
+          {shouldShowTodoSection(todoTasksForSelectedDay.length) && (
+            <>
+              <Typography variant="h6">To-do ({todoTasksForSelectedDay.length})</Typography>
+              {todoTasksForSelectedDay.map(renderTaskCard)}
+            </>
+          )}
 
           {shouldShowDoneHeading(planningDay, doneTasksForSelectedDay.length) && (
             <>
