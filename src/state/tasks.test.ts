@@ -1,6 +1,7 @@
 import { Task } from '../types';
 import {
   areAllTasksCompletedForDate,
+  filterTaskBankItems,
   hasDuplicateTodayTaskTitle,
   sortCategoriesAlphabetically,
   sortTaskBankItemsAlphabetically,
@@ -73,6 +74,28 @@ describe('sortCategoriesAlphabetically', () => {
 
     expect(sorted).toEqual(['Errands', 'health', '  Personal projects', ' work']);
     expect(categories).toEqual([' work', 'Errands', 'health', '  Personal projects']);
+  });
+});
+
+describe('filterTaskBankItems', () => {
+  const taskBank = [
+    { id: '1', title: 'Deep work block', description: 'No meetings', category: 'Work', estimateMinutes: 60 },
+    { id: '2', title: 'Grocery restock', description: 'Buy fruit', category: 'Home', estimateMinutes: 30, recurrenceDays: 7 },
+    { id: '3', title: 'Stretch break', description: '5 minute mobility', category: 'Health', estimateMinutes: 5, recurrenceWeekdays: [1, 3, 5] },
+  ];
+
+  it('filters by search query across title, description, and category', () => {
+    expect(filterTaskBankItems(taskBank, { query: 'fruit', category: 'all', recurrence: 'all' }).map((item) => item.id)).toEqual(['2']);
+    expect(filterTaskBankItems(taskBank, { query: 'health', category: 'all', recurrence: 'all' }).map((item) => item.id)).toEqual(['3']);
+  });
+
+  it('filters by category', () => {
+    expect(filterTaskBankItems(taskBank, { query: '', category: 'Work', recurrence: 'all' }).map((item) => item.id)).toEqual(['1']);
+  });
+
+  it('filters by recurrence type', () => {
+    expect(filterTaskBankItems(taskBank, { query: '', category: 'all', recurrence: 'one-off' }).map((item) => item.id)).toEqual(['1']);
+    expect(filterTaskBankItems(taskBank, { query: '', category: 'all', recurrence: 'recurring' }).map((item) => item.id)).toEqual(['2', '3']);
   });
 });
 

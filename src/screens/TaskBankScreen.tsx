@@ -3,11 +3,12 @@ import DeleteOutlineRounded from '@mui/icons-material/DeleteOutlineRounded';
 import EditOutlined from '@mui/icons-material/EditOutlined';
 import PlaylistAddRounded from '@mui/icons-material/PlaylistAddRounded';
 import InfoOutlined from '@mui/icons-material/InfoOutlined';
-import { Alert, Box, Button, Card, CardContent, Checkbox, Chip, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, MenuItem, Stack, TextField, Typography } from '@mui/material';
+import SearchRounded from '@mui/icons-material/SearchRounded';
+import { Alert, Box, Button, Card, CardContent, Checkbox, Chip, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, InputAdornment, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 import { PlanningDay, PlanningDayToggle } from '../components/PlanningDayToggle';
 import { useAppState } from '../state/AppStateContext';
-import { hasDuplicateTodayTaskTitle, sortCategoriesAlphabetically, sortTaskBankItemsAlphabetically, WEEKDAY_LABELS, WEEKDAY_SELECTION_ORDER } from '../state/tasks';
+import { filterTaskBankItems, hasDuplicateTodayTaskTitle, sortCategoriesAlphabetically, sortTaskBankItemsAlphabetically, WEEKDAY_LABELS, WEEKDAY_SELECTION_ORDER } from '../state/tasks';
 import { TaskBankItem } from '../types';
 import { getTodayKey, getTomorrowKey, normalizeOptionalDescription } from '../utils';
 
@@ -41,9 +42,16 @@ export const TaskBankScreen = () => {
   const todayKey = getTodayKey();
   const tomorrowKey = getTomorrowKey();
   const [planningDay, setPlanningDay] = useState<PlanningDay>('today');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<'all' | string>('all');
+  const [selectedRecurrenceFilter, setSelectedRecurrenceFilter] = useState<'all' | 'one-off' | 'recurring'>('all');
   const selectedDateKey = planningDay === 'today' ? todayKey : tomorrowKey;
   const sortedTaskBank = useMemo(() => sortTaskBankItemsAlphabetically(state.taskBank), [state.taskBank]);
   const sortedCategories = useMemo(() => sortCategoriesAlphabetically(state.categories), [state.categories]);
+  const filteredTaskBank = useMemo(
+    () => filterTaskBankItems(sortedTaskBank, { query: searchQuery, category: selectedCategoryFilter, recurrence: selectedRecurrenceFilter }),
+    [searchQuery, selectedCategoryFilter, selectedRecurrenceFilter, sortedTaskBank],
+  );
 
   useEffect(() => {
     if (!form.category && state.categories.length > 0) {
@@ -152,7 +160,52 @@ export const TaskBankScreen = () => {
           </CardContent>
         </Card>
       )}
-      {sortedTaskBank.map((task) => (
+      <Card>
+        <CardContent>
+          <Stack spacing={1.5}>
+            <TextField
+              label="Search Task Bank"
+              fullWidth
+              placeholder="Search by task name, description, or category"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchRounded fontSize="small" />
+                  </InputAdornment>
+                ),
+              }}
+            />
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+              <TextField
+                label="Filter by category"
+                select
+                fullWidth
+                value={selectedCategoryFilter}
+                onChange={(event) => setSelectedCategoryFilter(event.target.value)}
+              >
+                <MenuItem value="all">All categories</MenuItem>
+                {sortedCategories.map((category) => (
+                  <MenuItem key={category} value={category}>{category}</MenuItem>
+                ))}
+              </TextField>
+              <TextField
+                label="Filter by recurrence"
+                select
+                fullWidth
+                value={selectedRecurrenceFilter}
+                onChange={(event) => setSelectedRecurrenceFilter(event.target.value as 'all' | 'one-off' | 'recurring')}
+              >
+                <MenuItem value="all">All tasks</MenuItem>
+                <MenuItem value="one-off">One-off only</MenuItem>
+                <MenuItem value="recurring">Recurring only</MenuItem>
+              </TextField>
+            </Stack>
+          </Stack>
+        </CardContent>
+      </Card>
+      {filteredTaskBank.map((task) => (
         <Card key={task.id}>
           <CardContent>
             <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
@@ -205,6 +258,13 @@ export const TaskBankScreen = () => {
         <Card>
           <CardContent>
             <Typography color="text.secondary">No Task Bank items yet.</Typography>
+          </CardContent>
+        </Card>
+      )}
+      {state.taskBank.length > 0 && filteredTaskBank.length === 0 && (
+        <Card>
+          <CardContent>
+            <Typography color="text.secondary">No Task Bank items match your current search or filters.</Typography>
           </CardContent>
         </Card>
       )}

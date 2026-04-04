@@ -56,6 +56,31 @@ export const sortTaskBankItemsAlphabetically = (taskBank: TaskBankItem[]): TaskB
   });
 };
 
+interface TaskBankFilterOptions {
+  query: string;
+  category: string;
+  recurrence: 'all' | 'one-off' | 'recurring';
+}
+
+export const filterTaskBankItems = (
+  taskBank: TaskBankItem[],
+  { query, category, recurrence }: TaskBankFilterOptions,
+): TaskBankItem[] => {
+  const normalizedQuery = query.trim().toLocaleLowerCase();
+  return taskBank.filter((item) => {
+    if (category !== 'all' && item.category !== category) return false;
+
+    const hasRecurrence = Boolean(item.recurrenceDays && item.recurrenceDays > 0)
+      || Boolean(item.recurrenceWeekdays && item.recurrenceWeekdays.length > 0);
+    if (recurrence === 'one-off' && hasRecurrence) return false;
+    if (recurrence === 'recurring' && !hasRecurrence) return false;
+
+    if (!normalizedQuery) return true;
+    return [item.title, item.description, item.category].some((value) =>
+      value.toLocaleLowerCase().includes(normalizedQuery));
+  });
+};
+
 export const sortCategoriesAlphabetically = (categories: string[]): string[] => {
   const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
   return [...categories].sort((a, b) => collator.compare(a.trim(), b.trim()));
