@@ -203,6 +203,17 @@ describe('suggestRecurringTaskBankItems', () => {
     expect(suggestions.map((item) => item.id)).toEqual(['tb1']);
   });
 
+  it('does not suggest weekday-recurring items when completed in the current recurrence period', () => {
+    const taskBank = [
+      { id: 'tb1', title: 'Washing up', description: 'Kitchen cleanup', category: 'Household chores', estimateMinutes: 20, recurrenceWeekdays: [6] },
+    ];
+    const tasks = [buildTask({ id: 'done-1', title: 'washing up', status: 'done', plannedDate: '2026-04-03', completedAt: '2026-04-03T18:00:00.000Z' })];
+
+    const suggestions = suggestRecurringTaskBankItems(taskBank, tasks, '2026-04-04', new Date('2026-04-04T12:00:00.000Z'));
+
+    expect(suggestions).toEqual([]);
+  });
+
   it('suggests overdue weekday-recurring items when they have not appeared in the last seven days', () => {
     const taskBank = [
       { id: 'tb1', title: 'Sunday reset', description: 'Plan next week', category: 'Personal projects', estimateMinutes: 30, recurrenceWeekdays: [0] },
@@ -232,6 +243,17 @@ describe('suggestRecurringTaskBankItems', () => {
     const suggestions = suggestRecurringTaskBankItems(taskBank, [], '2026-04-01', new Date('2026-04-01T12:00:00.000Z'));
 
     expect(suggestions.map((item) => item.id)).toEqual(['tb1']);
+  });
+
+  it('does not suggest month-day recurring items when completed in the current recurrence period', () => {
+    const taskBank = [
+      { id: 'tb1', title: 'Pay rent', description: 'Transfer payment', category: 'Errands', estimateMinutes: 5, recurrenceDayOfMonth: 1 },
+    ];
+    const tasks = [buildTask({ id: 'done-1', title: 'Pay rent', status: 'done', plannedDate: '2026-03-31', completedAt: '2026-03-31T09:00:00.000Z' })];
+
+    const suggestions = suggestRecurringTaskBankItems(taskBank, tasks, '2026-04-01', new Date('2026-04-01T12:00:00.000Z'));
+
+    expect(suggestions).toEqual([]);
   });
 
   it('suggests month-day recurring items on last day for shorter months', () => {

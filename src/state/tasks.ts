@@ -142,9 +142,11 @@ export const suggestRecurringTaskBankItems = (
   now: Date = new Date(),
 ): TaskBankItem[] => {
   const nowMs = now.getTime();
-  const todayWeekday = now.getUTCDay();
-  const todayDayOfMonth = now.getUTCDate();
-  const daysInCurrentMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0)).getUTCDate();
+  const todayStartMs = parseDayKeyToUtcMs(plannedDate);
+  const plannedDateUtc = new Date(todayStartMs);
+  const todayWeekday = plannedDateUtc.getUTCDay();
+  const todayDayOfMonth = plannedDateUtc.getUTCDate();
+  const daysInCurrentMonth = new Date(Date.UTC(plannedDateUtc.getUTCFullYear(), plannedDateUtc.getUTCMonth() + 1, 0)).getUTCDate();
   const completionByTitle = getLastCompletionTimeByTitle(tasks);
   const recentAppearanceByTitle = new Map<string, number>();
   tasks.forEach((task) => {
@@ -167,29 +169,55 @@ export const suggestRecurringTaskBankItems = (
     return false;
   };
 
+  const getMostRecentWeekdayOccurrenceMs = (recurrenceWeekdays: number[], includeToday: boolean): number | null => {
+    const uniqueWeekdays = new Set(recurrenceWeekdays);
+    for (let daysAgo = includeToday ? 0 : 1; daysAgo <= 7; daysAgo += 1) {
+      const weekday = (todayWeekday - daysAgo + 7) % 7;
+      if (uniqueWeekdays.has(weekday)) return todayStartMs - daysAgo * DAY_IN_MS;
+    }
+    return null;
+  };
+
   return taskBank.filter((item) => {
     if (hasDuplicateTodayTaskTitle(tasks, plannedDate, item.title)) return false;
 
     const titleKey = normalizeTaskTitle(item.title);
+    const trackedLastCompletedMs = completionByTitle.get(titleKey);
+    const manualLastCompletedMs = item.lastCompletedOn ? parseDayKeyToUtcMs(item.lastCompletedOn) : undefined;
+    const lastCompletedMs = Math.max(trackedLastCompletedMs ?? Number.NEGATIVE_INFINITY, manualLastCompletedMs ?? Number.NEGATIVE_INFINITY);
+
     const recurrenceWeekdays = (item.recurrenceWeekdays ?? []).filter((weekday) => Number.isInteger(weekday) && weekday >= 0 && weekday <= 6);
     if (recurrenceWeekdays.length > 0) {
-      if (recurrenceWeekdays.includes(todayWeekday)) return true;
+      const previousOccurrenceMs = getMostRecentWeekdayOccurrenceMs(recurrenceWeekdays, false);
+      const completedWithinCurrentWeekdayPeriod = Number.isFinite(lastCompletedMs)
+        && previousOccurrenceMs !== null
+        && lastCompletedMs >= previousOccurrenceMs;
+      if (recurrenceWeekdays.includes(todayWeekday)) return !completedWithinCurrentWeekdayPeriod;
 
       if (!hasScheduledWeekdayInPastWeek(recurrenceWeekdays)) return false;
       const lastAppearanceMs = recentAppearanceByTitle.get(titleKey);
-      return lastAppearanceMs === undefined || nowMs - lastAppearanceMs >= 7 * DAY_IN_MS;
+      if (!(lastAppearanceMs === undefined || nowMs - lastAppearanceMs >= 7 * DAY_IN_MS)) return false;
+      return !completedWithinCurrentWeekdayPeriod;
     }
 
     const recurrenceDayOfMonth = item.recurrenceDayOfMonth;
     if (recurrenceDayOfMonth && recurrenceDayOfMonth >= 1 && recurrenceDayOfMonth <= 31) {
-      return todayDayOfMonth === Math.min(recurrenceDayOfMonth, daysInCurrentMonth);
+      const isDueToday = todayDayOfMonth === Math.min(recurrenceDayOfMonth, daysInCurrentMonth);
+      if (!isDueToday) return false;
+
+      const previousMonthDate = new Date(Date.UTC(plannedDateUtc.getUTCFullYear(), plannedDateUtc.getUTCMonth() - 1, 1));
+      const daysInPreviousMonth = new Date(Date.UTC(previousMonthDate.getUTCFullYear(), previousMonthDate.getUTCMonth() + 1, 0)).getUTCDate();
+      const previousOccurrenceMs = Date.UTC(
+        previousMonthDate.getUTCFullYear(),
+        previousMonthDate.getUTCMonth(),
+        Math.min(recurrenceDayOfMonth, daysInPreviousMonth),
+      );
+      if (!Number.isFinite(lastCompletedMs)) return true;
+      return lastCompletedMs < previousOccurrenceMs;
     }
 
     const recurrenceDays = item.recurrenceDays;
     if (!recurrenceDays || recurrenceDays <= 0) return false;
-    const trackedLastCompletedMs = completionByTitle.get(titleKey);
-    const manualLastCompletedMs = item.lastCompletedOn ? parseDayKeyToUtcMs(item.lastCompletedOn) : undefined;
-    const lastCompletedMs = Math.max(trackedLastCompletedMs ?? Number.NEGATIVE_INFINITY, manualLastCompletedMs ?? Number.NEGATIVE_INFINITY);
     if (!Number.isFinite(lastCompletedMs)) return true;
     return nowMs - lastCompletedMs >= recurrenceDays * DAY_IN_MS;
   });
