@@ -4,6 +4,7 @@ import {
   hasDuplicateTodayTaskTitle,
   sortCategoriesAlphabetically,
   sortTaskBankItemsAlphabetically,
+  sortTasksAlphabetically,
   suggestRecurringTaskBankItems,
   WEEKDAY_SELECTION_ORDER,
 } from './tasks';
@@ -72,6 +73,22 @@ describe('sortCategoriesAlphabetically', () => {
 
     expect(sorted).toEqual(['Errands', 'health', '  Personal projects', ' work']);
     expect(categories).toEqual([' work', 'Errands', 'health', '  Personal projects']);
+  });
+});
+
+describe('sortTasksAlphabetically', () => {
+  it('sorts tasks by title regardless of case and surrounding whitespace', () => {
+    const tasks = [
+      buildTask({ id: '2', title: ' zebra cleanup' }),
+      buildTask({ id: '3', title: 'Alpha plan' }),
+      buildTask({ id: '1', title: 'beta review' }),
+      buildTask({ id: '4', title: '  alpha plan' }),
+    ];
+
+    const sorted = sortTasksAlphabetically(tasks);
+
+    expect(sorted.map((task) => task.id)).toEqual(['3', '4', '1', '2']);
+    expect(tasks.map((task) => task.id)).toEqual(['2', '3', '1', '4']);
   });
 });
 
