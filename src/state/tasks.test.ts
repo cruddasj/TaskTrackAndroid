@@ -3,6 +3,7 @@ import {
   areAllTasksCompletedForDate,
   filterTaskBankItems,
   getLastCompletedAtByTaskTitle,
+  getTaskBankCategoriesWithAssignedTasks,
   hasDuplicateTodayTaskTitle,
   sortCategoriesAlphabetically,
   sortTaskBankItemsAlphabetically,
@@ -98,6 +99,19 @@ describe('filterTaskBankItems', () => {
   it('filters by recurrence type', () => {
     expect(filterTaskBankItems(taskBank, { query: '', category: 'all', recurrence: 'one-off' }).map((item) => item.id)).toEqual(['1']);
     expect(filterTaskBankItems(taskBank, { query: '', category: 'all', recurrence: 'recurring' }).map((item) => item.id)).toEqual(['2', '3', '4']);
+  });
+});
+
+describe('getTaskBankCategoriesWithAssignedTasks', () => {
+  it('returns only categories currently assigned to task bank items in alphabetical order', () => {
+    const taskBank = [
+      { id: '1', title: 'Deep work block', description: 'No meetings', category: 'Work and study', estimateMinutes: 60 },
+      { id: '2', title: 'Grocery restock', description: 'Buy fruit', category: 'Errands', estimateMinutes: 30 },
+      { id: '3', title: 'Daily stretch', description: '10 minute routine', category: 'Health and wellbeing', estimateMinutes: 10 },
+      { id: '4', title: 'Sprint planning', description: 'Team planning', category: 'Work and study', estimateMinutes: 45 },
+    ];
+
+    expect(getTaskBankCategoriesWithAssignedTasks(taskBank)).toEqual(['Errands', 'Health and wellbeing', 'Work and study']);
   });
 });
 
