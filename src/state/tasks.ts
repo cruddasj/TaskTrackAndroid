@@ -46,6 +46,40 @@ const getLastCompletionTimeByTitle = (tasks: Task[]): Map<string, number> => {
   return completionByTitle;
 };
 
+const getTaskCompletionTime = (task: Task): number | null => {
+  if (task.completedAt) {
+    const completedAtMs = new Date(task.completedAt).getTime();
+    if (Number.isFinite(completedAtMs)) {
+      return completedAtMs;
+    }
+  }
+
+  if (task.status === 'done') {
+    const plannedDateMs = parseDayKeyToUtcMs(task.plannedDate);
+    if (Number.isFinite(plannedDateMs)) {
+      return plannedDateMs;
+    }
+  }
+
+  return null;
+};
+
+export const getLastCompletedAtByTaskTitle = (tasks: Task[]): Map<string, number> => {
+  const completionByTitle = new Map<string, number>();
+  tasks.forEach((task) => {
+    const completedMs = getTaskCompletionTime(task);
+    if (completedMs === null) return;
+    const titleKey = normalizeTaskTitle(task.title);
+    if (!titleKey) return;
+
+    const existing = completionByTitle.get(titleKey);
+    if (existing === undefined || completedMs > existing) {
+      completionByTitle.set(titleKey, completedMs);
+    }
+  });
+  return completionByTitle;
+};
+
 
 export const sortTaskBankItemsAlphabetically = (taskBank: TaskBankItem[]): TaskBankItem[] => {
   const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
