@@ -51,3 +51,5 @@ export const getDashboardHeroCopy = (options: {
 };
 
 export const shouldShowCurrentRoundTasks = (phase: 'work' | 'short_break' | 'long_break') => phase === 'work';
+
+export const shouldShowTomorrowTasksSection = (tomorrowTaskCount: number) => tomorrowTaskCount > 0;

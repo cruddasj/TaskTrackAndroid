@@ -1,5 +1,5 @@
 import { formatFocusTimeSpent, getGreeting } from './greeting';
-import { getDashboardHeroCopy, getTodayRoundMetrics, shouldShowCurrentRoundTasks } from './dashboardMetrics';
+import { getDashboardHeroCopy, getTodayRoundMetrics, shouldShowCurrentRoundTasks, shouldShowTomorrowTasksSection } from './dashboardMetrics';
 
 describe('getGreeting', () => {
   it('returns afternoon at 6pm', () => {
@@ -109,5 +109,15 @@ describe('shouldShowCurrentRoundTasks', () => {
   it('returns false during break phases', () => {
     expect(shouldShowCurrentRoundTasks('short_break')).toBe(false);
     expect(shouldShowCurrentRoundTasks('long_break')).toBe(false);
+  });
+});
+
+describe('shouldShowTomorrowTasksSection', () => {
+  it('returns false when there are no tomorrow tasks', () => {
+    expect(shouldShowTomorrowTasksSection(0)).toBe(false);
+  });
+
+  it('returns true when there are tomorrow tasks', () => {
+    expect(shouldShowTomorrowTasksSection(2)).toBe(true);
   });
 });

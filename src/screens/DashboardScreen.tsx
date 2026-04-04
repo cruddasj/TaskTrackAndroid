@@ -12,7 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
 import { formatFocusTimeSpent, getGreeting } from './greeting';
 import { getTodayKey, getTomorrowKey } from '../utils';
-import { getDashboardHeroCopy, getTodayRoundMetrics, shouldShowCurrentRoundTasks } from './dashboardMetrics';
+import { getDashboardHeroCopy, getTodayRoundMetrics, shouldShowCurrentRoundTasks, shouldShowTomorrowTasksSection } from './dashboardMetrics';
 import { formatHistoryDayLabel, getCategoryTotals, getCompletedTaskHistory } from './dashboardInsights';
 
 const HISTORY_WINDOW_DAYS = 30;
@@ -53,6 +53,7 @@ export const DashboardScreen = () => {
     currentRoundTaskCount: currentRoundTasks.length,
   });
   const showCurrentRoundTasks = shouldShowCurrentRoundTasks(state.pomodoro.phase);
+  const showTomorrowTasksSection = shouldShowTomorrowTasksSection(tomorrowTasks.length);
 
   const [isInsightsExpanded, setIsInsightsExpanded] = useState(false);
   const [completedHistoryIndex, setCompletedHistoryIndex] = useState(0);
@@ -258,22 +259,22 @@ export const DashboardScreen = () => {
         </Card>
       </Stack>
 
-      <Card
-        onClick={() => navigate('/tasks?day=tomorrow')}
-        sx={{
-          cursor: 'pointer',
-          background: 'radial-gradient(circle at 72% 38%, rgba(201,125,255,0.28), rgba(14,14,14,1) 62%)',
-        }}
-      >
-        <CardContent>
-          <Typography variant="overline" color="#c97dff" letterSpacing="0.08em">
-            Tomorrow
-          </Typography>
-          <Typography variant="h5" mt={1} mb={1.5}>
-            Tasks planned for tomorrow
-          </Typography>
-          <Typography variant="h4" color="#c97dff" mb={tomorrowTasks.length > 0 ? 1 : 0}>{tomorrowTasks.length}</Typography>
-          {tomorrowTasks.length > 0 ? (
+      {showTomorrowTasksSection && (
+        <Card
+          onClick={() => navigate('/tasks?day=tomorrow')}
+          sx={{
+            cursor: 'pointer',
+            background: 'radial-gradient(circle at 72% 38%, rgba(201,125,255,0.28), rgba(14,14,14,1) 62%)',
+          }}
+        >
+          <CardContent>
+            <Typography variant="overline" color="#c97dff" letterSpacing="0.08em">
+              Tomorrow
+            </Typography>
+            <Typography variant="h5" mt={1} mb={1.5}>
+              Tasks planned for tomorrow
+            </Typography>
+            <Typography variant="h4" color="#c97dff" mb={1}>{tomorrowTasks.length}</Typography>
             <Stack spacing={0.75}>
               {tomorrowTasks.slice(0, 3).map((task) => (
                 <Stack key={task.id} direction="row" spacing={1} alignItems="center">
@@ -283,11 +284,9 @@ export const DashboardScreen = () => {
               ))}
               {tomorrowTasks.length > 3 && <Typography color="text.secondary">+{tomorrowTasks.length - 3} more</Typography>}
             </Stack>
-          ) : (
-            <Typography color="text.secondary">No tasks planned for tomorrow yet.</Typography>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       <Card sx={{ border: '1px solid', borderColor: isInsightsExpanded ? 'primary.main' : 'divider' }}>
         <CardContent>
