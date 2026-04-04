@@ -86,9 +86,7 @@ export const notifyPomodoroComplete = async (
   title: string,
   body: string,
   tone: AlarmTone,
-  _repeatCount: number,
 ): Promise<void> => {
-  void _repeatCount;
   if (Capacitor.isNativePlatform()) {
     const hasPermission = await ensureNativeNotificationPermission();
     if (!hasPermission) return;

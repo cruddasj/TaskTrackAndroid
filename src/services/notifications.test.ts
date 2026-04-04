@@ -109,7 +109,7 @@ describe('notifications service', () => {
   it('schedules an immediate native notification on completion', async () => {
     isNativePlatformMock.mockReturnValue(true);
 
-    await notifyPomodoroComplete('Done', 'Body', 'clock_bell', 3);
+    await notifyPomodoroComplete('Done', 'Body', 'clock_bell');
 
     expect(scheduleMock).toHaveBeenCalledTimes(1);
     const payload = scheduleMock.mock.calls[0][0];
@@ -140,7 +140,7 @@ describe('notifications service', () => {
       value: Object.assign(notificationConstructor, { permission: 'granted' }),
     });
 
-    await notifyPomodoroComplete('Done', 'Body', 'clock_bell', 2);
+    await notifyPomodoroComplete('Done', 'Body', 'clock_bell');
 
     expect(notificationConstructor).toHaveBeenCalledWith('Done', { body: 'Body' });
   });

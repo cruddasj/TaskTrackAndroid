@@ -67,7 +67,6 @@ export interface AppState {
     sessionReviewGraceSeconds: number;
     alarmTone: AlarmTone;
     alarmVolume: number;
-    alarmRepeatCount: number;
     showFirstTimeGuidance: boolean;
     hasSeenWelcomeModal: boolean;
   };

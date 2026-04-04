@@ -26,6 +26,7 @@ type NewTaskBankItem = Omit<TaskBankItem, 'id'>;
 type EditableTaskBankItem = TaskBankItem;
 type NewRound = Round;
 type NewRoundOptions = { title?: string; taskIds?: string[]; plannedDate?: string };
+const ALARM_REPEAT_COUNT = 3;
 
 type Action =
   | { type: 'ADD_TASK'; payload: NewTask }
@@ -53,7 +54,6 @@ type Action =
   | { type: 'SET_SESSION_REVIEW_GRACE_SECONDS'; payload: { seconds: number } }
   | { type: 'SET_ALARM_TONE'; payload: { tone: AlarmTone } }
   | { type: 'SET_ALARM_VOLUME'; payload: { volume: number } }
-  | { type: 'SET_ALARM_REPEAT_COUNT'; payload: { count: number } }
   | { type: 'SET_SHOW_FIRST_TIME_GUIDANCE'; payload: { enabled: boolean } }
   | { type: 'SET_HAS_SEEN_WELCOME_MODAL'; payload: { seen: boolean } }
   | { type: 'LOAD_DEMO_DATA' }
@@ -454,14 +454,6 @@ const reducer = (state: AppState, action: Action): AppState => {
           alarmVolume: Math.max(0, Math.min(100, Math.round(action.payload.volume))),
         },
       };
-    case 'SET_ALARM_REPEAT_COUNT':
-      return {
-        ...state,
-        settings: {
-          ...state.settings,
-          alarmRepeatCount: Math.max(1, Math.min(10, Math.round(action.payload.count))),
-        },
-      };
     case 'SET_SHOW_FIRST_TIME_GUIDANCE':
       return {
         ...state,
@@ -674,7 +666,6 @@ interface AppStateContextValue {
   setSessionReviewGraceSeconds: (seconds: number) => void;
   setAlarmTone: (tone: AlarmTone) => void;
   setAlarmVolume: (volume: number) => void;
-  setAlarmRepeatCount: (count: number) => void;
   setShowFirstTimeGuidance: (enabled: boolean) => void;
   setHasSeenWelcomeModal: (seen: boolean) => void;
   loadDemoData: () => void;
@@ -871,13 +862,12 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
       titleByPhase[state.pomodoro.phase],
       bodyByPhase[state.pomodoro.phase],
       state.settings.alarmTone,
-      state.settings.alarmRepeatCount,
     ).catch(() => undefined);
     clearScheduledPomodoroPhaseEndNotification(state.pomodoro.sessionId).catch(() => undefined);
 
     stopAlarmRef.current?.();
     setAlarmActive(true);
-    stopAlarmRef.current = startRepeatingAlarm(state.settings.alarmTone, state.settings.alarmRepeatCount, state.settings.alarmVolume / 100, () => {
+    stopAlarmRef.current = startRepeatingAlarm(state.settings.alarmTone, ALARM_REPEAT_COUNT, state.settings.alarmVolume / 100, () => {
       stopAlarmRef.current = null;
       setAlarmActive(false);
     });
@@ -893,7 +883,7 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
     }
 
     dispatch({ type: 'ADVANCE_POMODORO_PHASE' });
-  }, [state, state.pomodoro.remainingSeconds, state.pomodoro.isRunning, state.pomodoro.phase, state.pomodoro.sessionId, state.pomodoro.startTime, state.settings.alarmTone, state.settings.alarmRepeatCount, state.settings.alarmVolume]);
+  }, [state, state.pomodoro.remainingSeconds, state.pomodoro.isRunning, state.pomodoro.phase, state.pomodoro.sessionId, state.pomodoro.startTime, state.settings.alarmTone, state.settings.alarmVolume]);
 
   const dismissAlarm = () => {
     stopAlarmRef.current?.();
@@ -958,7 +948,6 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
       setSessionReviewGraceSeconds: (seconds) => dispatch({ type: 'SET_SESSION_REVIEW_GRACE_SECONDS', payload: { seconds } }),
       setAlarmTone: (tone) => dispatch({ type: 'SET_ALARM_TONE', payload: { tone } }),
       setAlarmVolume: (volume) => dispatch({ type: 'SET_ALARM_VOLUME', payload: { volume } }),
-      setAlarmRepeatCount: (count) => dispatch({ type: 'SET_ALARM_REPEAT_COUNT', payload: { count } }),
       setShowFirstTimeGuidance: (enabled) => dispatch({ type: 'SET_SHOW_FIRST_TIME_GUIDANCE', payload: { enabled } }),
       setHasSeenWelcomeModal: (seen) => dispatch({ type: 'SET_HAS_SEEN_WELCOME_MODAL', payload: { seen } }),
       loadDemoData: () => dispatch({ type: 'LOAD_DEMO_DATA' }),
