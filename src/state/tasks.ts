@@ -56,6 +56,11 @@ export const sortTaskBankItemsAlphabetically = (taskBank: TaskBankItem[]): TaskB
   });
 };
 
+export const sortCategoriesAlphabetically = (categories: string[]): string[] => {
+  const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
+  return [...categories].sort((a, b) => collator.compare(a.trim(), b.trim()));
+};
+
 export const suggestRecurringTaskBankItems = (
   taskBank: TaskBankItem[],
   tasks: Task[],
