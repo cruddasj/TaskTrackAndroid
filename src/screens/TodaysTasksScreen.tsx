@@ -8,7 +8,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { getDefaultSelectedRecurringSuggestionIds, getSelectedRecurringSuggestions } from './todaysTaskSuggestions';
 import { PlanningDay, PlanningDayToggle } from '../components/PlanningDayToggle';
 import { useAppState } from '../state/AppStateContext';
-import { hasDuplicateTodayTaskTitle, sortCategoriesAlphabetically, suggestRecurringTaskBankItems, WEEKDAY_LABELS } from '../state/tasks';
+import { hasDuplicateTodayTaskTitle, sortCategoriesAlphabetically, sortTasksAlphabetically, suggestRecurringTaskBankItems, WEEKDAY_LABELS } from '../state/tasks';
 import { Task, TaskBankItem } from '../types';
 import { getTodayKey, getTomorrowKey, normalizeOptionalDescription } from '../utils';
 
@@ -32,7 +32,10 @@ export const TodaysTasksScreen = () => {
   const tomorrowKey = getTomorrowKey();
   const [planningDay, setPlanningDay] = useState<PlanningDay>('today');
   const selectedDateKey = planningDay === 'today' ? todayKey : tomorrowKey;
-  const tasksForSelectedDay = state.tasks.filter((task) => task.plannedDate === selectedDateKey);
+  const tasksForSelectedDay = useMemo(
+    () => sortTasksAlphabetically(state.tasks.filter((task) => task.plannedDate === selectedDateKey)),
+    [selectedDateKey, state.tasks],
+  );
   const [open, setOpen] = useState(false);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const [recurringSuggestions, setRecurringSuggestions] = useState<TaskBankItem[]>([]);

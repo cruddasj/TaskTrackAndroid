@@ -61,6 +61,15 @@ export const sortCategoriesAlphabetically = (categories: string[]): string[] => 
   return [...categories].sort((a, b) => collator.compare(a.trim(), b.trim()));
 };
 
+export const sortTasksAlphabetically = (tasks: Task[]): Task[] => {
+  const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
+  return [...tasks].sort((a, b) => {
+    const titleComparison = collator.compare(a.title.trim(), b.title.trim());
+    if (titleComparison !== 0) return titleComparison;
+    return collator.compare(a.id, b.id);
+  });
+};
+
 export const suggestRecurringTaskBankItems = (
   taskBank: TaskBankItem[],
   tasks: Task[],
