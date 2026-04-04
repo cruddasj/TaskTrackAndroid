@@ -10,7 +10,10 @@ const POMODORO_CHANNEL_ID = 'pomodoro';
 const ACTIVE_TIMER_CHANNEL_ID = 'pomodoro-active-timer';
 const ACTIVE_TIMER_NOTIFICATION_ID = 91_100_001;
 const getAlarmFileName = (tone: AlarmTone): string => `alarm_${tone}`;
-const getAlarmAudioAssetUrl = (tone: AlarmTone): string => `/custom_alarm_sounds/${getAlarmFileName(tone)}.mp3`;
+const getAlarmAudioAssetUrl = (tone: AlarmTone): string => {
+  const alarmFile = `custom_alarm_sounds/${getAlarmFileName(tone)}.mp3`;
+  return new URL(alarmFile, document.baseURI).toString();
+};
 
 
 const triggerCompletionHaptic = async (): Promise<void> => {

@@ -210,6 +210,22 @@ describe('notifications service', () => {
     expect(hapticsVibrateMock).toHaveBeenCalledWith({ duration: 300 });
   });
 
+
+  it('resolves web alarm tone URLs from the current base path', () => {
+    const playMock = jest.fn().mockResolvedValue(undefined);
+    const AudioMock = jest.fn().mockImplementation(() => ({
+      volume: 0,
+      play: playMock,
+    }));
+    Object.defineProperty(window, 'Audio', { configurable: true, value: AudioMock });
+
+    window.history.replaceState({}, '', '/tasktrack/focus');
+    playAlarmTone('clock_bell');
+
+    const src = AudioMock.mock.calls[0][0] as string;
+    expect(src).toContain('/tasktrack/custom_alarm_sounds/alarm_clock_bell.mp3');
+  });
+
   it('plays all alarm tone variants through the Audio element', () => {
     const playMock = jest.fn().mockResolvedValue(undefined);
     const AudioMock = jest.fn().mockImplementation(() => ({
