@@ -83,12 +83,12 @@ describe('notifications service', () => {
     const payload = scheduleMock.mock.calls[0][0];
     expect(createChannelMock).toHaveBeenCalledWith(expect.objectContaining({
       id: 'pomodoro',
-      importance: 4,
+      importance: 5,
     }));
     expect(payload.notifications).toHaveLength(1);
     expect(payload.notifications[0]).toEqual(expect.objectContaining({
       id: 1234,
-      channelId: 'pomodoro',
+      channelId: 'round-finish-bell-v2',
       title: 'Done',
       body: 'Body',
       schedule: expect.objectContaining({ allowWhileIdle: true }),

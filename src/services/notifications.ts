@@ -45,7 +45,7 @@ const ensurePomodoroTimerChannel = async (): Promise<void> => {
     id: POMODORO_CHANNEL_ID,
     name: 'Pomodoro Timer',
     description: 'Scheduled Pomodoro timer completion reminders.',
-    importance: 4,
+    importance: 5,
     vibration: true,
   });
 };
@@ -153,7 +153,7 @@ export const schedulePomodoroPhaseEndNotification = async (
         title,
         body,
         schedule: { at: fireAt, allowWhileIdle: true },
-        channelId: POMODORO_CHANNEL_ID,
+        channelId: channelId ?? POMODORO_CHANNEL_ID,
         ...(channelId
           ? {
             sound: `res://raw/alarm_${tone}`,
