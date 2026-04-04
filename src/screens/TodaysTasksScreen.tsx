@@ -8,7 +8,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getDefaultSelectedRecurringSuggestionIds, getSelectedRecurringSuggestions } from './todaysTaskSuggestions';
 import { getTaskSections } from './todaysTaskSections';
-import { getTaskPrimaryActionLabel } from './todaysTasksActions';
+import { getTaskPrimaryActionLabel, getTaskSecondaryActionLabel, shouldShowDoneHeading } from './todaysTasksActions';
 import { getPlanningDayFromQuery } from './planningDayQuery';
 import { PlanningDay, PlanningDayToggle } from '../components/PlanningDayToggle';
 import { useAppState } from '../state/AppStateContext';
@@ -202,6 +202,7 @@ export const TodaysTasksScreen = () => {
 
   const renderTaskCard = (task: Task) => {
     const primaryAction = getTaskPrimaryAction(task);
+    const secondaryActionLabel = getTaskSecondaryActionLabel(planningDay);
     return (
       <Card key={task.id}>
         <CardContent>
@@ -245,6 +246,18 @@ export const TodaysTasksScreen = () => {
           >
             {primaryAction.label}
           </Button>
+          {secondaryActionLabel && (
+            <Button
+              size="small"
+              sx={{ mt: 1.25, alignSelf: 'flex-start', display: 'block' }}
+              onClick={() => {
+                updateTask({ ...task, plannedDate: tomorrowKey });
+                showSuccessMessage('Task moved to tomorrow.');
+              }}
+            >
+              {secondaryActionLabel}
+            </Button>
+          )}
         </CardContent>
       </Card>
     );
@@ -276,8 +289,12 @@ export const TodaysTasksScreen = () => {
           <Typography variant="h6">To-do ({todoTasksForSelectedDay.length})</Typography>
           {todoTasksForSelectedDay.map(renderTaskCard)}
 
-          <Typography variant="h6" mt={1}>Done ({doneTasksForSelectedDay.length})</Typography>
-          {doneTasksForSelectedDay.map(renderTaskCard)}
+          {shouldShowDoneHeading(planningDay, doneTasksForSelectedDay.length) && (
+            <>
+              <Typography variant="h6" mt={1}>Done ({doneTasksForSelectedDay.length})</Typography>
+              {doneTasksForSelectedDay.map(renderTaskCard)}
+            </>
+          )}
         </Stack>
       )}
 

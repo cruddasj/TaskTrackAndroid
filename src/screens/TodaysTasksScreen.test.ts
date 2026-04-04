@@ -1,4 +1,4 @@
-import { getTaskPrimaryActionLabel } from './todaysTasksActions';
+import { getTaskPrimaryActionLabel, getTaskSecondaryActionLabel, shouldShowDoneHeading } from './todaysTasksActions';
 import { getPlanningDayFromQuery } from './planningDayQuery';
 
 describe('getTaskPrimaryActionLabel', () => {
@@ -10,6 +10,24 @@ describe('getTaskPrimaryActionLabel', () => {
   it('returns done toggle copy for today tasks', () => {
     expect(getTaskPrimaryActionLabel('today', 'todo')).toBe('Mark as done');
     expect(getTaskPrimaryActionLabel('today', 'done')).toBe('Mark as to-do');
+  });
+});
+
+describe('getTaskSecondaryActionLabel', () => {
+  it('returns move-to-tomorrow action only for today tasks', () => {
+    expect(getTaskSecondaryActionLabel('today')).toBe('Move to tomorrow');
+    expect(getTaskSecondaryActionLabel('tomorrow')).toBeNull();
+  });
+});
+
+describe('shouldShowDoneHeading', () => {
+  it('hides done heading for tomorrow when there are no done tasks', () => {
+    expect(shouldShowDoneHeading('tomorrow', 0)).toBe(false);
+  });
+
+  it('shows done heading for today and tomorrow with done tasks', () => {
+    expect(shouldShowDoneHeading('today', 0)).toBe(true);
+    expect(shouldShowDoneHeading('tomorrow', 1)).toBe(true);
   });
 });
 
