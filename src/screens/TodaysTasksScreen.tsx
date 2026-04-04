@@ -283,7 +283,23 @@ export const TodaysTasksScreen = () => {
             value={form.description}
             onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))}
           />
-          <TextField margin="dense" label="Category" fullWidth select value={form.category} onChange={(event) => setForm((current) => ({ ...current, category: event.target.value }))}>
+          <TextField
+            margin="dense"
+            label="Category"
+            fullWidth
+            select
+            value={form.category}
+            onChange={(event) => setForm((current) => ({ ...current, category: event.target.value }))}
+            SelectProps={{
+              MenuProps: {
+                PaperProps: {
+                  sx: {
+                    maxHeight: 'min(50vh, 320px)',
+                  },
+                },
+              },
+            }}
+          >
             {state.categories.map((category) => (
               <MenuItem key={category} value={category}>{category}</MenuItem>
             ))}
