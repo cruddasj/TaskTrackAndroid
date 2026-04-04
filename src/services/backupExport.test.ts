@@ -1,6 +1,7 @@
 const isNativePlatformMock = jest.fn();
 const getPlatformMock = jest.fn();
 const writeFileMock = jest.fn();
+const getUriMock = jest.fn();
 
 jest.mock('@capacitor/core', () => ({
   Capacitor: {
@@ -14,6 +15,7 @@ jest.mock(
   () => ({
     Filesystem: {
       writeFile: writeFileMock,
+      getUri: getUriMock,
     },
     Directory: {
       Documents: 'DOCUMENTS',
@@ -38,6 +40,7 @@ describe('exportBackupFile', () => {
     getPlatformMock.mockReturnValue('web');
     createObjectUrlMock.mockReturnValue('blob:backup-url');
     writeFileMock.mockResolvedValue(undefined);
+    getUriMock.mockResolvedValue({ uri: 'content://documents/tasktrack.json' });
 
     Object.defineProperty(URL, 'createObjectURL', {
       writable: true,
@@ -56,9 +59,12 @@ describe('exportBackupFile', () => {
   });
 
   it('downloads the backup file by default', async () => {
-    const method = await exportBackupFile('{"ok":true}', 'tasktrack.json');
+    const result = await exportBackupFile('{"ok":true}', 'tasktrack.json');
 
-    expect(method).toBe('download');
+    expect(result).toEqual({
+      method: 'download',
+      fileName: 'tasktrack.json',
+    });
     expect(createObjectUrlMock).toHaveBeenCalledTimes(1);
     expect(clickSpy).toHaveBeenCalledTimes(1);
     expect(revokeObjectUrlMock).toHaveBeenCalledWith('blob:backup-url');
@@ -69,15 +75,39 @@ describe('exportBackupFile', () => {
     isNativePlatformMock.mockReturnValue(true);
     getPlatformMock.mockReturnValue('android');
 
-    const method = await exportBackupFile('{"ok":true}', 'tasktrack.json');
+    const result = await exportBackupFile('{"ok":true}', 'tasktrack.json');
 
-    expect(method).toBe('filesystem');
+    expect(result).toEqual({
+      method: 'filesystem',
+      fileName: 'tasktrack.json',
+      folder: 'Documents',
+      uri: 'content://documents/tasktrack.json',
+    });
     expect(writeFileMock).toHaveBeenCalledWith(expect.objectContaining({
       path: 'tasktrack.json',
       data: '{"ok":true}',
       directory: 'DOCUMENTS',
     }));
+    expect(getUriMock).toHaveBeenCalledWith({
+      path: 'tasktrack.json',
+      directory: 'DOCUMENTS',
+    });
     expect(clickSpy).not.toHaveBeenCalled();
+  });
+
+  it('returns filesystem metadata without uri when getUri fails', async () => {
+    isNativePlatformMock.mockReturnValue(true);
+    getPlatformMock.mockReturnValue('android');
+    getUriMock.mockRejectedValue(new Error('No uri'));
+
+    const result = await exportBackupFile('{"ok":true}', 'tasktrack.json');
+
+    expect(result).toEqual({
+      method: 'filesystem',
+      fileName: 'tasktrack.json',
+      folder: 'Documents',
+      uri: undefined,
+    });
   });
 
   it('throws when Android filesystem write fails', async () => {
