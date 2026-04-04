@@ -42,16 +42,16 @@ describe('shouldShowCategoryGroupingSuggestion', () => {
 describe('getUnassignedTodoTasks', () => {
   it('returns only unfinished tasks that are unassigned', () => {
     const tasks = [
-      buildTask({ id: 'task-1', status: 'todo' }),
-      buildTask({ id: 'task-2', status: 'in_progress' }),
-      buildTask({ id: 'task-3', status: 'done' }),
-      buildTask({ id: 'task-4', status: 'todo', roundId: 'round-1' }),
-      buildTask({ id: 'task-5', status: 'todo', roundId: 'missing-round' }),
+      buildTask({ id: 'task-1', status: 'todo', title: 'Bravo' }),
+      buildTask({ id: 'task-2', status: 'in_progress', title: 'alpha' }),
+      buildTask({ id: 'task-3', status: 'done', title: 'Charlie' }),
+      buildTask({ id: 'task-4', status: 'todo', title: 'Delta', roundId: 'round-1' }),
+      buildTask({ id: 'task-5', status: 'todo', title: 'charlie', roundId: 'missing-round' }),
     ];
 
     expect(getUnassignedTodoTasks(tasks, new Set(['round-1']))).toEqual([
-      expect.objectContaining({ id: 'task-1' }),
       expect.objectContaining({ id: 'task-2' }),
+      expect.objectContaining({ id: 'task-1' }),
       expect.objectContaining({ id: 'task-5' }),
     ]);
   });
