@@ -11,7 +11,7 @@ import { useAppState } from '../state/AppStateContext';
 import { getCarryForwardRound, getRoundPlannedDate, getVisibleRoundId } from '../state/rounds';
 import { areAllTasksCompletedForDate } from '../state/tasks';
 import type { Task } from '../types';
-import { formatTime, getTodayKey } from '../utils';
+import { formatRemainingEndTime, formatTime, getTodayKey } from '../utils';
 import { canMarkTaskDone, getMarkTaskDoneBlockedMessage } from './focusTaskToggle';
 import { getWorkSkipOutcome } from './focusSkip';
 
@@ -204,6 +204,9 @@ export const FocusScreen = () => {
               <Stack position="absolute" sx={{ inset: 0, px: 3.5 }} alignItems="center" justifyContent="center">
                 <Typography variant="h1" fontSize={76} fontWeight={800}>{formatTime(state.pomodoro.remainingSeconds)}</Typography>
                 <Typography color="text.secondary" letterSpacing="0.1em">Remaining</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Finishes at {formatRemainingEndTime(state.pomodoro.remainingSeconds)}
+                </Typography>
               </Stack>
             </Box>
 
