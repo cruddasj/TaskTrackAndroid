@@ -21,13 +21,14 @@ import {
 } from '../state/tasks';
 import { TaskBankItem } from '../types';
 import { getTodayKey, getTomorrowKey, normalizeOptionalDescription } from '../utils';
+import { getNormalizedRecurrenceDays, getTaskBankFormRecurrenceMode, TaskBankRecurrenceMode } from './taskBankRecurrence';
 
 interface TaskFormState {
   title: string;
   description: string;
   category: string;
   estimateMinutes: string;
-  recurrenceMode: 'none' | 'days' | 'weekdays' | 'monthDay';
+  recurrenceMode: TaskBankRecurrenceMode;
   recurrenceDays: string;
   recurrenceWeekdays: number[];
   recurrenceDayOfMonth: string;
@@ -58,6 +59,7 @@ export const TaskBankScreen = () => {
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<'all' | string>('all');
   const [selectedRecurrenceFilter, setSelectedRecurrenceFilter] = useState<'all' | 'one-off' | 'recurring'>('all');
   const [showSearchFilters, setShowSearchFilters] = useState(false);
+  const isAndroid = useMemo(() => typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent), []);
   const selectedDateKey = planningDay === 'today' ? todayKey : tomorrowKey;
   const sortedTaskBank = useMemo(() => sortTaskBankItemsAlphabetically(state.taskBank), [state.taskBank]);
   const categoryFilterOptions = useMemo(() => getTaskBankCategoriesWithAssignedTasks(sortedTaskBank), [sortedTaskBank]);
@@ -102,7 +104,7 @@ export const TaskBankScreen = () => {
       description: task.description,
       category: task.category,
       estimateMinutes: String(task.estimateMinutes),
-      recurrenceMode: task.recurrenceWeekdays && task.recurrenceWeekdays.length > 0 ? 'weekdays' : task.recurrenceDayOfMonth ? 'monthDay' : task.recurrenceDays ? 'days' : 'none',
+      recurrenceMode: getTaskBankFormRecurrenceMode(task),
       recurrenceDays: task.recurrenceDays ? String(task.recurrenceDays) : '',
       recurrenceWeekdays: task.recurrenceWeekdays ?? [],
       recurrenceDayOfMonth: task.recurrenceDayOfMonth ? String(task.recurrenceDayOfMonth) : '',
@@ -128,10 +130,8 @@ export const TaskBankScreen = () => {
     const description = normalizeOptionalDescription(form.description);
     const category = form.category || state.categories[0] || 'Uncategorized';
     const estimateMinutes = Number(form.estimateMinutes);
-    const recurrenceDays = Number(form.recurrenceDays);
     const recurrenceDayOfMonth = Number(form.recurrenceDayOfMonth);
-    const normalizedRecurrenceDays =
-      form.recurrenceMode === 'days' && Number.isFinite(recurrenceDays) && recurrenceDays > 0 ? Math.round(recurrenceDays) : undefined;
+    const normalizedRecurrenceDays = getNormalizedRecurrenceDays(form.recurrenceMode, form.recurrenceDays);
     const normalizedRecurrenceWeekdays =
       form.recurrenceMode === 'weekdays'
         ? [...new Set(form.recurrenceWeekdays)].filter((weekday) => Number.isInteger(weekday) && weekday >= 0 && weekday <= 6).sort((a, b) => a - b)
@@ -349,7 +349,12 @@ export const TaskBankScreen = () => {
         <AddRounded />
       </IconButton>
 
-      <Dialog open={open} onClose={closeDialog} fullWidth>
+      <Dialog
+        open={open}
+        onClose={closeDialog}
+        fullWidth
+        sx={isAndroid ? { '& .MuiDialog-container': { alignItems: 'flex-start', pt: 2 } } : undefined}
+      >
         <DialogTitle>{editingTaskBankId ? 'Edit Task Bank item' : 'Add Task Bank item'}</DialogTitle>
         <DialogContent>
           <TextField margin="dense" label="Task title" fullWidth value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} />
@@ -404,9 +409,32 @@ export const TaskBankScreen = () => {
             fullWidth
             select
             value={form.recurrenceMode}
-            onChange={(event) => setForm((current) => ({ ...current, recurrenceMode: event.target.value as TaskFormState['recurrenceMode'] }))}
+            onChange={(event) => {
+              const recurrenceMode = event.target.value as TaskFormState['recurrenceMode'];
+              setForm((current) => ({
+                ...current,
+                recurrenceMode,
+                recurrenceDays: recurrenceMode === 'daily' ? '1' : current.recurrenceDays,
+              }));
+            }}
+            SelectProps={{
+              MenuProps: {
+                PaperProps: {
+                  sx: {
+                    maxHeight: 'min(50vh, 320px)',
+                    mb: 'env(safe-area-inset-bottom, 0px)',
+                  },
+                },
+                MenuListProps: {
+                  sx: {
+                    pb: 'calc(8px + env(safe-area-inset-bottom, 0px))',
+                  },
+                },
+              },
+            }}
           >
             <MenuItem value="none">No repeat</MenuItem>
+            <MenuItem value="daily">Daily</MenuItem>
             <MenuItem value="days">Every X days</MenuItem>
             <MenuItem value="weekdays">Specific days of the week</MenuItem>
             <MenuItem value="monthDay">Day of month</MenuItem>
