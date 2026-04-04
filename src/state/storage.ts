@@ -10,6 +10,7 @@ const DEFAULT_SESSION_REVIEW_GRACE_SECONDS = 60;
 const DEFAULT_ALARM_VOLUME = 70;
 const DEFAULT_ALARM_REPEAT_COUNT = 3;
 const DEFAULT_SHOW_FIRST_TIME_GUIDANCE = true;
+const DEFAULT_HAS_SEEN_WELCOME_MODAL = false;
 const getDateKey = (daysAgo = 0): string => {
   const date = new Date();
   date.setDate(date.getDate() - daysAgo);
@@ -47,6 +48,7 @@ const defaultState: AppState = {
     alarmVolume: DEFAULT_ALARM_VOLUME,
     alarmRepeatCount: DEFAULT_ALARM_REPEAT_COUNT,
     showFirstTimeGuidance: DEFAULT_SHOW_FIRST_TIME_GUIDANCE,
+    hasSeenWelcomeModal: DEFAULT_HAS_SEEN_WELCOME_MODAL,
   },
   pomodoro: {
     sessionId: null,
@@ -276,6 +278,7 @@ export const normalizeState = (raw: Partial<AppState>): AppState => {
           ? Math.min(10, Math.round(raw.settings.alarmRepeatCount))
           : DEFAULT_ALARM_REPEAT_COUNT,
       showFirstTimeGuidance: raw.settings?.showFirstTimeGuidance ?? DEFAULT_SHOW_FIRST_TIME_GUIDANCE,
+      hasSeenWelcomeModal: raw.settings?.hasSeenWelcomeModal ?? DEFAULT_HAS_SEEN_WELCOME_MODAL,
     },
     pomodoro: {
       ...defaultState.pomodoro,

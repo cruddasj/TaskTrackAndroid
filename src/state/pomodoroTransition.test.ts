@@ -20,6 +20,7 @@ const buildState = (overrides: Partial<AppState> = {}): AppState => ({
     alarmVolume: 70,
     alarmRepeatCount: 3,
     showFirstTimeGuidance: true,
+    hasSeenWelcomeModal: false,
   },
   pomodoro: {
     sessionId: 101,

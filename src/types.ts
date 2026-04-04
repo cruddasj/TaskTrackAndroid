@@ -68,6 +68,7 @@ export interface AppState {
     alarmVolume: number;
     alarmRepeatCount: number;
     showFirstTimeGuidance: boolean;
+    hasSeenWelcomeModal: boolean;
   };
   pomodoro: PomodoroState;
 }

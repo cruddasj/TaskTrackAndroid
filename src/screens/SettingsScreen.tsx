@@ -28,6 +28,7 @@ export const SettingsScreen = () => {
     setAlarmVolume,
     setAlarmRepeatCount,
     setShowFirstTimeGuidance,
+    setHasSeenWelcomeModal,
     loadDemoData,
     importState,
     clearAllData,
@@ -49,6 +50,7 @@ export const SettingsScreen = () => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const needsName = !state.userName.trim();
+  const showWelcomeModal = needsName && !state.settings.hasSeenWelcomeModal;
   const categoryExists = useMemo(
     () => state.categories.some((category) => category.toLowerCase() === newCategory.trim().toLowerCase()),
     [newCategory, state.categories],
@@ -87,7 +89,7 @@ export const SettingsScreen = () => {
         <Typography variant="h3">Settings</Typography>
         <Typography color="text.secondary">
           {needsName
-            ? 'Welcome! Start by adding your name so the app can personalize your dashboard. Your data stays on this device.'
+            ? 'Welcome! Add your name to personalize your dashboard on this device. Your name is only used for local customization and is not shared.'
             : 'Update your profile, timer behavior, alarm settings, and task categories.'}
         </Typography>
       </Box>
@@ -98,7 +100,7 @@ export const SettingsScreen = () => {
           severity="success"
           sx={guidanceAlertSx}
         >
-          Finish this setup once, then revisit anytime to adjust your timer and alarm preferences.
+          Complete these setup steps once, then come back anytime to adjust your timer and alarm preferences.
         </Alert>
       )}
 
@@ -106,6 +108,9 @@ export const SettingsScreen = () => {
         <CardContent>
           <Stack spacing={2}>
             <Typography variant="h5">Your name</Typography>
+            <Typography color="text.secondary" variant="body2">
+              We store your name only on this device to personalize greetings and helpful messages. It is never shared.
+            </Typography>
             <TextField
               label="Name"
               value={name}
@@ -129,136 +134,15 @@ export const SettingsScreen = () => {
       <Card>
         <CardContent>
           <Stack spacing={2}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={state.settings.showFirstTimeGuidance}
-                  onChange={(_, checked) => {
-                    setShowFirstTimeGuidance(checked);
-                    showSuccessMessage(`First-time guidance ${checked ? 'enabled' : 'hidden'}.`);
-                  }}
-                />
-              }
-              label="Show first-time guidance across the app"
-            />
-          </Stack>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent>
-          <Stack spacing={2}>
-            <Typography variant="h5">Backup and restore</Typography>
-            {state.settings.showFirstTimeGuidance && (
-              <Alert severity="success" icon={<InfoOutlined fontSize="inherit" />} sx={guidanceAlertSx}>
-                Save a backup copy of your app data. Add a password to lock the file so other people cannot read your task details.
-              </Alert>
-            )}
-            <TextField
-              label="Backup password (optional)"
-              type="password"
-              value={backupPassword}
-              onChange={(event) => setBackupPassword(event.target.value)}
-              helperText="Use this same password when importing encrypted backups."
-            />
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
-              <Button
-                variant="outlined"
-                color="secondary"
-                startIcon={<DownloadRounded />}
-                onClick={() => {
-                  handleExportBackup().catch(() => {
-                    setImportError('Backup export failed.');
-                  });
-                }}
-              >
-                Export data
-              </Button>
-              <Button
-                variant="outlined"
-                startIcon={<UploadFileRounded />}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                Import data
-              </Button>
-            </Stack>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="application/json,.json"
-              onChange={(event) => {
-                handleImportBackup(event).catch(() => {
-                  setImportError('Backup import failed.');
-                });
-              }}
-              hidden
-            />
-            {importError && (
-              <Alert severity="error">{importError}</Alert>
-            )}
-          </Stack>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent>
-          <Stack spacing={2}>
-            <Typography variant="h5">Demo data</Typography>
-            {state.settings.showFirstTimeGuidance && (
-              <Alert severity="success" icon={<InfoOutlined fontSize="inherit" />} sx={guidanceAlertSx}>
-                Load sample tasks, rounds, and recent completions to preview how your dashboard insights can look.
-              </Alert>
-            )}
-            <Button
-              variant="outlined"
-              color="secondary"
-              startIcon={<DownloadRounded />}
-              sx={{ width: { xs: '100%', sm: 'fit-content' }, alignSelf: { xs: 'stretch', sm: 'flex-start' } }}
-              onClick={() => {
-                loadDemoData();
-                showSuccessMessage('Demo data loaded.');
-              }}
-            >
-              Load demo data
-            </Button>
-          </Stack>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent>
-          <Stack spacing={2}>
-            <Typography variant="h5">Clear app data</Typography>
-            <Alert severity="success" icon={<InfoOutlined fontSize="inherit" />} sx={guidanceAlertSx}>
-              This permanently removes your tasks, rounds, timer state, and settings from this device.
-            </Alert>
-            <Button
-              variant="outlined"
-              color="error"
-              startIcon={<DeleteOutlineRounded />}
-              sx={{ width: { xs: '100%', sm: 'fit-content' }, alignSelf: { xs: 'stretch', sm: 'flex-start' } }}
-              onClick={() => setConfirmDataClearOpen(true)}
-            >
-              Clear all app data
-            </Button>
-          </Stack>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent>
-          <Stack spacing={2}>
             <Typography variant="h5">Pomodoro timing</Typography>
             {state.settings.showFirstTimeGuidance ? (
               <Alert severity="success" icon={<InfoOutlined fontSize="inherit" />} sx={guidanceAlertSx}>
-                <Typography variant="body2" fontWeight={700} mb={0.5}>New to Pomodoro?</Typography>
+                <Typography variant="body2" fontWeight={700} mb={0.5}>How Pomodoro works</Typography>
                 <Typography variant="body2">
-                  The Pomodoro technique breaks work into short focus rounds followed by breaks. Start with a 25-minute
-                  round, take a short break, and use a longer break after a few rounds.
+                  Work in one focused round, then take a short break. After a few rounds, take a longer break to reset.
                 </Typography>
                 <Typography variant="body2" mt={1}>
-                  Adjust the values below to match your energy and workload. Your timer and alarm preferences apply to
-                  all new rounds.
+                  These are starting values. Change them anytime to fit your energy, schedule, and task difficulty.
                 </Typography>
               </Alert>
             ) : null}
@@ -398,7 +282,7 @@ export const SettingsScreen = () => {
             <Typography variant="h5">Task categories</Typography>
             {state.settings.showFirstTimeGuidance && (
               <Alert severity="success" icon={<InfoOutlined fontSize="inherit" />} sx={guidanceAlertSx}>
-                Use categories to group similar tasks (for example Work, Personal, or Errands) so planning, sorting, and review are easier throughout the app.
+                Categories keep your task list easy to scan. Start simple (for example Work, Personal, and Errands), then adjust as needed.
               </Alert>
             )}
             {alphabeticalCategories.map((category) => (
@@ -440,6 +324,159 @@ export const SettingsScreen = () => {
           </Stack>
         </CardContent>
       </Card>
+
+      <Card>
+        <CardContent>
+          <Stack spacing={2}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={state.settings.showFirstTimeGuidance}
+                  onChange={(_, checked) => {
+                    setShowFirstTimeGuidance(checked);
+                    showSuccessMessage(`First-time guidance ${checked ? 'enabled' : 'hidden'}.`);
+                  }}
+                />
+              }
+              label="Show first-time guidance across the app"
+            />
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent>
+          <Stack spacing={2}>
+            <Typography variant="h5">Backup and restore</Typography>
+            {state.settings.showFirstTimeGuidance && (
+              <Alert severity="success" icon={<InfoOutlined fontSize="inherit" />} sx={guidanceAlertSx}>
+                Save a backup copy of your app data. Add a password if you want to protect the file before sharing or storing it.
+              </Alert>
+            )}
+            <TextField
+              label="Backup password (optional)"
+              type="password"
+              value={backupPassword}
+              onChange={(event) => setBackupPassword(event.target.value)}
+              helperText="Use this same password when importing encrypted backups."
+            />
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+              <Button
+                variant="outlined"
+                color="secondary"
+                startIcon={<DownloadRounded />}
+                onClick={() => {
+                  handleExportBackup().catch(() => {
+                    setImportError('Backup export failed.');
+                  });
+                }}
+              >
+                Export data
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<UploadFileRounded />}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                Import data
+              </Button>
+            </Stack>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="application/json,.json"
+              onChange={(event) => {
+                handleImportBackup(event).catch(() => {
+                  setImportError('Backup import failed.');
+                });
+              }}
+              hidden
+            />
+            {importError && (
+              <Alert severity="error">{importError}</Alert>
+            )}
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent>
+          <Stack spacing={2}>
+            <Typography variant="h5">Demo data</Typography>
+            {state.settings.showFirstTimeGuidance && (
+              <Alert severity="success" icon={<InfoOutlined fontSize="inherit" />} sx={guidanceAlertSx}>
+                Load sample tasks and rounds to explore the app before adding your own data.
+              </Alert>
+            )}
+            <Button
+              variant="outlined"
+              color="secondary"
+              startIcon={<DownloadRounded />}
+              sx={{ width: { xs: '100%', sm: 'fit-content' }, alignSelf: { xs: 'stretch', sm: 'flex-start' } }}
+              onClick={() => {
+                loadDemoData();
+                showSuccessMessage('Demo data loaded.');
+              }}
+            >
+              Load demo data
+            </Button>
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent>
+          <Stack spacing={2}>
+            <Typography variant="h5">Clear app data</Typography>
+            <Alert severity="success" icon={<InfoOutlined fontSize="inherit" />} sx={guidanceAlertSx}>
+              This permanently removes your tasks, rounds, timer state, and settings from this device.
+            </Alert>
+            <Button
+              variant="outlined"
+              color="error"
+              startIcon={<DeleteOutlineRounded />}
+              sx={{ width: { xs: '100%', sm: 'fit-content' }, alignSelf: { xs: 'stretch', sm: 'flex-start' } }}
+              onClick={() => setConfirmDataClearOpen(true)}
+            >
+              Clear all app data
+            </Button>
+          </Stack>
+        </CardContent>
+      </Card>
+
+
+      <Dialog
+        open={showWelcomeModal}
+        onClose={() => setHasSeenWelcomeModal(true)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>Welcome to TaskTrack</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} mt={0.5}>
+            <Typography color="text.secondary">
+              TaskTrack helps you plan tasks, group them into rounds, and stay focused with a Pomodoro timer.
+            </Typography>
+            <Typography color="text.secondary">
+              Pomodoro is simple: focus for one round, take a short break, and repeat. After a few rounds, take a longer break.
+            </Typography>
+            <Alert severity="success" icon={<InfoOutlined fontSize="inherit" />} sx={guidanceAlertSx}>
+              Start with the default timing, then change timer and alarm settings anytime to match your preference.
+            </Alert>
+            <Typography color="text.secondary">
+              We only use your name on this device for personalization. Your data is not shared.
+            </Typography>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            variant="contained"
+            onClick={() => setHasSeenWelcomeModal(true)}
+          >
+            Got it
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Dialog open={!!categoryPendingDelete} onClose={() => setCategoryPendingDelete(null)} fullWidth maxWidth="xs">
         <DialogTitle>Delete category?</DialogTitle>

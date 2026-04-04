@@ -55,6 +55,7 @@ type Action =
   | { type: 'SET_ALARM_VOLUME'; payload: { volume: number } }
   | { type: 'SET_ALARM_REPEAT_COUNT'; payload: { count: number } }
   | { type: 'SET_SHOW_FIRST_TIME_GUIDANCE'; payload: { enabled: boolean } }
+  | { type: 'SET_HAS_SEEN_WELCOME_MODAL'; payload: { seen: boolean } }
   | { type: 'LOAD_DEMO_DATA' }
   | { type: 'IMPORT_STATE'; payload: { state: AppState } }
   | { type: 'START_POMODORO'; payload: { taskId: string; roundId?: string; minutes?: number } }
@@ -469,6 +470,14 @@ const reducer = (state: AppState, action: Action): AppState => {
           showFirstTimeGuidance: action.payload.enabled,
         },
       };
+    case 'SET_HAS_SEEN_WELCOME_MODAL':
+      return {
+        ...state,
+        settings: {
+          ...state.settings,
+          hasSeenWelcomeModal: action.payload.seen,
+        },
+      };
     case 'LOAD_DEMO_DATA':
       return createDemoState(state);
     case 'IMPORT_STATE':
@@ -667,6 +676,7 @@ interface AppStateContextValue {
   setAlarmVolume: (volume: number) => void;
   setAlarmRepeatCount: (count: number) => void;
   setShowFirstTimeGuidance: (enabled: boolean) => void;
+  setHasSeenWelcomeModal: (seen: boolean) => void;
   loadDemoData: () => void;
   importState: (nextState: AppState) => void;
   clearAllData: () => void;
@@ -942,6 +952,7 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
       setAlarmVolume: (volume) => dispatch({ type: 'SET_ALARM_VOLUME', payload: { volume } }),
       setAlarmRepeatCount: (count) => dispatch({ type: 'SET_ALARM_REPEAT_COUNT', payload: { count } }),
       setShowFirstTimeGuidance: (enabled) => dispatch({ type: 'SET_SHOW_FIRST_TIME_GUIDANCE', payload: { enabled } }),
+      setHasSeenWelcomeModal: (seen) => dispatch({ type: 'SET_HAS_SEEN_WELCOME_MODAL', payload: { seen } }),
       loadDemoData: () => dispatch({ type: 'LOAD_DEMO_DATA' }),
       importState: (nextState) => dispatch({ type: 'IMPORT_STATE', payload: { state: nextState } }),
       clearAllData,
