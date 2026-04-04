@@ -1,5 +1,12 @@
 import { Task } from '../types';
-import { areAllTasksCompletedForDate, hasDuplicateTodayTaskTitle, sortTaskBankItemsAlphabetically, suggestRecurringTaskBankItems, WEEKDAY_SELECTION_ORDER } from './tasks';
+import {
+  areAllTasksCompletedForDate,
+  hasDuplicateTodayTaskTitle,
+  sortCategoriesAlphabetically,
+  sortTaskBankItemsAlphabetically,
+  suggestRecurringTaskBankItems,
+  WEEKDAY_SELECTION_ORDER,
+} from './tasks';
 
 const todayKey = '2026-03-29';
 
@@ -54,6 +61,17 @@ describe('sortTaskBankItemsAlphabetically', () => {
 
     expect(sorted.map((item) => item.id)).toEqual(['3', '4', '1', '2']);
     expect(taskBank.map((item) => item.id)).toEqual(['2', '3', '1', '4']);
+  });
+});
+
+describe('sortCategoriesAlphabetically', () => {
+  it('sorts categories regardless of case and surrounding whitespace', () => {
+    const categories = [' work', 'Errands', 'health', '  Personal projects'];
+
+    const sorted = sortCategoriesAlphabetically(categories);
+
+    expect(sorted).toEqual(['Errands', 'health', '  Personal projects', ' work']);
+    expect(categories).toEqual([' work', 'Errands', 'health', '  Personal projects']);
   });
 });
 

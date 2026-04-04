@@ -7,7 +7,7 @@ import { Alert, Box, Button, Card, CardContent, Checkbox, Chip, Dialog, DialogAc
 import { useEffect, useMemo, useState } from 'react';
 import { PlanningDay, PlanningDayToggle } from '../components/PlanningDayToggle';
 import { useAppState } from '../state/AppStateContext';
-import { hasDuplicateTodayTaskTitle, sortTaskBankItemsAlphabetically, WEEKDAY_LABELS, WEEKDAY_SELECTION_ORDER } from '../state/tasks';
+import { hasDuplicateTodayTaskTitle, sortCategoriesAlphabetically, sortTaskBankItemsAlphabetically, WEEKDAY_LABELS, WEEKDAY_SELECTION_ORDER } from '../state/tasks';
 import { TaskBankItem } from '../types';
 import { getTodayKey, getTomorrowKey, normalizeOptionalDescription } from '../utils';
 
@@ -43,6 +43,7 @@ export const TaskBankScreen = () => {
   const [planningDay, setPlanningDay] = useState<PlanningDay>('today');
   const selectedDateKey = planningDay === 'today' ? todayKey : tomorrowKey;
   const sortedTaskBank = useMemo(() => sortTaskBankItemsAlphabetically(state.taskBank), [state.taskBank]);
+  const sortedCategories = useMemo(() => sortCategoriesAlphabetically(state.categories), [state.categories]);
 
   useEffect(() => {
     if (!form.category && state.categories.length > 0) {
@@ -252,12 +253,18 @@ export const TaskBankScreen = () => {
                 PaperProps: {
                   sx: {
                     maxHeight: 'min(50vh, 320px)',
+                    mb: 'env(safe-area-inset-bottom, 0px)',
+                  },
+                },
+                MenuListProps: {
+                  sx: {
+                    pb: 'calc(8px + env(safe-area-inset-bottom, 0px))',
                   },
                 },
               },
             }}
           >
-            {state.categories.map((category) => (
+            {sortedCategories.map((category) => (
               <MenuItem key={category} value={category}>{category}</MenuItem>
             ))}
           </TextField>

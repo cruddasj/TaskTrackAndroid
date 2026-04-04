@@ -4,11 +4,11 @@ import DeleteOutlineRounded from '@mui/icons-material/DeleteOutlineRounded';
 import EditOutlined from '@mui/icons-material/EditOutlined';
 import CircleOutlined from '@mui/icons-material/CircleOutlined';
 import { Alert, Box, Button, Card, CardContent, Checkbox, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Stack, TextField, Typography } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { getDefaultSelectedRecurringSuggestionIds, getSelectedRecurringSuggestions } from './todaysTaskSuggestions';
 import { PlanningDay, PlanningDayToggle } from '../components/PlanningDayToggle';
 import { useAppState } from '../state/AppStateContext';
-import { hasDuplicateTodayTaskTitle, suggestRecurringTaskBankItems, WEEKDAY_LABELS } from '../state/tasks';
+import { hasDuplicateTodayTaskTitle, sortCategoriesAlphabetically, suggestRecurringTaskBankItems, WEEKDAY_LABELS } from '../state/tasks';
 import { Task, TaskBankItem } from '../types';
 import { getTodayKey, getTomorrowKey, normalizeOptionalDescription } from '../utils';
 
@@ -43,6 +43,7 @@ export const TodaysTasksScreen = () => {
   const [validationMessage, setValidationMessage] = useState<string | null>(null);
   const taskActionButtonSx = { p: 0.625 };
   const taskActionRowSx = { flexShrink: 0, alignSelf: 'flex-start' } as const;
+  const sortedCategories = useMemo(() => sortCategoriesAlphabetically(state.categories), [state.categories]);
 
   const formatRecurrenceLabel = (task: TaskBankItem): string => {
     if (task.recurrenceWeekdays && task.recurrenceWeekdays.length > 0) {
@@ -295,12 +296,18 @@ export const TodaysTasksScreen = () => {
                 PaperProps: {
                   sx: {
                     maxHeight: 'min(50vh, 320px)',
+                    mb: 'env(safe-area-inset-bottom, 0px)',
+                  },
+                },
+                MenuListProps: {
+                  sx: {
+                    pb: 'calc(8px + env(safe-area-inset-bottom, 0px))',
                   },
                 },
               },
             }}
           >
-            {state.categories.map((category) => (
+            {sortedCategories.map((category) => (
               <MenuItem key={category} value={category}>{category}</MenuItem>
             ))}
           </TextField>
