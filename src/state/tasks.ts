@@ -90,6 +90,11 @@ export const sortTaskBankItemsAlphabetically = (taskBank: TaskBankItem[]): TaskB
   });
 };
 
+export const getTaskBankCategoriesWithAssignedTasks = (taskBank: TaskBankItem[]): string[] => {
+  const assignedCategories = [...new Set(taskBank.map((item) => item.category))];
+  return sortCategoriesAlphabetically(assignedCategories);
+};
+
 interface TaskBankFilterOptions {
   query: string;
   category: string;

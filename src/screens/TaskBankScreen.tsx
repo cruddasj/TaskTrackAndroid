@@ -9,7 +9,16 @@ import { Alert, Box, Button, Card, CardContent, Checkbox, Chip, Collapse, Dialog
 import { useEffect, useMemo, useState } from 'react';
 import { PlanningDay, PlanningDayToggle } from '../components/PlanningDayToggle';
 import { useAppState } from '../state/AppStateContext';
-import { filterTaskBankItems, getLastCompletedAtByTaskTitle, hasDuplicateTodayTaskTitle, sortCategoriesAlphabetically, sortTaskBankItemsAlphabetically, WEEKDAY_LABELS, WEEKDAY_SELECTION_ORDER } from '../state/tasks';
+import {
+  filterTaskBankItems,
+  getLastCompletedAtByTaskTitle,
+  getTaskBankCategoriesWithAssignedTasks,
+  hasDuplicateTodayTaskTitle,
+  sortCategoriesAlphabetically,
+  sortTaskBankItemsAlphabetically,
+  WEEKDAY_LABELS,
+  WEEKDAY_SELECTION_ORDER,
+} from '../state/tasks';
 import { TaskBankItem } from '../types';
 import { getTodayKey, getTomorrowKey, normalizeOptionalDescription } from '../utils';
 
@@ -51,6 +60,7 @@ export const TaskBankScreen = () => {
   const [showSearchFilters, setShowSearchFilters] = useState(false);
   const selectedDateKey = planningDay === 'today' ? todayKey : tomorrowKey;
   const sortedTaskBank = useMemo(() => sortTaskBankItemsAlphabetically(state.taskBank), [state.taskBank]);
+  const categoryFilterOptions = useMemo(() => getTaskBankCategoriesWithAssignedTasks(sortedTaskBank), [sortedTaskBank]);
   const sortedCategories = useMemo(() => sortCategoriesAlphabetically(state.categories), [state.categories]);
   const filteredTaskBank = useMemo(
     () => filterTaskBankItems(sortedTaskBank, { query: searchQuery, category: selectedCategoryFilter, recurrence: selectedRecurrenceFilter }),
@@ -71,6 +81,13 @@ export const TaskBankScreen = () => {
       setForm((current) => ({ ...current, category: state.categories[0] }));
     }
   }, [form.category, state.categories]);
+
+  useEffect(() => {
+    if (selectedCategoryFilter === 'all') return;
+    if (!categoryFilterOptions.includes(selectedCategoryFilter)) {
+      setSelectedCategoryFilter('all');
+    }
+  }, [categoryFilterOptions, selectedCategoryFilter]);
 
   const openCreateBankDialog = () => {
     setEditingTaskBankId(null);
@@ -218,7 +235,7 @@ export const TaskBankScreen = () => {
                     onChange={(event) => setSelectedCategoryFilter(event.target.value)}
                   >
                     <MenuItem value="all">All categories</MenuItem>
-                    {sortedCategories.map((category) => (
+                    {categoryFilterOptions.map((category) => (
                       <MenuItem key={category} value={category}>{category}</MenuItem>
                     ))}
                   </TextField>
