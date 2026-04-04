@@ -252,10 +252,21 @@ export const DashboardScreen = () => {
         </Card>
       </Stack>
 
-      <Card onClick={() => navigate('/tasks')} sx={{ cursor: 'pointer' }}>
+      <Card
+        onClick={() => navigate('/tasks')}
+        sx={{
+          cursor: 'pointer',
+          background: 'radial-gradient(circle at 72% 38%, rgba(201,125,255,0.28), rgba(14,14,14,1) 62%)',
+        }}
+      >
         <CardContent>
-          <Typography color="text.secondary">Tasks planned for tomorrow</Typography>
-          <Typography variant="h4" color="primary.main" mb={tomorrowTasks.length > 0 ? 1 : 0}>{tomorrowTasks.length}</Typography>
+          <Typography variant="overline" color="#c97dff" letterSpacing="0.08em">
+            Tomorrow
+          </Typography>
+          <Typography variant="h5" mt={1} mb={1.5}>
+            Tasks planned for tomorrow
+          </Typography>
+          <Typography variant="h4" color="#c97dff" mb={tomorrowTasks.length > 0 ? 1 : 0}>{tomorrowTasks.length}</Typography>
           {tomorrowTasks.length > 0 ? (
             <Stack spacing={0.75}>
               {tomorrowTasks.slice(0, 3).map((task) => (
