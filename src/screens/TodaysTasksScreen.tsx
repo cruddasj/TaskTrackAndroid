@@ -5,8 +5,10 @@ import EditOutlined from '@mui/icons-material/EditOutlined';
 import CircleOutlined from '@mui/icons-material/CircleOutlined';
 import { Alert, Box, Button, Card, CardContent, Checkbox, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { getDefaultSelectedRecurringSuggestionIds, getSelectedRecurringSuggestions } from './todaysTaskSuggestions';
 import { getTaskPrimaryActionLabel } from './todaysTasksActions';
+import { getPlanningDayFromQuery } from './planningDayQuery';
 import { PlanningDay, PlanningDayToggle } from '../components/PlanningDayToggle';
 import { useAppState } from '../state/AppStateContext';
 import { hasDuplicateTodayTaskTitle, sortCategoriesAlphabetically, sortTasksAlphabetically, suggestRecurringTaskBankItems, WEEKDAY_LABELS } from '../state/tasks';
@@ -34,9 +36,10 @@ const emptyForm: TaskFormState = {
 
 export const TodaysTasksScreen = () => {
   const { state, addTask, updateTask, deleteTask, toggleTask, showSuccessMessage } = useAppState();
+  const [searchParams] = useSearchParams();
   const todayKey = getTodayKey();
   const tomorrowKey = getTomorrowKey();
-  const [planningDay, setPlanningDay] = useState<PlanningDay>('today');
+  const [planningDay, setPlanningDay] = useState<PlanningDay>(() => getPlanningDayFromQuery(searchParams.get('day')));
   const selectedDateKey = planningDay === 'today' ? todayKey : tomorrowKey;
   const tasksForSelectedDay = useMemo(
     () => sortTasksAlphabetically(state.tasks.filter((task) => task.plannedDate === selectedDateKey)),
@@ -68,6 +71,10 @@ export const TodaysTasksScreen = () => {
       setForm((current) => ({ ...current, category: state.categories[0] }));
     }
   }, [form.category, state.categories]);
+
+  useEffect(() => {
+    setPlanningDay(getPlanningDayFromQuery(searchParams.get('day')));
+  }, [searchParams]);
 
   const openCreateDialog = () => {
     setEditingTaskId(null);

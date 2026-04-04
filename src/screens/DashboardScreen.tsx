@@ -259,7 +259,7 @@ export const DashboardScreen = () => {
       </Stack>
 
       <Card
-        onClick={() => navigate('/tasks')}
+        onClick={() => navigate('/tasks?day=tomorrow')}
         sx={{
           cursor: 'pointer',
           background: 'radial-gradient(circle at 72% 38%, rgba(201,125,255,0.28), rgba(14,14,14,1) 62%)',
