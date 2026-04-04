@@ -9,7 +9,7 @@ import { Alert, Box, Button, Card, CardContent, Checkbox, Chip, Collapse, Dialog
 import { useEffect, useMemo, useState } from 'react';
 import { PlanningDay, PlanningDayToggle } from '../components/PlanningDayToggle';
 import { useAppState } from '../state/AppStateContext';
-import { filterTaskBankItems, hasDuplicateTodayTaskTitle, sortCategoriesAlphabetically, sortTaskBankItemsAlphabetically, WEEKDAY_LABELS, WEEKDAY_SELECTION_ORDER } from '../state/tasks';
+import { filterTaskBankItems, getLastCompletedAtByTaskTitle, hasDuplicateTodayTaskTitle, sortCategoriesAlphabetically, sortTaskBankItemsAlphabetically, WEEKDAY_LABELS, WEEKDAY_SELECTION_ORDER } from '../state/tasks';
 import { TaskBankItem } from '../types';
 import { getTodayKey, getTomorrowKey, normalizeOptionalDescription } from '../utils';
 
@@ -54,6 +54,15 @@ export const TaskBankScreen = () => {
     () => filterTaskBankItems(sortedTaskBank, { query: searchQuery, category: selectedCategoryFilter, recurrence: selectedRecurrenceFilter }),
     [searchQuery, selectedCategoryFilter, selectedRecurrenceFilter, sortedTaskBank],
   );
+  const lastCompletionByTitle = useMemo(() => getLastCompletedAtByTaskTitle(state.tasks), [state.tasks]);
+
+  const formatLastCompletedLabel = (completedAtMs: number): string => {
+    return new Intl.DateTimeFormat(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    }).format(new Date(completedAtMs));
+  };
 
   useEffect(() => {
     if (!form.category && state.categories.length > 0) {
@@ -219,9 +228,12 @@ export const TaskBankScreen = () => {
           </Stack>
         </CardContent>
       </Card>
-      {filteredTaskBank.map((task) => (
-        <Card key={task.id}>
-          <CardContent>
+      {filteredTaskBank.map((task) => {
+        const titleKey = task.title.trim().toLocaleLowerCase();
+        const lastCompletedAtMs = lastCompletionByTitle.get(titleKey);
+        return (
+          <Card key={task.id}>
+            <CardContent>
             <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
               <Stack direction="row" spacing={1} alignItems="center">
                 <Typography variant="h5">{task.title}</Typography>
@@ -263,10 +275,16 @@ export const TaskBankScreen = () => {
               >
                 {`Add to ${planningDay}'s tasks`}
               </Button>
+              {lastCompletedAtMs !== undefined && (
+                <Typography variant="body2" color="text.secondary">
+                  Last completed on {formatLastCompletedLabel(lastCompletedAtMs)}
+                </Typography>
+              )}
             </Stack>
-          </CardContent>
-        </Card>
-      ))}
+            </CardContent>
+          </Card>
+        );
+      })}
 
       {state.taskBank.length === 0 && (
         <Card>

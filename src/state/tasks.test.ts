@@ -2,6 +2,7 @@ import { Task } from '../types';
 import {
   areAllTasksCompletedForDate,
   filterTaskBankItems,
+  getLastCompletedAtByTaskTitle,
   hasDuplicateTodayTaskTitle,
   sortCategoriesAlphabetically,
   sortTaskBankItemsAlphabetically,
@@ -188,6 +189,22 @@ describe('suggestRecurringTaskBankItems', () => {
     const suggestions = suggestRecurringTaskBankItems(taskBank, tasks, '2026-03-30', new Date('2026-03-30T12:00:00.000Z'));
 
     expect(suggestions).toEqual([]);
+  });
+});
+
+describe('getLastCompletedAtByTaskTitle', () => {
+  it('returns the most recent completion timestamp for each normalized title', () => {
+    const tasks = [
+      buildTask({ id: 'done-1', title: '  Pay rent ', status: 'done', completedAt: '2026-04-01T08:00:00.000Z' }),
+      buildTask({ id: 'done-2', title: 'pay rent', status: 'done', completedAt: '2026-04-03T09:15:00.000Z' }),
+      buildTask({ id: 'done-3', title: 'Walk dog', status: 'done', plannedDate: '2026-04-02' }),
+      buildTask({ id: 'todo-1', title: 'Walk dog', status: 'todo', plannedDate: '2026-04-04' }),
+    ];
+
+    const completions = getLastCompletedAtByTaskTitle(tasks);
+
+    expect(completions.get('pay rent')).toBe(new Date('2026-04-03T09:15:00.000Z').getTime());
+    expect(completions.get('walk dog')).toBe(new Date('2026-04-02T00:00:00.000Z').getTime());
   });
 });
 
