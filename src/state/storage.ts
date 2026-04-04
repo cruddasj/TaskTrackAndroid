@@ -1,4 +1,5 @@
 import { AppState } from '../types';
+import { DEFAULT_ALARM_TONE, normalizeAlarmTone } from '../constants/alarmTones';
 
 const STORAGE_KEY = 'tasktrack.state.v2';
 const DEFAULT_POMODORO_MINUTES = 25;
@@ -42,7 +43,7 @@ const defaultState: AppState = {
     longBreakMinutes: DEFAULT_LONG_BREAK_MINUTES,
     sessionsBeforeLongBreak: DEFAULT_SESSIONS_BEFORE_LONG_BREAK,
     sessionReviewGraceSeconds: DEFAULT_SESSION_REVIEW_GRACE_SECONDS,
-    alarmTone: 'bell',
+    alarmTone: DEFAULT_ALARM_TONE,
     alarmVolume: DEFAULT_ALARM_VOLUME,
     alarmRepeatCount: DEFAULT_ALARM_REPEAT_COUNT,
     showFirstTimeGuidance: DEFAULT_SHOW_FIRST_TIME_GUIDANCE,
@@ -265,7 +266,7 @@ export const normalizeState = (raw: Partial<AppState>): AppState => {
         raw.settings?.sessionReviewGraceSeconds && raw.settings.sessionReviewGraceSeconds > 0
           ? Math.min(600, Math.round(raw.settings.sessionReviewGraceSeconds))
           : DEFAULT_SESSION_REVIEW_GRACE_SECONDS,
-      alarmTone: raw.settings?.alarmTone ?? 'bell',
+      alarmTone: normalizeAlarmTone(raw.settings?.alarmTone),
       alarmVolume:
         typeof raw.settings?.alarmVolume === 'number'
           ? Math.max(0, Math.min(100, Math.round(raw.settings.alarmVolume)))

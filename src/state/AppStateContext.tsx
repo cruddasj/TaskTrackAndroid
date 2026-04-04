@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { App as CapacitorApp } from '@capacitor/app';
+import { AlarmTone } from '../constants/alarmTones';
 import {
-  AlarmTone,
   clearActivePomodoroNotification,
   clearScheduledPomodoroPhaseEndNotification,
   dismissNativeAlarmNotifications,

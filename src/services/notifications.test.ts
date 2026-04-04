@@ -77,7 +77,7 @@ describe('notifications service', () => {
   it('schedules a native phase-end notification', async () => {
     isNativePlatformMock.mockReturnValue(true);
 
-    await schedulePomodoroPhaseEndNotification(1234, 1_700_000_000_000, 75_000, 'Done', 'Body', 'bell');
+    await schedulePomodoroPhaseEndNotification(1234, 1_700_000_000_000, 75_000, 'Done', 'Body', 'clock_bell');
 
     expect(scheduleMock).toHaveBeenCalledTimes(1);
     const payload = scheduleMock.mock.calls[0][0];
@@ -88,7 +88,7 @@ describe('notifications service', () => {
     expect(payload.notifications).toHaveLength(1);
     expect(payload.notifications[0]).toEqual(expect.objectContaining({
       id: 1234,
-      channelId: 'round-finish-bell-v2',
+      channelId: 'round-finish-clock_bell-v2',
       title: 'Done',
       body: 'Body',
       schedule: expect.objectContaining({ allowWhileIdle: true }),
@@ -101,7 +101,7 @@ describe('notifications service', () => {
     checkPermissionsMock.mockResolvedValue({ display: 'denied' });
     requestPermissionsMock.mockResolvedValue({ display: 'denied' });
 
-    await schedulePomodoroPhaseEndNotification(1234, Date.now(), 30_000, 'Done', 'Body', 'bell');
+    await schedulePomodoroPhaseEndNotification(1234, Date.now(), 30_000, 'Done', 'Body', 'clock_bell');
 
     expect(scheduleMock).not.toHaveBeenCalled();
   });
@@ -109,7 +109,7 @@ describe('notifications service', () => {
   it('schedules an immediate native notification on completion', async () => {
     isNativePlatformMock.mockReturnValue(true);
 
-    await notifyPomodoroComplete('Done', 'Body', 'bell', 3);
+    await notifyPomodoroComplete('Done', 'Body', 'clock_bell', 3);
 
     expect(scheduleMock).toHaveBeenCalledTimes(1);
     const payload = scheduleMock.mock.calls[0][0];
@@ -117,7 +117,7 @@ describe('notifications service', () => {
     expect(payload.notifications[0]).toEqual(expect.objectContaining({
       title: 'Done',
       body: 'Body',
-      channelId: 'round-finish-bell-v2',
+      channelId: 'round-finish-clock_bell-v2',
     }));
   });
 
@@ -140,7 +140,7 @@ describe('notifications service', () => {
       value: Object.assign(notificationConstructor, { permission: 'granted' }),
     });
 
-    await notifyPomodoroComplete('Done', 'Body', 'bell', 2);
+    await notifyPomodoroComplete('Done', 'Body', 'clock_bell', 2);
 
     expect(notificationConstructor).toHaveBeenCalledWith('Done', { body: 'Body' });
   });
@@ -203,43 +203,27 @@ describe('notifications service', () => {
     const player = jest.fn();
     hapticsNotificationMock.mockRejectedValueOnce(new Error('unsupported'));
 
-    startRepeatingAlarm('bell', 1, 0.7, undefined, player);
+    startRepeatingAlarm('clock_bell', 1, 0.7, undefined, player);
     await Promise.resolve();
 
     expect(hapticsNotificationMock).toHaveBeenCalledTimes(1);
     expect(hapticsVibrateMock).toHaveBeenCalledWith({ duration: 300 });
   });
 
-  it('plays all alarm tone variants through AudioContext', () => {
-    const createOscillator = () => ({
-      type: 'triangle',
-      frequency: { value: 0 },
-      connect: jest.fn(),
-      start: jest.fn(),
-      stop: jest.fn(),
-    });
-    const createGain = () => ({
-      gain: {
-        setValueAtTime: jest.fn(),
-        exponentialRampToValueAtTime: jest.fn(),
-      },
-      connect: jest.fn(),
-    });
-    const AudioContextMock = jest.fn().mockImplementation(() => ({
-      currentTime: 0,
-      destination: {},
-      createOscillator,
-      createGain,
+  it('plays all alarm tone variants through the Audio element', () => {
+    const playMock = jest.fn().mockResolvedValue(undefined);
+    const AudioMock = jest.fn().mockImplementation(() => ({
+      volume: 0,
+      play: playMock,
     }));
-    Object.defineProperty(window, 'AudioContext', { configurable: true, value: AudioContextMock });
+    Object.defineProperty(window, 'Audio', { configurable: true, value: AudioMock });
 
-    playAlarmTone('bell');
-    playAlarmTone('chime');
+    playAlarmTone('clock_bell');
+    playAlarmTone('fallout');
+    playAlarmTone('chirp');
     playAlarmTone('digital');
-    playAlarmTone('gentle');
-    playAlarmTone('pulse');
 
-    expect(AudioContextMock).toHaveBeenCalledTimes(5);
+    expect(AudioMock).toHaveBeenCalledTimes(4);
   });
 
   it('plays a finite number of repeats and calls completion callback once', () => {
@@ -247,7 +231,7 @@ describe('notifications service', () => {
     const player = jest.fn();
     const onComplete = jest.fn();
 
-    startRepeatingAlarm('chime', 3, 0.5, onComplete, player);
+    startRepeatingAlarm('chirp', 3, 0.5, onComplete, player);
     jest.advanceTimersByTime(5000);
 
     expect(player).toHaveBeenCalledTimes(3);

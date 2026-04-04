@@ -1,15 +1,16 @@
 import { Capacitor } from '@capacitor/core';
 import { Haptics, NotificationType } from '@capacitor/haptics';
 import { LocalNotifications } from '@capacitor/local-notifications';
+import { AlarmTone } from '../constants/alarmTones';
 import { formatRemainingEndTime } from '../utils';
-
-export type AlarmTone = 'bell' | 'chime' | 'digital' | 'gentle' | 'pulse';
 
 const ALARM_REPEAT_INTERVAL_MS = 2500;
 const ANDROID_CHANNEL_VERSION = 'v2';
 const POMODORO_CHANNEL_ID = 'pomodoro';
 const ACTIVE_TIMER_CHANNEL_ID = 'pomodoro-active-timer';
 const ACTIVE_TIMER_NOTIFICATION_ID = 91_100_001;
+const getAlarmFileName = (tone: AlarmTone): string => `alarm_${tone}`;
+const getAlarmAudioAssetUrl = (tone: AlarmTone): string => `/assets/custom_alarm_sounds/${getAlarmFileName(tone)}.mp3`;
 
 
 const triggerCompletionHaptic = async (): Promise<void> => {
@@ -32,7 +33,7 @@ const ensureAndroidAlarmChannel = async (tone: AlarmTone): Promise<string> => {
     id: channelId,
     name: 'Round completion alerts',
     description: 'Alerts when a focus round or break completes.',
-    sound: `raw/alarm_${tone}`,
+    sound: `raw/${getAlarmFileName(tone)}`,
     importance: 5,
     visibility: 1,
     vibration: true,
@@ -107,7 +108,7 @@ export const notifyPomodoroComplete = async (
           ...(channelId
             ? {
               channelId,
-              sound: `res://raw/alarm_${tone}`,
+              sound: `res://raw/${getAlarmFileName(tone)}`,
             }
             : undefined),
         },
@@ -156,7 +157,7 @@ export const schedulePomodoroPhaseEndNotification = async (
         channelId: channelId ?? POMODORO_CHANNEL_ID,
         ...(channelId
           ? {
-            sound: `res://raw/alarm_${tone}`,
+            sound: `res://raw/${getAlarmFileName(tone)}`,
           }
           : undefined),
       },
@@ -209,61 +210,12 @@ export const dismissNativeAlarmNotifications = async (): Promise<void> => {
   await LocalNotifications.removeAllDeliveredNotifications();
 };
 
-const playTonePattern = (context: AudioContext, tone: AlarmTone, volume: number): void => {
-  const now = context.currentTime;
-  const safeVolume = Math.max(0, Math.min(1, volume));
-
-  const beep = (start: number, freq: number, type: OscillatorType = 'triangle', length = 0.32) => {
-    const oscillator = context.createOscillator();
-    const gain = context.createGain();
-    oscillator.type = type;
-    oscillator.frequency.value = freq;
-    gain.gain.setValueAtTime(0.0001, start);
-    gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, safeVolume * 0.25), start + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, start + Math.max(0.08, length - 0.02));
-    oscillator.connect(gain);
-    gain.connect(context.destination);
-    oscillator.start(start);
-    oscillator.stop(start + length);
-  };
-
-  if (tone === 'chime') {
-    beep(now, 523, 'sine', 0.38);
-    beep(now + 0.2, 659, 'sine', 0.38);
-    beep(now + 0.4, 784, 'sine', 0.42);
-    return;
-  }
-
-  if (tone === 'digital') {
-    beep(now, 880, 'square', 0.18);
-    beep(now + 0.22, 880, 'square', 0.18);
-    beep(now + 0.44, 1244, 'square', 0.24);
-    return;
-  }
-
-  if (tone === 'gentle') {
-    beep(now, 440, 'sine', 0.4);
-    beep(now + 0.24, 554, 'sine', 0.4);
-    beep(now + 0.48, 659, 'sine', 0.45);
-    return;
-  }
-
-  if (tone === 'pulse') {
-    beep(now, 420, 'square', 0.1);
-    beep(now + 0.14, 480, 'square', 0.1);
-    beep(now + 0.28, 540, 'square', 0.1);
-    beep(now + 0.42, 600, 'square', 0.14);
-    return;
-  }
-
-  beep(now, 784);
-  beep(now + 0.18, 988);
-  beep(now + 0.36, 1318);
-};
-
 export const playAlarmTone = (tone: AlarmTone, volume = 0.7): void => {
-  const context = new AudioContext();
-  playTonePattern(context, tone, volume);
+  const audio = new Audio(getAlarmAudioAssetUrl(tone));
+  audio.volume = Math.max(0, Math.min(1, volume));
+  void audio.play().catch(() => {
+    // Browsers may block autoplay before a user gesture.
+  });
 };
 
 export const startRepeatingAlarm = (

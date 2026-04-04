@@ -14,7 +14,7 @@ const buildState = (overrides: Partial<AppState> = {}): AppState => ({
     longBreakMinutes: 15,
     sessionsBeforeLongBreak: 4,
     sessionReviewGraceSeconds: 60,
-    alarmTone: 'bell',
+    alarmTone: 'clock_bell',
     alarmVolume: 70,
     alarmRepeatCount: 3,
     showFirstTimeGuidance: true,

@@ -47,11 +47,10 @@ The repo includes Jest coverage thresholds of 80% for lines, statements, branche
 
 The app schedules native local notifications with sound references in the format:
 
-- `res://raw/alarm_bell`
-- `res://raw/alarm_chime`
+- `res://raw/alarm_clock_bell`
+- `res://raw/alarm_fallout`
+- `res://raw/alarm_chirp`
 - `res://raw/alarm_digital`
-- `res://raw/alarm_gentle`
-- `res://raw/alarm_pulse`
 
 If you want custom sounds, add corresponding files under `android/app/src/main/res/raw/`.
 
