@@ -3,7 +3,7 @@ export const ALARM_TONES = ['clock_bell', 'fallout', 'chirp', 'digital'] as cons
 export type AlarmTone = (typeof ALARM_TONES)[number];
 
 const ALARM_TONE_LABELS: Record<AlarmTone, string> = {
-  clock_bell: 'Clock Bell',
+  clock_bell: 'Mechanical',
   fallout: 'Fallout',
   chirp: 'Chirp',
   digital: 'Digital',
