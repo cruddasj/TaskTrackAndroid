@@ -3,7 +3,7 @@ import InfoOutlined from '@mui/icons-material/InfoOutlined';
 import DownloadRounded from '@mui/icons-material/DownloadRounded';
 import UploadFileRounded from '@mui/icons-material/UploadFileRounded';
 import VolumeUpRounded from '@mui/icons-material/VolumeUpRounded';
-import { Alert, Box, Button, Card, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, MenuItem, Slider, Stack, Switch, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, Card, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, FormControlLabel, FormHelperText, IconButton, MenuItem, Slider, Stack, Switch, TextField, Typography } from '@mui/material';
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { ALARM_TONES, AlarmTone, getAlarmToneLabel } from '../constants/alarmTones';
 import { playAlarmTone } from '../services/notifications';
@@ -307,8 +307,8 @@ export const SettingsScreen = () => {
                 <MenuItem key={tone} value={tone}>{getAlarmToneLabel(tone)}</MenuItem>
               ))}
             </TextField>
-            <Box>
-              <Typography gutterBottom id="alarm-volume-slider-label">
+            <FormControl fullWidth>
+              <Typography gutterBottom id="alarm-volume-slider-label" variant="body2">
                 Alarm volume ({alarmVolume}%)
               </Typography>
               <Slider
@@ -319,11 +319,12 @@ export const SettingsScreen = () => {
                 max={100}
                 step={1}
                 valueLabelDisplay="auto"
+                sx={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}
               />
-              <Typography color="text.secondary" variant="body2">
+              <FormHelperText>
                 Controls in-app alarm loudness from 0 (mute) to 100 (max). Native notification volume still follows your device volume.
-              </Typography>
-            </Box>
+              </FormHelperText>
+            </FormControl>
             <TextField
               label="Task confirmation timeout (seconds)"
               type="number"
