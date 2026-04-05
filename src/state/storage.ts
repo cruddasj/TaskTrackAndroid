@@ -5,6 +5,10 @@ const STORAGE_KEY = 'tasktrack.state.v2';
 const DEFAULT_POMODORO_MINUTES = 25;
 const DEFAULT_SHORT_BREAK_MINUTES = 5;
 const DEFAULT_LONG_BREAK_MINUTES = 15;
+const DEFAULT_DEBUG_MODE_ENABLED = false;
+const DEFAULT_DEBUG_POMODORO_SECONDS = DEFAULT_POMODORO_MINUTES * 60;
+const DEFAULT_DEBUG_SHORT_BREAK_SECONDS = DEFAULT_SHORT_BREAK_MINUTES * 60;
+const DEFAULT_DEBUG_LONG_BREAK_SECONDS = DEFAULT_LONG_BREAK_MINUTES * 60;
 const DEFAULT_SESSIONS_BEFORE_LONG_BREAK = 4;
 const DEFAULT_SESSION_REVIEW_GRACE_SECONDS = 60;
 const DEFAULT_ALARM_VOLUME = 70;
@@ -41,6 +45,10 @@ const defaultState: AppState = {
     pomodoroMinutes: DEFAULT_POMODORO_MINUTES,
     shortBreakMinutes: DEFAULT_SHORT_BREAK_MINUTES,
     longBreakMinutes: DEFAULT_LONG_BREAK_MINUTES,
+    debugModeEnabled: DEFAULT_DEBUG_MODE_ENABLED,
+    debugPomodoroSeconds: DEFAULT_DEBUG_POMODORO_SECONDS,
+    debugShortBreakSeconds: DEFAULT_DEBUG_SHORT_BREAK_SECONDS,
+    debugLongBreakSeconds: DEFAULT_DEBUG_LONG_BREAK_SECONDS,
     sessionsBeforeLongBreak: DEFAULT_SESSIONS_BEFORE_LONG_BREAK,
     sessionReviewGraceSeconds: DEFAULT_SESSION_REVIEW_GRACE_SECONDS,
     alarmTone: DEFAULT_ALARM_TONE,
@@ -263,6 +271,19 @@ export const normalizeState = (raw: Partial<AppState>): AppState => {
         raw.settings?.longBreakMinutes && raw.settings.longBreakMinutes > 0
           ? raw.settings.longBreakMinutes
           : DEFAULT_LONG_BREAK_MINUTES,
+      debugModeEnabled: raw.settings?.debugModeEnabled ?? DEFAULT_DEBUG_MODE_ENABLED,
+      debugPomodoroSeconds:
+        raw.settings?.debugPomodoroSeconds && raw.settings.debugPomodoroSeconds > 0
+          ? Math.round(raw.settings.debugPomodoroSeconds)
+          : DEFAULT_DEBUG_POMODORO_SECONDS,
+      debugShortBreakSeconds:
+        raw.settings?.debugShortBreakSeconds && raw.settings.debugShortBreakSeconds > 0
+          ? Math.round(raw.settings.debugShortBreakSeconds)
+          : DEFAULT_DEBUG_SHORT_BREAK_SECONDS,
+      debugLongBreakSeconds:
+        raw.settings?.debugLongBreakSeconds && raw.settings.debugLongBreakSeconds > 0
+          ? Math.round(raw.settings.debugLongBreakSeconds)
+          : DEFAULT_DEBUG_LONG_BREAK_SECONDS,
       sessionsBeforeLongBreak:
         raw.settings?.sessionsBeforeLongBreak && raw.settings.sessionsBeforeLongBreak > 1
           ? raw.settings.sessionsBeforeLongBreak

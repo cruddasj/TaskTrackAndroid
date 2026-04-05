@@ -22,6 +22,10 @@ export const SettingsScreen = () => {
     setPomodoroMinutes,
     setShortBreakMinutes,
     setLongBreakMinutes,
+    setDebugModeEnabled,
+    setDebugPomodoroSeconds,
+    setDebugShortBreakSeconds,
+    setDebugLongBreakSeconds,
     setSessionsBeforeLongBreak,
     setSessionReviewGraceSeconds,
     setAlarmTone,
@@ -38,6 +42,9 @@ export const SettingsScreen = () => {
   const [pomodoroMinutes, setPomodoroMinutesInput] = useState(state.settings.pomodoroMinutes.toString());
   const [shortBreakMinutes, setShortBreakMinutesInput] = useState(state.settings.shortBreakMinutes.toString());
   const [longBreakMinutes, setLongBreakMinutesInput] = useState(state.settings.longBreakMinutes.toString());
+  const [debugPomodoroSeconds, setDebugPomodoroSecondsInput] = useState(state.settings.debugPomodoroSeconds.toString());
+  const [debugShortBreakSeconds, setDebugShortBreakSecondsInput] = useState(state.settings.debugShortBreakSeconds.toString());
+  const [debugLongBreakSeconds, setDebugLongBreakSecondsInput] = useState(state.settings.debugLongBreakSeconds.toString());
   const [sessionsBeforeLongBreak, setSessionsBeforeLongBreakInput] = useState(state.settings.sessionsBeforeLongBreak.toString());
   const [sessionReviewGraceSeconds, setSessionReviewGraceSecondsInput] = useState(state.settings.sessionReviewGraceSeconds.toString());
   const [alarmVolume, setAlarmVolumeInput] = useState(state.settings.alarmVolume.toString());
@@ -152,6 +159,18 @@ export const SettingsScreen = () => {
         <CardContent>
           <Stack spacing={2}>
             <Typography variant="h5">Pomodoro timing</Typography>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={state.settings.debugModeEnabled}
+                  onChange={(_, checked) => {
+                    setDebugModeEnabled(checked);
+                    showSuccessMessage(`Debug timing mode ${checked ? 'enabled' : 'disabled'}.`);
+                  }}
+                />
+              }
+              label="Enable debug timing mode (set durations in seconds)"
+            />
             {state.settings.showFirstTimeGuidance ? (
               <Alert severity="success" icon={<InfoOutlined fontSize="inherit" />} sx={guidanceAlertSx}>
                 <Typography variant="body2" fontWeight={700} mb={0.5}>How Pomodoro works</Typography>
@@ -164,28 +183,40 @@ export const SettingsScreen = () => {
               </Alert>
             ) : null}
             <TextField
-              label="Recommended minutes per round"
+              label={state.settings.debugModeEnabled ? 'Round duration (seconds)' : 'Recommended minutes per round'}
               type="number"
               inputProps={{ min: 1 }}
-              value={pomodoroMinutes}
-              onChange={(event) => setPomodoroMinutesInput(event.target.value)}
-              helperText="Default is 25 minutes."
+              value={state.settings.debugModeEnabled ? debugPomodoroSeconds : pomodoroMinutes}
+              onChange={(event) =>
+                state.settings.debugModeEnabled
+                  ? setDebugPomodoroSecondsInput(event.target.value)
+                  : setPomodoroMinutesInput(event.target.value)
+              }
+              helperText={state.settings.debugModeEnabled ? 'Use short durations for timer debugging.' : 'Default is 25 minutes.'}
             />
             <TextField
-              label="Short break minutes"
+              label={state.settings.debugModeEnabled ? 'Short break (seconds)' : 'Short break minutes'}
               type="number"
               inputProps={{ min: 1 }}
-              value={shortBreakMinutes}
-              onChange={(event) => setShortBreakMinutesInput(event.target.value)}
-              helperText="Break after each round."
+              value={state.settings.debugModeEnabled ? debugShortBreakSeconds : shortBreakMinutes}
+              onChange={(event) =>
+                state.settings.debugModeEnabled
+                  ? setDebugShortBreakSecondsInput(event.target.value)
+                  : setShortBreakMinutesInput(event.target.value)
+              }
+              helperText={state.settings.debugModeEnabled ? 'Break after each round (debug seconds).' : 'Break after each round.'}
             />
             <TextField
-              label="Long break minutes"
+              label={state.settings.debugModeEnabled ? 'Long break (seconds)' : 'Long break minutes'}
               type="number"
               inputProps={{ min: 1 }}
-              value={longBreakMinutes}
-              onChange={(event) => setLongBreakMinutesInput(event.target.value)}
-              helperText="Long reset break after several rounds."
+              value={state.settings.debugModeEnabled ? debugLongBreakSeconds : longBreakMinutes}
+              onChange={(event) =>
+                state.settings.debugModeEnabled
+                  ? setDebugLongBreakSecondsInput(event.target.value)
+                  : setLongBreakMinutesInput(event.target.value)
+              }
+              helperText={state.settings.debugModeEnabled ? 'Long reset break in debug seconds.' : 'Long reset break after several rounds.'}
             />
             <TextField
               label="Rounds before long break"
@@ -246,20 +277,32 @@ export const SettingsScreen = () => {
                 const minutes = Number(pomodoroMinutes);
                 const shortBreak = Number(shortBreakMinutes);
                 const longBreak = Number(longBreakMinutes);
+                const roundSeconds = Number(debugPomodoroSeconds);
+                const shortBreakSeconds = Number(debugShortBreakSeconds);
+                const longBreakSeconds = Number(debugLongBreakSeconds);
                 const sessions = Number(sessionsBeforeLongBreak);
                 const reviewTimeout = Number(sessionReviewGraceSeconds);
                 const volume = Number(alarmVolume);
-                if (!Number.isFinite(minutes) || !Number.isFinite(shortBreak) || !Number.isFinite(longBreak) || !Number.isFinite(sessions) || !Number.isFinite(reviewTimeout) || !Number.isFinite(volume)) return;
-                if (minutes <= 0 || shortBreak <= 0 || longBreak <= 0 || sessions <= 1 || reviewTimeout < 5 || reviewTimeout > 600 || volume < 0 || volume > 100) return;
-                setPomodoroMinutes(minutes);
-                setShortBreakMinutes(shortBreak);
-                setLongBreakMinutes(longBreak);
+                if (!Number.isFinite(minutes) || !Number.isFinite(shortBreak) || !Number.isFinite(longBreak) || !Number.isFinite(roundSeconds) || !Number.isFinite(shortBreakSeconds) || !Number.isFinite(longBreakSeconds) || !Number.isFinite(sessions) || !Number.isFinite(reviewTimeout) || !Number.isFinite(volume)) return;
+                if (minutes <= 0 || shortBreak <= 0 || longBreak <= 0 || roundSeconds <= 0 || shortBreakSeconds <= 0 || longBreakSeconds <= 0 || sessions <= 1 || reviewTimeout < 5 || reviewTimeout > 600 || volume < 0 || volume > 100) return;
+                if (state.settings.debugModeEnabled) {
+                  setDebugPomodoroSeconds(roundSeconds);
+                  setDebugShortBreakSeconds(shortBreakSeconds);
+                  setDebugLongBreakSeconds(longBreakSeconds);
+                } else {
+                  setPomodoroMinutes(minutes);
+                  setShortBreakMinutes(shortBreak);
+                  setLongBreakMinutes(longBreak);
+                }
                 setSessionsBeforeLongBreak(sessions);
                 setSessionReviewGraceSeconds(reviewTimeout);
                 setAlarmVolume(volume);
                 setPomodoroMinutesInput(String(Math.round(minutes)));
                 setShortBreakMinutesInput(String(Math.round(shortBreak)));
                 setLongBreakMinutesInput(String(Math.round(longBreak)));
+                setDebugPomodoroSecondsInput(String(Math.max(1, Math.round(roundSeconds))));
+                setDebugShortBreakSecondsInput(String(Math.max(1, Math.round(shortBreakSeconds))));
+                setDebugLongBreakSecondsInput(String(Math.max(1, Math.round(longBreakSeconds))));
                 setSessionsBeforeLongBreakInput(String(Math.round(sessions)));
                 setSessionReviewGraceSecondsInput(String(Math.max(5, Math.min(600, Math.round(reviewTimeout)))));
                 setAlarmVolumeInput(String(Math.max(0, Math.min(100, Math.round(volume)))));
@@ -269,12 +312,18 @@ export const SettingsScreen = () => {
                 !pomodoroMinutes.trim() ||
                 !shortBreakMinutes.trim() ||
                 !longBreakMinutes.trim() ||
+                !debugPomodoroSeconds.trim() ||
+                !debugShortBreakSeconds.trim() ||
+                !debugLongBreakSeconds.trim() ||
                 !sessionsBeforeLongBreak.trim() ||
                 !sessionReviewGraceSeconds.trim() ||
                 !alarmVolume.trim() ||
                 Number(pomodoroMinutes) <= 0 ||
                 Number(shortBreakMinutes) <= 0 ||
                 Number(longBreakMinutes) <= 0 ||
+                Number(debugPomodoroSeconds) <= 0 ||
+                Number(debugShortBreakSeconds) <= 0 ||
+                Number(debugLongBreakSeconds) <= 0 ||
                 Number(sessionsBeforeLongBreak) <= 1 ||
                 Number(sessionReviewGraceSeconds) < 5 ||
                 Number(sessionReviewGraceSeconds) > 600 ||

@@ -63,6 +63,10 @@ export interface AppState {
     pomodoroMinutes: number;
     shortBreakMinutes: number;
     longBreakMinutes: number;
+    debugModeEnabled: boolean;
+    debugPomodoroSeconds: number;
+    debugShortBreakSeconds: number;
+    debugLongBreakSeconds: number;
     sessionsBeforeLongBreak: number;
     sessionReviewGraceSeconds: number;
     alarmTone: AlarmTone;

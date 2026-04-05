@@ -17,6 +17,7 @@ import { AppState, PomodoroState, Round, Task, TaskBankItem } from '../types';
 import { buildNewRound, getDefaultRoundTitle, getRoundPlannedDate, isRoundCompleted, isRoundLockedByActivePomodoro, moveTaskInRound, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
 import { applyWorkPhaseRoundAdvance, getNextPomodoroPhase } from './pomodoroTransition';
 import { getRemainingSecondsFromClock } from './pomodoroClock';
+import { getTasksAfterRoundDeletion } from './roundDeletion';
 import { clearStoredState, createDemoState, loadState, saveState, seedState } from './storage';
 import { getAssignmentRoundUpdate, getRevivedTaskRoundUpdate } from './taskRoundHistory';
 import { shouldPlayInAppCompletionAlarm } from './alarmPlayback';
@@ -52,6 +53,10 @@ type Action =
   | { type: 'SET_POMODORO_MINUTES'; payload: { minutes: number } }
   | { type: 'SET_SHORT_BREAK_MINUTES'; payload: { minutes: number } }
   | { type: 'SET_LONG_BREAK_MINUTES'; payload: { minutes: number } }
+  | { type: 'SET_DEBUG_MODE_ENABLED'; payload: { enabled: boolean } }
+  | { type: 'SET_DEBUG_POMODORO_SECONDS'; payload: { seconds: number } }
+  | { type: 'SET_DEBUG_SHORT_BREAK_SECONDS'; payload: { seconds: number } }
+  | { type: 'SET_DEBUG_LONG_BREAK_SECONDS'; payload: { seconds: number } }
   | { type: 'SET_SESSIONS_BEFORE_LONG_BREAK'; payload: { sessions: number } }
   | { type: 'SET_SESSION_REVIEW_GRACE_SECONDS'; payload: { seconds: number } }
   | { type: 'SET_ALARM_TONE'; payload: { tone: AlarmTone } }
@@ -72,6 +77,11 @@ type Action =
 const createPomodoroSessionId = (): number => Math.floor(Date.now() % 2147483000);
 
 const getPhaseSeconds = (state: AppState, phase: PomodoroState['phase']): number => {
+  if (state.settings.debugModeEnabled) {
+    if (phase === 'short_break') return state.settings.debugShortBreakSeconds;
+    if (phase === 'long_break') return state.settings.debugLongBreakSeconds;
+    return state.settings.debugPomodoroSeconds;
+  }
   if (phase === 'short_break') return state.settings.shortBreakMinutes * 60;
   if (phase === 'long_break') return state.settings.longBreakMinutes * 60;
   return state.settings.pomodoroMinutes * 60;
@@ -207,15 +217,17 @@ const reducer = (state: AppState, action: Action): AppState => {
       };
     case 'DELETE_ROUND': {
       const roundId = action.payload.roundId;
+      const targetRound = state.rounds.find((round) => round.id === roundId);
       if (isRoundLockedByActivePomodoro(roundId, state.pomodoro.activeRoundId)) {
         return state;
       }
       const rounds = removeRoundAndNormalizeStatuses(state.rounds, roundId);
       const activeRoundId = state.pomodoro.activeRoundId === roundId ? undefined : state.pomodoro.activeRoundId;
+      const reviveCompletedTasks = state.settings.debugModeEnabled && targetRound?.status === 'done';
       return {
         ...state,
         rounds,
-        tasks: unassignTasksFromRound(state.tasks, roundId),
+        tasks: getTasksAfterRoundDeletion(state.tasks, roundId, reviveCompletedTasks),
         pomodoro: {
           ...state.pomodoro,
           activeRoundId,
@@ -389,12 +401,13 @@ const reducer = (state: AppState, action: Action): AppState => {
         rounds: state.rounds.map((round) => ({ ...round, durationMinutes: minutes })),
       };
       if (state.pomodoro.phase !== 'work') return nextState;
+      const totalSeconds = getPhaseSeconds(nextState, 'work');
       return {
         ...nextState,
         pomodoro: {
           ...state.pomodoro,
-          totalSeconds: minutes * 60,
-          remainingSeconds: state.pomodoro.isRunning ? state.pomodoro.remainingSeconds : minutes * 60,
+          totalSeconds,
+          remainingSeconds: state.pomodoro.isRunning ? state.pomodoro.remainingSeconds : totalSeconds,
         },
       };
     }
@@ -402,12 +415,13 @@ const reducer = (state: AppState, action: Action): AppState => {
       const minutes = Math.max(1, Math.round(action.payload.minutes));
       const nextState = { ...state, settings: { ...state.settings, shortBreakMinutes: minutes } };
       if (state.pomodoro.phase !== 'short_break') return nextState;
+      const totalSeconds = getPhaseSeconds(nextState, 'short_break');
       return {
         ...nextState,
         pomodoro: {
           ...state.pomodoro,
-          totalSeconds: minutes * 60,
-          remainingSeconds: state.pomodoro.isRunning ? state.pomodoro.remainingSeconds : minutes * 60,
+          totalSeconds,
+          remainingSeconds: state.pomodoro.isRunning ? state.pomodoro.remainingSeconds : totalSeconds,
         },
       };
     }
@@ -415,12 +429,88 @@ const reducer = (state: AppState, action: Action): AppState => {
       const minutes = Math.max(1, Math.round(action.payload.minutes));
       const nextState = { ...state, settings: { ...state.settings, longBreakMinutes: minutes } };
       if (state.pomodoro.phase !== 'long_break') return nextState;
+      const totalSeconds = getPhaseSeconds(nextState, 'long_break');
       return {
         ...nextState,
         pomodoro: {
           ...state.pomodoro,
-          totalSeconds: minutes * 60,
-          remainingSeconds: state.pomodoro.isRunning ? state.pomodoro.remainingSeconds : minutes * 60,
+          totalSeconds,
+          remainingSeconds: state.pomodoro.isRunning ? state.pomodoro.remainingSeconds : totalSeconds,
+        },
+      };
+    }
+    case 'SET_DEBUG_MODE_ENABLED': {
+      const nextState = {
+        ...state,
+        settings: {
+          ...state.settings,
+          debugModeEnabled: action.payload.enabled,
+        },
+      };
+      const totalSeconds = getPhaseSeconds(nextState, state.pomodoro.phase);
+      return {
+        ...nextState,
+        pomodoro: {
+          ...state.pomodoro,
+          totalSeconds,
+          remainingSeconds: state.pomodoro.isRunning ? state.pomodoro.remainingSeconds : totalSeconds,
+        },
+      };
+    }
+    case 'SET_DEBUG_POMODORO_SECONDS': {
+      const seconds = Math.max(1, Math.round(action.payload.seconds));
+      const nextState = {
+        ...state,
+        settings: {
+          ...state.settings,
+          debugPomodoroSeconds: seconds,
+        },
+      };
+      if (state.pomodoro.phase !== 'work' || !state.settings.debugModeEnabled) return nextState;
+      return {
+        ...nextState,
+        pomodoro: {
+          ...state.pomodoro,
+          totalSeconds: seconds,
+          remainingSeconds: state.pomodoro.isRunning ? state.pomodoro.remainingSeconds : seconds,
+        },
+      };
+    }
+    case 'SET_DEBUG_SHORT_BREAK_SECONDS': {
+      const seconds = Math.max(1, Math.round(action.payload.seconds));
+      const nextState = {
+        ...state,
+        settings: {
+          ...state.settings,
+          debugShortBreakSeconds: seconds,
+        },
+      };
+      if (state.pomodoro.phase !== 'short_break' || !state.settings.debugModeEnabled) return nextState;
+      return {
+        ...nextState,
+        pomodoro: {
+          ...state.pomodoro,
+          totalSeconds: seconds,
+          remainingSeconds: state.pomodoro.isRunning ? state.pomodoro.remainingSeconds : seconds,
+        },
+      };
+    }
+    case 'SET_DEBUG_LONG_BREAK_SECONDS': {
+      const seconds = Math.max(1, Math.round(action.payload.seconds));
+      const nextState = {
+        ...state,
+        settings: {
+          ...state.settings,
+          debugLongBreakSeconds: seconds,
+        },
+      };
+      if (state.pomodoro.phase !== 'long_break' || !state.settings.debugModeEnabled) return nextState;
+      return {
+        ...nextState,
+        pomodoro: {
+          ...state.pomodoro,
+          totalSeconds: seconds,
+          remainingSeconds: state.pomodoro.isRunning ? state.pomodoro.remainingSeconds : seconds,
         },
       };
     }
@@ -664,6 +754,10 @@ interface AppStateContextValue {
   setPomodoroMinutes: (minutes: number) => void;
   setShortBreakMinutes: (minutes: number) => void;
   setLongBreakMinutes: (minutes: number) => void;
+  setDebugModeEnabled: (enabled: boolean) => void;
+  setDebugPomodoroSeconds: (seconds: number) => void;
+  setDebugShortBreakSeconds: (seconds: number) => void;
+  setDebugLongBreakSeconds: (seconds: number) => void;
   setSessionsBeforeLongBreak: (sessions: number) => void;
   setSessionReviewGraceSeconds: (seconds: number) => void;
   setAlarmTone: (tone: AlarmTone) => void;
@@ -951,6 +1045,10 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
       setPomodoroMinutes: (minutes) => dispatch({ type: 'SET_POMODORO_MINUTES', payload: { minutes } }),
       setShortBreakMinutes: (minutes) => dispatch({ type: 'SET_SHORT_BREAK_MINUTES', payload: { minutes } }),
       setLongBreakMinutes: (minutes) => dispatch({ type: 'SET_LONG_BREAK_MINUTES', payload: { minutes } }),
+      setDebugModeEnabled: (enabled) => dispatch({ type: 'SET_DEBUG_MODE_ENABLED', payload: { enabled } }),
+      setDebugPomodoroSeconds: (seconds) => dispatch({ type: 'SET_DEBUG_POMODORO_SECONDS', payload: { seconds } }),
+      setDebugShortBreakSeconds: (seconds) => dispatch({ type: 'SET_DEBUG_SHORT_BREAK_SECONDS', payload: { seconds } }),
+      setDebugLongBreakSeconds: (seconds) => dispatch({ type: 'SET_DEBUG_LONG_BREAK_SECONDS', payload: { seconds } }),
       setSessionsBeforeLongBreak: (sessions) => dispatch({ type: 'SET_SESSIONS_BEFORE_LONG_BREAK', payload: { sessions } }),
       setSessionReviewGraceSeconds: (seconds) => dispatch({ type: 'SET_SESSION_REVIEW_GRACE_SECONDS', payload: { seconds } }),
       setAlarmTone: (tone) => dispatch({ type: 'SET_ALARM_TONE', payload: { tone } }),

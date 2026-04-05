@@ -35,6 +35,27 @@ describe('storage', () => {
     expect(loadState().settings.hasSeenWelcomeModal).toBe(true);
   });
 
+  it('saves and loads debug timer settings', () => {
+    const updated = {
+      ...seedState,
+      settings: {
+        ...seedState.settings,
+        debugModeEnabled: true,
+        debugPomodoroSeconds: 12,
+        debugShortBreakSeconds: 7,
+        debugLongBreakSeconds: 20,
+      },
+    };
+
+    saveState(updated);
+
+    const loaded = loadState();
+    expect(loaded.settings.debugModeEnabled).toBe(true);
+    expect(loaded.settings.debugPomodoroSeconds).toBe(12);
+    expect(loaded.settings.debugShortBreakSeconds).toBe(7);
+    expect(loaded.settings.debugLongBreakSeconds).toBe(20);
+  });
+
   it('clears persisted app state from localStorage', () => {
     saveState(seedState);
     expect(localStorage.getItem('tasktrack.state.v2')).not.toBeNull();
@@ -106,6 +127,26 @@ describe('storage', () => {
 
     expect(loadState().settings.showFirstTimeGuidance).toBe(true);
     expect(loadState().settings.hasSeenWelcomeModal).toBe(false);
+  });
+
+  it('normalizes invalid debug timer seconds', () => {
+    localStorage.setItem(
+      'tasktrack.state.v2',
+      JSON.stringify({
+        settings: {
+          debugModeEnabled: true,
+          debugPomodoroSeconds: -5,
+          debugShortBreakSeconds: 0,
+          debugLongBreakSeconds: 2.2,
+        },
+      }),
+    );
+
+    const loaded = loadState();
+    expect(loaded.settings.debugModeEnabled).toBe(true);
+    expect(loaded.settings.debugPomodoroSeconds).toBe(1500);
+    expect(loaded.settings.debugShortBreakSeconds).toBe(300);
+    expect(loaded.settings.debugLongBreakSeconds).toBe(2);
   });
 
   it('normalizes invalid session review timeout values', () => {
