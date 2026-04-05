@@ -19,6 +19,7 @@ import { applyWorkPhaseRoundAdvance, getNextPomodoroPhase } from './pomodoroTran
 import { getRemainingSecondsFromClock } from './pomodoroClock';
 import { clearStoredState, createDemoState, loadState, saveState, seedState } from './storage';
 import { getAssignmentRoundUpdate, getRevivedTaskRoundUpdate } from './taskRoundHistory';
+import { shouldPlayInAppCompletionAlarm } from './alarmPlayback';
 import { getTodayKey } from '../utils';
 
 type NewTask = Omit<Task, 'id' | 'status' | 'plannedDate' | 'completedAt'> & { plannedDate?: string };
@@ -867,15 +868,15 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
     clearScheduledPomodoroPhaseEndNotification(state.pomodoro.sessionId).catch(() => undefined);
 
     stopAlarmRef.current?.();
-    if (Capacitor.isNativePlatform()) {
-      stopAlarmRef.current = null;
-      setAlarmActive(false);
-    } else {
+    if (shouldPlayInAppCompletionAlarm(Capacitor.isNativePlatform(), isAppActive)) {
       setAlarmActive(true);
       stopAlarmRef.current = startRepeatingAlarm(state.settings.alarmTone, ALARM_REPEAT_COUNT, state.settings.alarmVolume / 100, () => {
         stopAlarmRef.current = null;
         setAlarmActive(false);
       });
+    } else {
+      stopAlarmRef.current = null;
+      setAlarmActive(false);
     }
     if (state.pomodoro.phase !== 'work') {
       dispatch({ type: 'ADVANCE_POMODORO_PHASE' });
@@ -889,7 +890,7 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
     }
 
     dispatch({ type: 'ADVANCE_POMODORO_PHASE' });
-  }, [state, state.pomodoro.remainingSeconds, state.pomodoro.isRunning, state.pomodoro.phase, state.pomodoro.sessionId, state.pomodoro.startTime, state.settings.alarmTone, state.settings.alarmVolume]);
+  }, [isAppActive, state, state.pomodoro.remainingSeconds, state.pomodoro.isRunning, state.pomodoro.phase, state.pomodoro.sessionId, state.pomodoro.startTime, state.settings.alarmTone, state.settings.alarmVolume]);
 
   const dismissAlarm = () => {
     stopAlarmRef.current?.();
