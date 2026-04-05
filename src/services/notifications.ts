@@ -11,7 +11,7 @@ const ACTIVE_TIMER_CHANNEL_ID = 'pomodoro-active-timer';
 const ACTIVE_TIMER_NOTIFICATION_ID = 91_100_001;
 const NATIVE_ALARM_FILE_EXTENSION = '.mp3';
 const getAlarmFileName = (tone: AlarmTone): string => `alarm_${tone}`;
-const getNativeAlarmSound = (tone: AlarmTone): string => `res://raw/${getAlarmFileName(tone)}${NATIVE_ALARM_FILE_EXTENSION}`;
+const getNativeAlarmSound = (tone: AlarmTone): string => `${getAlarmFileName(tone)}${NATIVE_ALARM_FILE_EXTENSION}`;
 const getAlarmAudioAssetUrl = (tone: AlarmTone): string => {
   const alarmFile = `custom_alarm_sounds/${getAlarmFileName(tone)}.mp3`;
   return new URL(alarmFile, document.baseURI).toString();
