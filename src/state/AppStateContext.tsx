@@ -30,7 +30,7 @@ type NewTaskBankItem = Omit<TaskBankItem, 'id'>;
 type EditableTaskBankItem = TaskBankItem;
 type NewRound = Round;
 type NewRoundOptions = { title?: string; taskIds?: string[]; plannedDate?: string };
-const ALARM_REPEAT_COUNT = 3;
+const ALARM_REPEAT_COUNT = 1;
 
 type Action =
   | { type: 'ADD_TASK'; payload: NewTask }
