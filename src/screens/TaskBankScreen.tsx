@@ -213,7 +213,7 @@ export const TaskBankScreen = () => {
               variant="outlined"
               onClick={() => setShowSearchFilters((current) => !current)}
               endIcon={<UnfoldMoreIcon />}
-              sx={{ alignSelf: 'flex-start' }}
+              sx={{ alignSelf: 'flex-start', py: 0.75 }}
             >
               {showSearchFilters ? 'Hide search and filters' : 'Show search and filters'}
             </Button>
