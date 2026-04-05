@@ -1,4 +1,5 @@
 import { AppState } from '../types';
+import { shouldPlayInAppCompletionAlarm } from './alarmPlayback';
 import { getCarryHistoryForRound } from './rounds';
 import { getAssignmentRoundUpdate, getRevivedTaskRoundUpdate } from './taskRoundHistory';
 
@@ -38,6 +39,13 @@ const buildState = (overrides: Partial<AppState> = {}): AppState => ({
 });
 
 describe('AppStateContext reducer round history behavior', () => {
+  it('plays in-app completion alarms on web and only while active on native', () => {
+    expect(shouldPlayInAppCompletionAlarm(false, true)).toBe(true);
+    expect(shouldPlayInAppCompletionAlarm(false, false)).toBe(true);
+    expect(shouldPlayInAppCompletionAlarm(true, true)).toBe(true);
+    expect(shouldPlayInAppCompletionAlarm(true, false)).toBe(false);
+  });
+
   it('unassigns revived tasks from done rounds', () => {
     const initialState = buildState({
       rounds: [{ id: 'round-done', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: ['task-1'], status: 'done' }],
