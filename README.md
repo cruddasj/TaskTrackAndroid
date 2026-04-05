@@ -1,6 +1,6 @@
-# TaskTrack Android (Web + Capacitor)
+# TaskTrack Android (Web + PWA + Capacitor)
 
-TaskTrack is a Pomodoro-driven task planner designed for daily execution. You can run it as a web app during development and package it as an Android app with Capacitor.
+TaskTrack is a Pomodoro-driven task planner designed for daily execution. It runs as a web app with Progressive Web App (PWA) support and can also be packaged as an Android app with Capacitor. The product experience is primarily optimized for desktop usage, while Android packaging focuses on reliable timer notifications and battery-optimization testing.
 
 ## What the app does
 
@@ -9,6 +9,12 @@ TaskTrack is a Pomodoro-driven task planner designed for daily execution. You ca
 - Includes round management and assignment flows (auto-grouping by category, manual assignment, unassigned-task visibility, reordering, deletion recovery) with mobile-friendly controls and beginner-focused guidance copy.
 - Runs full work/break timer cycles with configurable durations, alarm tone/volume/repeat settings, local persistence, and recent activity insights/history used for recurring suggestions.
 - Uses native local-notification scheduling for Pomodoro phase completion on Android so sessions remain reliable when the app is backgrounded or closed, including pause/resume by cancelling and rescheduling the same session notification id.
+- Includes Android-specific battery optimization checks/settings access so users can validate notification reliability on devices that aggressively restrict background work.
+
+## Platform support
+
+- **Web + PWA:** installable progressive web app for desktop workflows (primary target experience).
+- **Android (Capacitor):** native wrapper plus Android-specific integrations for local notifications and battery optimization handling.
 
 ## Tech stack
 
@@ -16,15 +22,51 @@ TaskTrack is a Pomodoro-driven task planner designed for daily execution. You ca
 - MUI 7
 - React Router 7
 - Vite 8
+- vite-plugin-pwa
 - Capacitor 8 (Android)
 - Jest + ts-jest for automated tests
+- `@capawesome-team/capacitor-android-battery-optimization` for Android battery optimization checks/settings handoff
 
-## Getting started
+## Developer quick start
 
 ```bash
 npm install
 npm run dev
 ```
+
+Open the URL printed by Vite (typically `http://localhost:5173`) for local development.
+
+## Build, run, and test
+
+### Build
+
+```bash
+npm run build
+```
+
+### Run (web)
+
+```bash
+npm run dev
+npm run preview
+```
+
+### Test and quality checks
+
+```bash
+npm run lint
+npm run test:jest
+npm run test:coverage
+```
+
+### Android packaging flow
+
+```bash
+npm run cap:sync
+npm run cap:open
+```
+
+`npm run cap:sync` builds web assets, syncs Capacitor Android files, and copies custom alarm sounds into Android raw resources.
 
 ## Scripts
 
