@@ -1,5 +1,6 @@
 import { getAlphabeticalCategories } from './settingsCategories';
 import { getBackupExportSuccessMessage } from './settingsBackupMessages';
+import { getFirstTimeWorkflowSteps } from './settingsWelcome';
 
 describe('getAlphabeticalCategories', () => {
   it('returns categories in alphabetical order without mutating input', () => {
@@ -41,5 +42,19 @@ describe('getBackupExportSuccessMessage', () => {
       folder: 'Documents',
       uri: 'content://documents/tasktrack-backup-2026-04-04.json',
     }, true)).toBe('Encrypted backup saved: content://documents/tasktrack-backup-2026-04-04.json.');
+  });
+});
+
+describe('getFirstTimeWorkflowSteps', () => {
+  it('describes the core page workflow for first-time users', () => {
+    const steps = getFirstTimeWorkflowSteps();
+
+    expect(steps).toHaveLength(4);
+    expect(steps.map((step) => step.title)).toEqual([
+      '1) Dashboard: see what needs attention now',
+      '2) Task Bank: collect everything you might work on',
+      '3) Tasks: choose what you want to finish today',
+      '4) Rounds: group today\'s tasks for Pomodoro focus',
+    ]);
   });
 });
