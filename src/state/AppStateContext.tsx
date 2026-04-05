@@ -113,11 +113,10 @@ const reducer = (state: AppState, action: Action): AppState => {
         tasks: state.tasks.map((task) => (task.id !== action.payload.id ? task : { ...task, ...action.payload })),
       };
     case 'DELETE_TASK': {
-      const remainingTasks = state.tasks.filter((task) => task.id !== action.payload.id);
       const activeTaskId = state.pomodoro.activeTaskId === action.payload.id ? undefined : state.pomodoro.activeTaskId;
       return {
         ...state,
-        tasks: remainingTasks,
+        tasks: state.tasks.filter((task) => task.id !== action.payload.id),
         rounds: state.rounds.map((round) => ({
           ...round,
           taskIds: round.taskIds.filter((id) => id !== action.payload.id),
@@ -309,20 +308,33 @@ const reducer = (state: AppState, action: Action): AppState => {
     }
     case 'AUTO_GROUP_TASKS_FOR_DATE': {
       const todayKey = action.payload.plannedDate;
-      const openRounds = state.rounds.filter((round) => getRoundPlannedDate(round) === todayKey && !isRoundCompleted(round));
-      const completedRounds = state.rounds.filter((round) => getRoundPlannedDate(round) === todayKey && isRoundCompleted(round));
-      const untouchedRounds = state.rounds.filter((round) => getRoundPlannedDate(round) !== todayKey);
-      const completedRoundIds = new Set(completedRounds.map((round) => round.id));
-      const regroupableTodayTasks = state.tasks.filter((task) =>
-        task.plannedDate === todayKey && !(task.status === 'done' && task.roundId && completedRoundIds.has(task.roundId)),
-      );
-      const regroupableTaskIds = new Set(regroupableTodayTasks.map((task) => task.id));
-      const tasksByCategory = state.tasks
-        .filter((task) => regroupableTaskIds.has(task.id))
-        .reduce<Record<string, Task[]>>((acc, task) => {
-          acc[task.category] = [...(acc[task.category] ?? []), task];
+      const rounds = state.rounds.reduce<{ open: Round[]; completed: Round[]; untouched: Round[] }>(
+        (acc, round) => {
+          if (getRoundPlannedDate(round) === todayKey) {
+            if (isRoundCompleted(round)) {
+              acc.completed.push(round);
+            } else {
+              acc.open.push(round);
+            }
+          } else {
+            acc.untouched.push(round);
+          }
           return acc;
-        }, {});
+        },
+        { open: [], completed: [], untouched: [] },
+      );
+      const completedRoundIds = new Set(rounds.completed.map((round) => round.id));
+
+      const tasksByCategory: Record<string, Task[]> = {};
+      const regroupableTaskIds = new Set<string>();
+
+      state.tasks.forEach((task) => {
+        if (task.plannedDate === todayKey && !(task.status === 'done' && task.roundId && completedRoundIds.has(task.roundId))) {
+          regroupableTaskIds.add(task.id);
+          tasksByCategory[task.category] = [...(tasksByCategory[task.category] ?? []), task];
+        }
+      });
+
       const pomodoroLimit = state.settings.pomodoroMinutes;
       const groupedTaskIds: string[][] = [];
 
@@ -344,7 +356,7 @@ const reducer = (state: AppState, action: Action): AppState => {
 
       if (groupedTaskIds.length === 0) return state;
 
-      const reusedRounds = openRounds.slice(0, groupedTaskIds.length).map((round, index) => ({
+      const reusedRounds = rounds.open.slice(0, groupedTaskIds.length).map((round, index) => ({
         ...round,
         status: (index === 0 ? 'active' : 'upcoming') as 'active' | 'upcoming',
         durationMinutes: pomodoroLimit,
@@ -363,17 +375,16 @@ const reducer = (state: AppState, action: Action): AppState => {
         });
       });
       const nextOpenRounds = [...reusedRounds, ...extraRounds];
-      const roundIdsInUse = new Set([...nextOpenRounds, ...completedRounds].map((round) => round.id));
 
       return {
         ...state,
-        rounds: [...untouchedRounds, ...nextOpenRounds, ...completedRounds],
+        rounds: [...rounds.untouched, ...nextOpenRounds, ...rounds.completed],
         tasks: state.tasks.map((task) => {
           if (!regroupableTaskIds.has(task.id)) return task;
           if (task.plannedDate !== todayKey) return task;
           const assignedRound = nextOpenRounds.find((round) => round.taskIds.includes(task.id));
           return { ...task, roundId: assignedRound?.id };
-        }).map((task) => (task.roundId && !roundIdsInUse.has(task.roundId) ? { ...task, roundId: undefined } : task)),
+        }),
       };
     }
     case 'MOVE_ROUND': {

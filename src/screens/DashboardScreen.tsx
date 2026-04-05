@@ -22,29 +22,33 @@ export const DashboardScreen = () => {
   const { state } = useAppState();
   const todayKey = getTodayKey();
   const tomorrowKey = getTomorrowKey();
-  const todaysTasks = state.tasks.filter((task) => task.plannedDate === todayKey);
-  const tomorrowTasks = state.tasks.filter((task) => task.plannedDate === tomorrowKey);
-  const completed = todaysTasks.reduce((acc, task) => acc + (task.status === 'done' ? 1 : 0), 0);
-  const progress = todaysTasks.length > 0 ? Math.round((completed / todaysTasks.length) * 100) : 0;
-  const { completedRounds: sessionsCompletedToday, focusedMinutes: totalFocusMinutes } = getTodayRoundMetrics(state.rounds, todaysTasks);
-  const formattedFocusTimeSpent = formatFocusTimeSpent(totalFocusMinutes);
-  const currentRound = state.rounds.find((round) => round.id === state.pomodoro.activeRoundId)
-    ?? state.rounds.find((round) => round.status === 'active');
-  const currentRoundTasks = currentRound
-    ? currentRound.taskIds
-      .map((taskId) => todaysTasks.find((task) => task.id === taskId))
-      .filter((task): task is NonNullable<typeof task> => !!task)
-    : [];
-  const nextRound = currentRound
+  const todaysTasks = useMemo(() => state.tasks.filter((task) => task.plannedDate === todayKey), [state.tasks, todayKey]);
+  const tomorrowTasks = useMemo(() => state.tasks.filter((task) => task.plannedDate === tomorrowKey), [state.tasks, tomorrowKey]);
+  const completed = useMemo(() => todaysTasks.reduce((acc, task) => acc + (task.status === 'done' ? 1 : 0), 0), [todaysTasks]);
+  const progress = useMemo(() => todaysTasks.length > 0 ? Math.round((completed / todaysTasks.length) * 100) : 0, [todaysTasks, completed]);
+  const { completedRounds: sessionsCompletedToday, focusedMinutes: totalFocusMinutes } = useMemo(() => getTodayRoundMetrics(state.rounds, todaysTasks), [state.rounds, todaysTasks]);
+  const formattedFocusTimeSpent = useMemo(() => formatFocusTimeSpent(totalFocusMinutes), [totalFocusMinutes]);
+  const currentRound = useMemo(() => state.rounds.find((round) => round.id === state.pomodoro.activeRoundId)
+    ?? state.rounds.find((round) => round.status === 'active'), [state.rounds, state.pomodoro.activeRoundId]);
+  const currentRoundTasks = useMemo(() => currentRound
+    ? currentRound.taskIds.reduce((acc, taskId) => {
+        const task = todaysTasks.find((t) => t.id === taskId);
+        if (task) acc.push(task);
+        return acc;
+      }, [] as typeof todaysTasks)
+    : [], [currentRound, todaysTasks]);
+  const nextRound = useMemo(() => currentRound
     ? state.rounds
       .slice(state.rounds.findIndex((round) => round.id === currentRound.id) + 1)
       .find((round) => round.status !== 'done')
-    : state.rounds.find((round) => round.status === 'upcoming');
-  const nextRoundTasks = nextRound
-    ? nextRound.taskIds
-      .map((taskId) => todaysTasks.find((task) => task.id === taskId))
-      .filter((task): task is NonNullable<typeof task> => !!task)
-    : [];
+    : state.rounds.find((round) => round.status === 'upcoming'), [state.rounds, currentRound]);
+  const nextRoundTasks = useMemo(() => nextRound
+    ? nextRound.taskIds.reduce((acc, taskId) => {
+        const task = todaysTasks.find((t) => t.id === taskId);
+        if (task) acc.push(task);
+        return acc;
+      }, [] as typeof todaysTasks)
+    : [], [nextRound, todaysTasks]);
   const hasTodayTasks = todaysTasks.length > 0;
   const allTodaysTasksDone = hasTodayTasks && completed === todaysTasks.length;
   const heroCopy = getDashboardHeroCopy({
