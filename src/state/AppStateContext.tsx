@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { App as CapacitorApp } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
 import { AlarmTone } from '../constants/alarmTones';
 import {
   clearActivePomodoroNotification,
@@ -866,11 +867,16 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
     clearScheduledPomodoroPhaseEndNotification(state.pomodoro.sessionId).catch(() => undefined);
 
     stopAlarmRef.current?.();
-    setAlarmActive(true);
-    stopAlarmRef.current = startRepeatingAlarm(state.settings.alarmTone, ALARM_REPEAT_COUNT, state.settings.alarmVolume / 100, () => {
+    if (Capacitor.isNativePlatform()) {
       stopAlarmRef.current = null;
       setAlarmActive(false);
-    });
+    } else {
+      setAlarmActive(true);
+      stopAlarmRef.current = startRepeatingAlarm(state.settings.alarmTone, ALARM_REPEAT_COUNT, state.settings.alarmVolume / 100, () => {
+        stopAlarmRef.current = null;
+        setAlarmActive(false);
+      });
+    }
     if (state.pomodoro.phase !== 'work') {
       dispatch({ type: 'ADVANCE_POMODORO_PHASE' });
       return;
