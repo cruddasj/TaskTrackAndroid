@@ -3,7 +3,7 @@ import InfoOutlined from '@mui/icons-material/InfoOutlined';
 import DownloadRounded from '@mui/icons-material/DownloadRounded';
 import UploadFileRounded from '@mui/icons-material/UploadFileRounded';
 import VolumeUpRounded from '@mui/icons-material/VolumeUpRounded';
-import { Alert, Box, Button, Card, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, MenuItem, Stack, Switch, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, Card, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, MenuItem, Slider, Stack, Switch, TextField, Typography } from '@mui/material';
 import { ChangeEvent, useMemo, useRef, useState } from 'react';
 import { ALARM_TONES, AlarmTone, getAlarmToneLabel } from '../constants/alarmTones';
 import { playAlarmTone } from '../services/notifications';
@@ -207,14 +207,23 @@ export const SettingsScreen = () => {
                 <MenuItem key={tone} value={tone}>{getAlarmToneLabel(tone)}</MenuItem>
               ))}
             </TextField>
-            <TextField
-              label="Alarm volume (%)"
-              type="number"
-              inputProps={{ min: 0, max: 100 }}
-              value={alarmVolume}
-              onChange={(event) => setAlarmVolumeInput(event.target.value)}
-              helperText="Controls in-app alarm loudness from 0 (mute) to 100 (max). Native notification volume still follows your device volume."
-            />
+            <Box>
+              <Typography gutterBottom id="alarm-volume-slider-label">
+                Alarm volume ({alarmVolume}%)
+              </Typography>
+              <Slider
+                aria-labelledby="alarm-volume-slider-label"
+                value={Number.isFinite(Number(alarmVolume)) ? Number(alarmVolume) : 0}
+                onChange={(_, value) => setAlarmVolumeInput(String(value))}
+                min={0}
+                max={100}
+                step={1}
+                valueLabelDisplay="auto"
+              />
+              <Typography color="text.secondary" variant="body2">
+                Controls in-app alarm loudness from 0 (mute) to 100 (max). Native notification volume still follows your device volume.
+              </Typography>
+            </Box>
             <TextField
               label="Task confirmation timeout (seconds)"
               type="number"
