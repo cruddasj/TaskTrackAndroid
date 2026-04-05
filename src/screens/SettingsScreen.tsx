@@ -14,6 +14,7 @@ import { exportBackupFile } from '../services/backupExport';
 import { AppState } from '../types';
 import { getAlphabeticalCategories } from './settingsCategories';
 import { getBackupExportSuccessMessage } from './settingsBackupMessages';
+import { getFirstTimeWorkflowSteps } from './settingsWelcome';
 
 export const SettingsScreen = () => {
   const {
@@ -64,7 +65,7 @@ export const SettingsScreen = () => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const needsName = !state.userName.trim();
-  const showWelcomeModal = needsName && !state.settings.hasSeenWelcomeModal;
+  const showWelcomeModal = !!state.userName.trim() && !state.settings.hasSeenWelcomeModal;
   const categoryExists = useMemo(
     () => state.categories.some((category) => category.toLowerCase() === newCategory.trim().toLowerCase()),
     [newCategory, state.categories],
@@ -73,6 +74,7 @@ export const SettingsScreen = () => {
   const hasBackupPassword = !!backupPassword.trim();
   const alphabeticalCategories = useMemo(() => getAlphabeticalCategories(state.categories), [state.categories]);
   const showBatteryOptimizationSettingsCard = batteryOptimizationEnabled !== null;
+  const firstTimeWorkflowSteps = getFirstTimeWorkflowSteps();
 
   useEffect(() => {
     let isMounted = true;
@@ -701,17 +703,15 @@ export const SettingsScreen = () => {
         <DialogContent>
           <Stack spacing={2} mt={0.5}>
             <Typography color="text.secondary">
-              TaskTrack helps you plan tasks, group them into rounds, and stay focused with a Pomodoro timer.
+              You&apos;re all set, {state.userName.trim()}. Here&apos;s the quickest way to use TaskTrack day to day.
             </Typography>
-            <Typography color="text.secondary">
-              Pomodoro is simple: focus for one round, take a short break, and repeat. After a few rounds, take a longer break.
-            </Typography>
-            <Alert severity="success" icon={<InfoOutlined fontSize="inherit" />} sx={guidanceAlertSx}>
-              Start with the default timing, then change timer and alarm settings anytime to match your preference.
-            </Alert>
-            <Typography color="text.secondary">
-              We only use your name on this device for personalization. Your data is not shared.
-            </Typography>
+            {firstTimeWorkflowSteps.map((step) => (
+              <Alert key={step.title} severity="success" icon={<InfoOutlined fontSize="inherit" />} sx={guidanceAlertSx}>
+                <Typography variant="body2" fontWeight={700} mb={0.5}>{step.title}</Typography>
+                <Typography variant="body2">{step.description}</Typography>
+              </Alert>
+            ))}
+            <Typography color="text.secondary">You can reopen similar hints anytime by enabling first-time guidance in Settings.</Typography>
           </Stack>
         </DialogContent>
         <DialogActions>
