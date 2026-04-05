@@ -274,7 +274,9 @@ export const DashboardScreen = () => {
             <Typography variant="h5" mt={1} mb={1.5}>
               Tasks planned for tomorrow
             </Typography>
-            <Typography variant="h4" color="#c97dff" mb={1}>{tomorrowTasks.length}</Typography>
+            <Typography color="text.secondary" mb={2}>
+              {tomorrowTasks.length} task{tomorrowTasks.length === 1 ? '' : 's'} planned for tomorrow.
+            </Typography>
             <Stack spacing={0.75}>
               {tomorrowTasks.slice(0, 3).map((task) => (
                 <Stack key={task.id} direction="row" spacing={1} alignItems="center">
