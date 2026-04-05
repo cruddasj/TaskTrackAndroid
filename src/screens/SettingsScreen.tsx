@@ -4,9 +4,10 @@ import DownloadRounded from '@mui/icons-material/DownloadRounded';
 import UploadFileRounded from '@mui/icons-material/UploadFileRounded';
 import VolumeUpRounded from '@mui/icons-material/VolumeUpRounded';
 import { Alert, Box, Button, Card, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, MenuItem, Slider, Stack, Switch, TextField, Typography } from '@mui/material';
-import { ChangeEvent, useMemo, useRef, useState } from 'react';
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { ALARM_TONES, AlarmTone, getAlarmToneLabel } from '../constants/alarmTones';
 import { playAlarmTone } from '../services/notifications';
+import { isBatteryOptimizationEnabled, openBatteryOptimizationSettings } from '../services/batteryOptimization';
 import { useAppState } from '../state/AppStateContext';
 import { createBackupJson, importBackupJson } from '../state/backup';
 import { exportBackupFile } from '../services/backupExport';
@@ -57,6 +58,9 @@ export const SettingsScreen = () => {
   const [backupPassword, setBackupPassword] = useState('');
   const [importError, setImportError] = useState<string | null>(null);
   const [confirmDataClearOpen, setConfirmDataClearOpen] = useState(false);
+  const [batteryOptimizationEnabled, setBatteryOptimizationEnabled] = useState<boolean | null>(null);
+  const [batteryOptimizationLoading, setBatteryOptimizationLoading] = useState(false);
+  const [batteryOptimizationError, setBatteryOptimizationError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const needsName = !state.userName.trim();
@@ -68,6 +72,30 @@ export const SettingsScreen = () => {
   const guidanceAlertSx = { bgcolor: 'rgba(145,247,142,0.12)', color: 'primary.main', '& .MuiAlert-icon': { color: 'primary.main' } };
   const hasBackupPassword = !!backupPassword.trim();
   const alphabeticalCategories = useMemo(() => getAlphabeticalCategories(state.categories), [state.categories]);
+  const showBatteryOptimizationSettingsCard = batteryOptimizationEnabled !== null;
+
+  useEffect(() => {
+    let isMounted = true;
+    setBatteryOptimizationLoading(true);
+    isBatteryOptimizationEnabled()
+      .then((enabled) => {
+        if (!isMounted) return;
+        setBatteryOptimizationEnabled(enabled);
+        setBatteryOptimizationError(null);
+      })
+      .catch(() => {
+        if (!isMounted) return;
+        setBatteryOptimizationError('Could not check Android battery optimization status.');
+      })
+      .finally(() => {
+        if (!isMounted) return;
+        setBatteryOptimizationLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const toRoundedNumber = (value: string): number | null => {
     const parsed = Number(value);
@@ -431,6 +459,67 @@ export const SettingsScreen = () => {
           </Stack>
         </CardContent>
       </Card>
+
+      {showBatteryOptimizationSettingsCard ? (
+        <Card>
+          <CardContent>
+            <Stack spacing={2}>
+              <Typography variant="h5">Android battery optimization</Typography>
+              <Alert severity="success" icon={<InfoOutlined fontSize="inherit" />} sx={guidanceAlertSx}>
+                <Typography variant="body2" fontWeight={700} mb={0.5}>Why this matters</Typography>
+                <Typography variant="body2">
+                  Battery optimization can delay or silence timer completion notifications while your phone is in standby.
+                </Typography>
+                <Typography variant="body2" mt={1}>
+                  If optimization is enabled, open system settings and set TaskTrack to unrestricted so alarms can run reliably.
+                </Typography>
+              </Alert>
+              <Alert severity={batteryOptimizationEnabled ? 'warning' : 'success'}>
+                {batteryOptimizationEnabled
+                  ? 'Status: Android battery optimization is ON for TaskTrack.'
+                  : 'Status: Android battery optimization is OFF for TaskTrack.'}
+              </Alert>
+              {batteryOptimizationError ? <Alert severity="error">{batteryOptimizationError}</Alert> : null}
+              <Button
+                variant="contained"
+                onClick={() => {
+                  openBatteryOptimizationSettings()
+                    .then((opened) => {
+                      if (!opened) return;
+                      showSuccessMessage('Opened Android battery optimization settings.');
+                    })
+                    .catch(() => {
+                      setBatteryOptimizationError('Could not open Android battery optimization settings.');
+                    });
+                }}
+                disabled={batteryOptimizationLoading}
+              >
+                Open battery optimization settings
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={() => {
+                  setBatteryOptimizationLoading(true);
+                  isBatteryOptimizationEnabled()
+                    .then((enabled) => {
+                      setBatteryOptimizationEnabled(enabled);
+                      setBatteryOptimizationError(null);
+                    })
+                    .catch(() => {
+                      setBatteryOptimizationError('Could not refresh Android battery optimization status.');
+                    })
+                    .finally(() => {
+                      setBatteryOptimizationLoading(false);
+                    });
+                }}
+                disabled={batteryOptimizationLoading}
+              >
+                Refresh optimization status
+              </Button>
+            </Stack>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card>
         <CardContent>
