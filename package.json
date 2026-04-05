@@ -9,10 +9,11 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "test": "vitest run",
-    "cap:sync": "npm run build && npx cap sync android",
+    "cap:sync": "npm run build && npx cap sync android && npm run cap:copy-alarm-sounds",
     "cap:open": "npx cap open android",
     "test:jest": "jest --passWithNoTests",
-    "test:coverage": "jest --coverage --passWithNoTests"
+    "test:coverage": "jest --coverage --passWithNoTests",
+    "cap:copy-alarm-sounds": "node scripts/sync-android-alarm-sounds.mjs"
   },
   "dependencies": {
     "@capacitor-community/keep-awake": "^8.0.0",

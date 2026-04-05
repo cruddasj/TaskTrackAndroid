@@ -52,7 +52,9 @@ The app schedules native local notifications with sound references in the format
 - `res://raw/alarm_chirp`
 - `res://raw/alarm_digital`
 
-If you want custom sounds, add corresponding files under `android/app/src/main/res/raw/`.
+Custom tone source files live in `public/custom_alarm_sounds/` and `npm run cap:sync` now copies supported files (`.mp3`, `.wav`, `.ogg`) into `android/app/src/main/res/raw/` automatically.
+
+If you need to copy without a full sync, run `npm run cap:copy-alarm-sounds`.
 
 ## Android Pomodoro background reliability notes
 
