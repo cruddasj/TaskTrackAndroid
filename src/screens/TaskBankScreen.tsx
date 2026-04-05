@@ -47,6 +47,12 @@ const emptyForm: TaskFormState = {
   recurrenceDayOfMonth: '',
 };
 
+const lastCompletedDateFormat = new Intl.DateTimeFormat(undefined, {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+});
+
 export const TaskBankScreen = () => {
   const { state, addTaskFromBank, addTaskBankItem, updateTaskBankItem, deleteTaskBankItem, showSuccessMessage } = useAppState();
 
@@ -73,11 +79,7 @@ export const TaskBankScreen = () => {
   const lastCompletionByTitle = useMemo(() => getLastCompletedAtByTaskTitle(state.tasks), [state.tasks]);
 
   const formatLastCompletedLabel = (completedAtMs: number): string => {
-    return new Intl.DateTimeFormat(undefined, {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    }).format(new Date(completedAtMs));
+    return lastCompletedDateFormat.format(new Date(completedAtMs));
   };
 
   useEffect(() => {
