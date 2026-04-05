@@ -46,11 +46,13 @@ export const getCompletedTaskHistory = (tasks: Task[], historyWindowDays: number
     .filter((entry) => entry.tasks.length > 0);
 };
 
+const historyDayLabelFormat = new Intl.DateTimeFormat(undefined, {
+  weekday: 'long',
+  month: 'short',
+  day: 'numeric',
+});
+
 export const formatHistoryDayLabel = (dayKey: string): string => {
   const date = new Date(`${dayKey}T00:00:00`);
-  return new Intl.DateTimeFormat(undefined, {
-    weekday: 'long',
-    month: 'short',
-    day: 'numeric',
-  }).format(date);
+  return historyDayLabelFormat.format(date);
 };

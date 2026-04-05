@@ -81,12 +81,13 @@ export const getLastCompletedAtByTaskTitle = (tasks: Task[]): Map<string, number
 };
 
 
+const defaultCollator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
+
 export const sortTaskBankItemsAlphabetically = (taskBank: TaskBankItem[]): TaskBankItem[] => {
-  const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
   return [...taskBank].sort((a, b) => {
-    const titleComparison = collator.compare(a.title.trim(), b.title.trim());
+    const titleComparison = defaultCollator.compare(a.title.trim(), b.title.trim());
     if (titleComparison !== 0) return titleComparison;
-    return collator.compare(a.id, b.id);
+    return defaultCollator.compare(a.id, b.id);
   });
 };
 
@@ -122,16 +123,14 @@ export const filterTaskBankItems = (
 };
 
 export const sortCategoriesAlphabetically = (categories: string[]): string[] => {
-  const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
-  return [...categories].sort((a, b) => collator.compare(a.trim(), b.trim()));
+  return [...categories].sort((a, b) => defaultCollator.compare(a.trim(), b.trim()));
 };
 
 export const sortTasksAlphabetically = (tasks: Task[]): Task[] => {
-  const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
   return [...tasks].sort((a, b) => {
-    const titleComparison = collator.compare(a.title.trim(), b.title.trim());
+    const titleComparison = defaultCollator.compare(a.title.trim(), b.title.trim());
     if (titleComparison !== 0) return titleComparison;
-    return collator.compare(a.id, b.id);
+    return defaultCollator.compare(a.id, b.id);
   });
 };
 
