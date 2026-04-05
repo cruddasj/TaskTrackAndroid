@@ -16,5 +16,5 @@ export const shouldShowTodoSection = (todoTaskCount: number): boolean => todoTas
 
 export const shouldShowDoneHeading = (planningDay: PlanningDay, doneTaskCount: number): boolean => {
   if (planningDay === 'tomorrow') return doneTaskCount > 0;
-  return true;
+  return doneTaskCount > 0;
 };

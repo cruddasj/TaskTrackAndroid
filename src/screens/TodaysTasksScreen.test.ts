@@ -32,12 +32,13 @@ describe('shouldShowTodoSection', () => {
 });
 
 describe('shouldShowDoneHeading', () => {
-  it('hides done heading for tomorrow when there are no done tasks', () => {
+  it('hides done heading when there are no done tasks', () => {
+    expect(shouldShowDoneHeading('today', 0)).toBe(false);
     expect(shouldShowDoneHeading('tomorrow', 0)).toBe(false);
   });
 
   it('shows done heading for today and tomorrow with done tasks', () => {
-    expect(shouldShowDoneHeading('today', 0)).toBe(true);
+    expect(shouldShowDoneHeading('today', 1)).toBe(true);
     expect(shouldShowDoneHeading('tomorrow', 1)).toBe(true);
   });
 });
