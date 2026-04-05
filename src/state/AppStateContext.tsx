@@ -338,7 +338,7 @@ const reducer = (state: AppState, action: Action): AppState => {
       groupedTaskIds.slice(reusedRounds.length).forEach((taskIds, index) => {
         extraRounds.push({
           id: crypto.randomUUID(),
-          title: getDefaultRoundTitle([...state.rounds, ...extraRounds]),
+          title: getDefaultRoundTitle([...state.rounds, ...extraRounds], todayKey),
           plannedDate: todayKey,
           scheduledTime: '',
           durationMinutes: pomodoroLimit,

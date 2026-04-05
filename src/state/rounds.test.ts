@@ -63,6 +63,30 @@ describe('round helpers', () => {
     ).toBe(12);
   });
 
+  it('uses date-scoped numbering so a new day starts from Round 1', () => {
+    expect(
+      getDefaultRoundTitle(
+        [
+          { id: 'r1', title: 'Round 16', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'done', plannedDate: '2026-04-04' },
+          { id: 'r2', title: 'Round 17', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'upcoming', plannedDate: '2026-04-04' },
+        ],
+        '2026-04-05',
+      ),
+    ).toBe('Round 1');
+  });
+
+  it('keeps date-scoped numbering when rounds already exist on that day', () => {
+    expect(
+      getDefaultRoundTitle(
+        [
+          { id: 'r1', title: 'Round 16', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'done', plannedDate: '2026-04-04' },
+          { id: 'r2', title: 'Round 2', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'active', plannedDate: '2026-04-05' },
+        ],
+        '2026-04-05',
+      ),
+    ).toBe('Round 3');
+  });
+
   it('creates an active round when all existing rounds are done', () => {
     const round = buildNewRound(
       [{ id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'done' }],

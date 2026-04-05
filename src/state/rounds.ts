@@ -59,8 +59,9 @@ export const getCarryHistoryForRound = (task: Task, roundId: string): CarryHisto
   return { carriedFromRoundId, carriedToRoundId };
 };
 
-export const getHighestRoundSequence = (rounds: Round[]): number => {
+export const getHighestRoundSequence = (rounds: Round[], plannedDate?: string): number => {
   const numberedRoundValues = rounds
+    .filter((round) => !plannedDate || getRoundPlannedDate(round) === plannedDate)
     .map((round) => {
       const matched = /^Round (\d+)$/.exec(round.title.trim());
       return matched ? Number(matched[1]) : 0;
@@ -69,9 +70,9 @@ export const getHighestRoundSequence = (rounds: Round[]): number => {
   return numberedRoundValues.length > 0 ? Math.max(...numberedRoundValues) : 0;
 };
 
-const getNextRoundSequence = (rounds: Round[]): number => getHighestRoundSequence(rounds) + 1;
+const getNextRoundSequence = (rounds: Round[], plannedDate?: string): number => getHighestRoundSequence(rounds, plannedDate) + 1;
 
-export const getDefaultRoundTitle = (rounds: Round[]): string => `Round ${getNextRoundSequence(rounds)}`;
+export const getDefaultRoundTitle = (rounds: Round[], plannedDate?: string): string => `Round ${getNextRoundSequence(rounds, plannedDate)}`;
 
 const getRoundTitleSequence = (title: string): number | undefined => {
   const matched = /^Round (\d+)\b/.exec(title.trim());
@@ -103,7 +104,7 @@ export const buildNewRound = (
   options?: { title?: string; taskIds?: string[]; plannedDate?: string },
 ): Round => ({
   id: crypto.randomUUID(),
-  title: options?.title?.trim() || getDefaultRoundTitle(rounds),
+  title: options?.title?.trim() || getDefaultRoundTitle(rounds, options?.plannedDate),
   plannedDate: options?.plannedDate ?? getTodayKey(),
   scheduledTime: '',
   durationMinutes: pomodoroMinutes,
