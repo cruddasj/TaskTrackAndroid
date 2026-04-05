@@ -5,7 +5,7 @@ import { ALARM_TONES, AlarmTone } from '../constants/alarmTones';
 import { formatRemainingEndTime } from '../utils';
 
 const ALARM_REPEAT_INTERVAL_MS = 2500;
-const ANDROID_CHANNEL_VERSION = 'v4';
+const ANDROID_CHANNEL_VERSION = 'v5';
 const POMODORO_CHANNEL_ID = 'pomodoro';
 const ACTIVE_TIMER_CHANNEL_ID = 'pomodoro-active-timer';
 const ACTIVE_TIMER_NOTIFICATION_ID = 91_100_001;
