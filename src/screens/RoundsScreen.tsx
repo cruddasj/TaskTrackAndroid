@@ -31,6 +31,7 @@ import { useMemo, useState } from 'react';
 import { PlanningDay, PlanningDayToggle } from '../components/PlanningDayToggle';
 import { useAppState } from '../state/AppStateContext';
 import {
+  canDeleteRound,
   getCarryHistoryForRound,
   getRoundPlannedDate,
   getDefaultRoundTitle,
@@ -228,6 +229,7 @@ export const RoundsScreen = () => {
       </Card>
       {orderedRounds.map((round) => {
         const isActivePomodoroRound = isRoundLockedByActivePomodoro(round.id, state.pomodoro.activeRoundId);
+        const canDeleteSelectedRound = canDeleteRound(round, state.pomodoro.activeRoundId, state.settings.debugModeEnabled);
         const displayTaskIds = getRoundTaskIdsForDisplay(round, todaysTasks);
         const estimatedMinutes = roundEstimatedMinutes[round.id] ?? 0;
         const roundDetails = round.status === 'done'
@@ -256,7 +258,7 @@ export const RoundsScreen = () => {
                   <WarningAmberRounded color="warning" fontSize="small" aria-label={`round-overflow-warning-${round.id}`} />
                 )}
               </Stack>
-              {round.status === 'done' ? (
+              {round.status === 'done' && (
                 <Chip
                   size="small"
                   color="success"
@@ -264,16 +266,12 @@ export const RoundsScreen = () => {
                   label="Completed"
                   aria-label={`completed-round-chip-${round.id}`}
                 />
-              ) : (
-                <Stack direction="row" spacing={0.25}>
+              )}
+              <Stack direction="row" spacing={0.25}>
+                {round.status !== 'done' && (
                   <>
                     <IconButton size="small" onClick={() => openRenameDialog(round.id, round.title)} aria-label={`rename-round-${round.id}`}>
                       <EditOutlined fontSize="small" />
-                    </IconButton>
-                    <IconButton size="small" onClick={() => {
-                      setRoundPendingDelete({ id: round.id, title: round.title });
-                    }} aria-label={`delete-round-${round.id}`} disabled={isActivePomodoroRound}>
-                      <DeleteOutlineRounded color="error" />
                     </IconButton>
                     <IconButton size="small" onClick={() => moveRound(round.id, 'up')} aria-label={`move-round-up-${round.id}`}>
                       <ArrowDropUpRounded />
@@ -282,8 +280,15 @@ export const RoundsScreen = () => {
                       <ArrowDropDownRounded />
                     </IconButton>
                   </>
-                </Stack>
-              )}
+                )}
+                {canDeleteSelectedRound && (
+                  <IconButton size="small" onClick={() => {
+                    setRoundPendingDelete({ id: round.id, title: round.title });
+                  }} aria-label={`delete-round-${round.id}`}>
+                    <DeleteOutlineRounded color="error" />
+                  </IconButton>
+                )}
+              </Stack>
             </Stack>
               <Stack spacing={1} mb={2}>
                 {displayTaskIds.map((taskId) => {
@@ -343,7 +348,11 @@ export const RoundsScreen = () => {
               </Alert>
             )}
             {round.status === 'done' ? (
-              <Typography color="text.secondary">Completed round (read-only).</Typography>
+              <Typography color="text.secondary">
+                {state.settings.debugModeEnabled
+                  ? 'Completed round. Delete is available while debug mode is enabled.'
+                  : 'Completed round (read-only).'}
+              </Typography>
             ) : (
               <Stack
                 direction="row"
