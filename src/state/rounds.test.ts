@@ -1,4 +1,4 @@
-import { advanceActiveRound, buildNewRound, getCarryForwardRound, getCarryHistoryForRound, getDefaultRoundTitle, getHighestRoundSequence, getRoundEstimatedMinutes, getRoundTaskIdsForDisplay, getVisibleRoundId, hasEmptyRoundWithoutTasks, hasRoundsWithAssignedTasks, isRoundCompleted, isRoundLockedByActivePomodoro, moveTaskInRound, removeRoundAndNormalizeStatuses, sortRoundsChronologically, unassignTasksFromRound } from './rounds';
+import { advanceActiveRound, buildNewRound, canDeleteRound, getCarryForwardRound, getCarryHistoryForRound, getDefaultRoundTitle, getHighestRoundSequence, getRoundEstimatedMinutes, getRoundTaskIdsForDisplay, getVisibleRoundId, hasEmptyRoundWithoutTasks, hasRoundsWithAssignedTasks, isRoundCompleted, isRoundLockedByActivePomodoro, moveTaskInRound, removeRoundAndNormalizeStatuses, sortRoundsChronologically, unassignTasksFromRound } from './rounds';
 
 describe('round helpers', () => {
   it('detects when a round has no tasks assigned', () => {
@@ -129,6 +129,17 @@ describe('round helpers', () => {
 
   it('allows deleting a non-active pomodoro round', () => {
     expect(isRoundLockedByActivePomodoro('r1', 'r2')).toBe(false);
+  });
+
+  it('allows deleting done rounds only in debug mode', () => {
+    const doneRound = { id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'done' as const };
+    expect(canDeleteRound(doneRound, undefined, true)).toBe(true);
+    expect(canDeleteRound(doneRound, undefined, false)).toBe(false);
+  });
+
+  it('blocks deleting an active pomodoro round even in debug mode', () => {
+    const activeRound = { id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'active' as const };
+    expect(canDeleteRound(activeRound, 'r1', true)).toBe(false);
   });
 
   it('advances to the next open round after a break', () => {

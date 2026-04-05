@@ -131,6 +131,20 @@ export const unassignTasksFromRound = (tasks: Task[], roundId: string): Task[] =
 export const isRoundLockedByActivePomodoro = (roundId: string, activeRoundId?: string): boolean =>
   roundId === activeRoundId;
 
+export const canDeleteRound = (
+  round: Round,
+  activeRoundId: string | undefined,
+  debugModeEnabled: boolean,
+): boolean => {
+  if (isRoundLockedByActivePomodoro(round.id, activeRoundId)) {
+    return false;
+  }
+  if (round.status === 'done') {
+    return debugModeEnabled;
+  }
+  return true;
+};
+
 export const advanceActiveRound = (rounds: Round[], currentRoundId?: string): { rounds: Round[]; nextRoundId?: string } => {
   const openRounds = rounds.filter((round) => round.status !== 'done');
   if (openRounds.length === 0) {
