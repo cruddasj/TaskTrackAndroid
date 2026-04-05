@@ -262,7 +262,7 @@ export const TodaysTasksScreen = () => {
               size="small"
               variant="outlined"
               startIcon={<EastRounded fontSize="small" />}
-              sx={{ mt: 1, alignSelf: 'flex-start', display: 'block' }}
+              sx={{ mt: 1, alignSelf: 'flex-start', minWidth: 170, whiteSpace: 'nowrap' }}
               onClick={() => {
                 updateTask({ ...task, plannedDate: tomorrowKey });
                 showSuccessMessage('Task moved to tomorrow.');
