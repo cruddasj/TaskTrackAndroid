@@ -301,6 +301,7 @@ export const TaskBankScreen = () => {
               </Stack>
               <Button
                 size="small"
+                variant="outlined"
                 sx={{ alignSelf: 'flex-start' }}
                 onClick={() => {
                   if (hasDuplicateTodayTaskTitle(state.tasks, selectedDateKey, task.title)) {

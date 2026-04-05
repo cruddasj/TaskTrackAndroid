@@ -1,10 +1,11 @@
 import CheckCircleRounded from '@mui/icons-material/CheckCircleRounded';
+import CloseRounded from '@mui/icons-material/CloseRounded';
 import PauseRounded from '@mui/icons-material/PauseRounded';
 import PlayArrowRounded from '@mui/icons-material/PlayArrowRounded';
 import CircleOutlined from '@mui/icons-material/CircleOutlined';
 import ReplayRounded from '@mui/icons-material/ReplayRounded';
 import SkipNextRounded from '@mui/icons-material/SkipNextRounded';
-import { Alert, Box, Button, Card, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Snackbar, Stack, Typography } from '@mui/material';
+import { Alert, Box, Button, Card, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Snackbar, Stack, Typography } from '@mui/material';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppState } from '../state/AppStateContext';
@@ -196,7 +197,15 @@ export const FocusScreen = () => {
               {state.pomodoro.phase === 'work' ? `(${activeRound?.title ?? 'No round selected'})` : '(Break)'}
             </Typography>
           </Box>
-          <Chip label="Close" size="small" onClick={() => navigate('/rounds')} sx={{ px: 0.5, mt: 0.5 }} />
+          <Button
+            size="small"
+            variant="outlined"
+            startIcon={<CloseRounded fontSize="small" />}
+            onClick={() => navigate('/rounds')}
+            sx={{ mt: 0.5 }}
+          >
+            Close
+          </Button>
         </Box>
 
         <Stack direction="column" spacing={2} alignItems="center">
@@ -261,6 +270,7 @@ export const FocusScreen = () => {
                       <Typography>{task.title}</Typography>
                       <Button
                         size="small"
+                        variant="outlined"
                         startIcon={task.status === 'done' ? <CheckCircleRounded color="success" /> : <CircleOutlined color="disabled" />}
                         onClick={() => {
                           if (!canMarkTasksDone) {
