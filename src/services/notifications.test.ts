@@ -45,6 +45,7 @@ import {
   clearActivePomodoroNotification,
   clearScheduledPomodoroPhaseEndNotification,
   dismissNativeAlarmNotifications,
+  logNativeNotificationDiagnosticsOnStart,
   notifyPomodoroComplete,
   playAlarmTone,
   requestNotificationPermissions,
@@ -88,10 +89,10 @@ describe('notifications service', () => {
     expect(payload.notifications).toHaveLength(1);
     expect(payload.notifications[0]).toEqual(expect.objectContaining({
       id: 1234,
-      channelId: 'round-finish-clock_bell-v3',
+      channelId: 'round-finish-clock_bell-v4',
       title: 'Done',
       body: 'Body',
-      sound: 'res://raw/alarm_clock_bell',
+      sound: 'res://raw/alarm_clock_bell.mp3',
       schedule: expect.objectContaining({ allowWhileIdle: true }),
     }));
   });
@@ -118,9 +119,25 @@ describe('notifications service', () => {
     expect(payload.notifications[0]).toEqual(expect.objectContaining({
       title: 'Done',
       body: 'Body',
-      channelId: 'round-finish-clock_bell-v3',
-      sound: 'res://raw/alarm_clock_bell',
+      channelId: 'round-finish-clock_bell-v4',
+      sound: 'res://raw/alarm_clock_bell.mp3',
     }));
+  });
+
+  it('logs native raw alarm diagnostics on app startup', () => {
+    const consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation(() => undefined);
+    isNativePlatformMock.mockReturnValue(true);
+
+    logNativeNotificationDiagnosticsOnStart();
+
+    expect(consoleInfoSpy).toHaveBeenCalledWith(
+      '[notifications] Startup native alarm resource diagnostics',
+      expect.objectContaining({
+        rawDirectory: 'res://raw',
+        files: expect.arrayContaining(['alarm_clock_bell.mp3', 'alarm_fallout.mp3', 'alarm_chirp.mp3', 'alarm_digital.mp3']),
+      }),
+    );
+    consoleInfoSpy.mockRestore();
   });
 
   it('requests browser notification permission on web when permission is default', async () => {

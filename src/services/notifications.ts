@@ -1,19 +1,32 @@
 import { Capacitor } from '@capacitor/core';
 import { Haptics, NotificationType } from '@capacitor/haptics';
 import { LocalNotifications } from '@capacitor/local-notifications';
-import { AlarmTone } from '../constants/alarmTones';
+import { ALARM_TONES, AlarmTone } from '../constants/alarmTones';
 import { formatRemainingEndTime } from '../utils';
 
 const ALARM_REPEAT_INTERVAL_MS = 2500;
-const ANDROID_CHANNEL_VERSION = 'v3';
+const ANDROID_CHANNEL_VERSION = 'v4';
 const POMODORO_CHANNEL_ID = 'pomodoro';
 const ACTIVE_TIMER_CHANNEL_ID = 'pomodoro-active-timer';
 const ACTIVE_TIMER_NOTIFICATION_ID = 91_100_001;
+const NATIVE_ALARM_FILE_EXTENSION = '.mp3';
 const getAlarmFileName = (tone: AlarmTone): string => `alarm_${tone}`;
-const getNativeAlarmSound = (tone: AlarmTone): string => `res://raw/${getAlarmFileName(tone)}`;
+const getNativeAlarmSound = (tone: AlarmTone): string => `res://raw/${getAlarmFileName(tone)}${NATIVE_ALARM_FILE_EXTENSION}`;
 const getAlarmAudioAssetUrl = (tone: AlarmTone): string => {
   const alarmFile = `custom_alarm_sounds/${getAlarmFileName(tone)}.mp3`;
   return new URL(alarmFile, document.baseURI).toString();
+};
+
+const getNativeRawAlarmFiles = (): string[] => ALARM_TONES.map((tone) => `${getAlarmFileName(tone)}${NATIVE_ALARM_FILE_EXTENSION}`);
+
+export const logNativeNotificationDiagnosticsOnStart = (): void => {
+  if (!Capacitor.isNativePlatform()) return;
+
+  console.info('[notifications] Startup native alarm resource diagnostics', {
+    rawDirectory: 'res://raw',
+    files: getNativeRawAlarmFiles(),
+    localNotificationSoundUris: ALARM_TONES.map((tone) => getNativeAlarmSound(tone)),
+  });
 };
 
 
@@ -33,7 +46,7 @@ const getAndroidAlarmChannelId = (tone: AlarmTone): string => `round-finish-${to
 
 const ensureAndroidAlarmChannel = async (tone: AlarmTone): Promise<string> => {
   const channelId = getAndroidAlarmChannelId(tone);
-  await LocalNotifications.createChannel({
+  const channel: Parameters<typeof LocalNotifications.createChannel>[0] = {
     id: channelId,
     name: 'Round completion alerts',
     description: 'Alerts when a focus round or break completes.',
@@ -41,7 +54,9 @@ const ensureAndroidAlarmChannel = async (tone: AlarmTone): Promise<string> => {
     importance: 5,
     visibility: 1,
     vibration: true,
-  });
+  };
+  console.info('[notifications] Ensuring Android completion channel', channel);
+  await LocalNotifications.createChannel(channel);
   return channelId;
 };
 
@@ -101,20 +116,20 @@ export const notifyPomodoroComplete = async (
 
     await triggerCompletionHaptic();
 
+    const notification = {
+      id: Math.floor(Math.random() * 100000),
+      title,
+      body,
+      sound: getNativeAlarmSound(tone),
+      ...(channelId
+        ? {
+          channelId,
+        }
+        : undefined),
+    };
+    console.info('[notifications] Scheduling immediate native completion notification', notification);
     await LocalNotifications.schedule({
-      notifications: [
-        {
-          id: Math.floor(Math.random() * 100000),
-          title,
-          body,
-          sound: getNativeAlarmSound(tone),
-          ...(channelId
-            ? {
-              channelId,
-            }
-            : undefined),
-        },
-      ],
+      notifications: [notification],
     });
     return;
   }
@@ -147,19 +162,19 @@ export const schedulePomodoroPhaseEndNotification = async (
   }
 
   const fireAt = new Date(startTime + durationMs);
+  const notification = {
+    id: sessionId,
+    title,
+    body,
+    schedule: { at: fireAt, allowWhileIdle: true },
+    channelId: channelId ?? POMODORO_CHANNEL_ID,
+    sound: getNativeAlarmSound(tone),
+  };
 
   await LocalNotifications.cancel({ notifications: [{ id: sessionId }] });
+  console.info('[notifications] Scheduling native phase-end notification', notification);
   await LocalNotifications.schedule({
-    notifications: [
-      {
-        id: sessionId,
-        title,
-        body,
-        schedule: { at: fireAt, allowWhileIdle: true },
-        channelId: channelId ?? POMODORO_CHANNEL_ID,
-        sound: getNativeAlarmSound(tone),
-      },
-    ],
+    notifications: [notification],
   });
 };
 
