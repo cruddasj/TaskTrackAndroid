@@ -91,7 +91,7 @@ describe('notifications service', () => {
       channelId: 'round-finish-clock_bell-v3',
       title: 'Done',
       body: 'Body',
-      sound: 'alarm_clock_bell.mp3',
+      sound: 'res://raw/alarm_clock_bell',
       schedule: expect.objectContaining({ allowWhileIdle: true }),
     }));
   });
@@ -119,7 +119,7 @@ describe('notifications service', () => {
       title: 'Done',
       body: 'Body',
       channelId: 'round-finish-clock_bell-v3',
-      sound: 'alarm_clock_bell.mp3',
+      sound: 'res://raw/alarm_clock_bell',
     }));
   });
 

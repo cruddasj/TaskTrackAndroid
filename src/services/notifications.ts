@@ -10,6 +10,7 @@ const POMODORO_CHANNEL_ID = 'pomodoro';
 const ACTIVE_TIMER_CHANNEL_ID = 'pomodoro-active-timer';
 const ACTIVE_TIMER_NOTIFICATION_ID = 91_100_001;
 const getAlarmFileName = (tone: AlarmTone): string => `alarm_${tone}`;
+const getNativeAlarmSound = (tone: AlarmTone): string => `res://raw/${getAlarmFileName(tone)}`;
 const getAlarmAudioAssetUrl = (tone: AlarmTone): string => {
   const alarmFile = `custom_alarm_sounds/${getAlarmFileName(tone)}.mp3`;
   return new URL(alarmFile, document.baseURI).toString();
@@ -36,7 +37,7 @@ const ensureAndroidAlarmChannel = async (tone: AlarmTone): Promise<string> => {
     id: channelId,
     name: 'Round completion alerts',
     description: 'Alerts when a focus round or break completes.',
-    sound: `${getAlarmFileName(tone)}.mp3`,
+    sound: getNativeAlarmSound(tone),
     importance: 5,
     visibility: 1,
     vibration: true,
@@ -106,10 +107,10 @@ export const notifyPomodoroComplete = async (
           id: Math.floor(Math.random() * 100000),
           title,
           body,
+          sound: getNativeAlarmSound(tone),
           ...(channelId
             ? {
               channelId,
-              sound: `${getAlarmFileName(tone)}.mp3`,
             }
             : undefined),
         },
@@ -156,11 +157,7 @@ export const schedulePomodoroPhaseEndNotification = async (
         body,
         schedule: { at: fireAt, allowWhileIdle: true },
         channelId: channelId ?? POMODORO_CHANNEL_ID,
-        ...(channelId
-          ? {
-            sound: `${getAlarmFileName(tone)}.mp3`,
-          }
-          : undefined),
+        sound: getNativeAlarmSound(tone),
       },
     ],
   });
