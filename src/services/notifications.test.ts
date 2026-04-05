@@ -88,9 +88,10 @@ describe('notifications service', () => {
     expect(payload.notifications).toHaveLength(1);
     expect(payload.notifications[0]).toEqual(expect.objectContaining({
       id: 1234,
-      channelId: 'round-finish-clock_bell-v2',
+      channelId: 'round-finish-clock_bell-v3',
       title: 'Done',
       body: 'Body',
+      sound: 'alarm_clock_bell.mp3',
       schedule: expect.objectContaining({ allowWhileIdle: true }),
     }));
   });
@@ -117,7 +118,8 @@ describe('notifications service', () => {
     expect(payload.notifications[0]).toEqual(expect.objectContaining({
       title: 'Done',
       body: 'Body',
-      channelId: 'round-finish-clock_bell-v2',
+      channelId: 'round-finish-clock_bell-v3',
+      sound: 'alarm_clock_bell.mp3',
     }));
   });
 

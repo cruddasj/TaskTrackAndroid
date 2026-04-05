@@ -5,7 +5,7 @@ import { AlarmTone } from '../constants/alarmTones';
 import { formatRemainingEndTime } from '../utils';
 
 const ALARM_REPEAT_INTERVAL_MS = 2500;
-const ANDROID_CHANNEL_VERSION = 'v2';
+const ANDROID_CHANNEL_VERSION = 'v3';
 const POMODORO_CHANNEL_ID = 'pomodoro';
 const ACTIVE_TIMER_CHANNEL_ID = 'pomodoro-active-timer';
 const ACTIVE_TIMER_NOTIFICATION_ID = 91_100_001;
@@ -36,7 +36,7 @@ const ensureAndroidAlarmChannel = async (tone: AlarmTone): Promise<string> => {
     id: channelId,
     name: 'Round completion alerts',
     description: 'Alerts when a focus round or break completes.',
-    sound: `raw/${getAlarmFileName(tone)}`,
+    sound: `${getAlarmFileName(tone)}.mp3`,
     importance: 5,
     visibility: 1,
     vibration: true,
@@ -109,7 +109,7 @@ export const notifyPomodoroComplete = async (
           ...(channelId
             ? {
               channelId,
-              sound: `res://raw/${getAlarmFileName(tone)}`,
+              sound: `${getAlarmFileName(tone)}.mp3`,
             }
             : undefined),
         },
@@ -158,7 +158,7 @@ export const schedulePomodoroPhaseEndNotification = async (
         channelId: channelId ?? POMODORO_CHANNEL_ID,
         ...(channelId
           ? {
-            sound: `res://raw/${getAlarmFileName(tone)}`,
+            sound: `${getAlarmFileName(tone)}.mp3`,
           }
           : undefined),
       },
