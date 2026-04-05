@@ -21,7 +21,7 @@ import { getRemainingSecondsFromClock } from './pomodoroClock';
 import { getTasksAfterRoundDeletion } from './roundDeletion';
 import { clearStoredState, createDemoState, loadState, saveState, seedState } from './storage';
 import { getAssignmentRoundUpdate, getRevivedTaskRoundUpdate } from './taskRoundHistory';
-import { shouldPlayInAppCompletionAlarm } from './alarmPlayback';
+import { shouldPlayInAppCompletionAlarm, shouldSendCompletionNotification } from './alarmPlayback';
 import { getTodayKey } from '../utils';
 
 type NewTask = Omit<Task, 'id' | 'status' | 'plannedDate' | 'completedAt'> & { plannedDate?: string };
@@ -956,11 +956,13 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
       long_break: 'Great work. Start your next focus session.',
     };
 
-    notifyPomodoroComplete(
-      titleByPhase[state.pomodoro.phase],
-      bodyByPhase[state.pomodoro.phase],
-      state.settings.alarmTone,
-    ).catch(() => undefined);
+    if (shouldSendCompletionNotification(Capacitor.isNativePlatform(), isAppActive)) {
+      notifyPomodoroComplete(
+        titleByPhase[state.pomodoro.phase],
+        bodyByPhase[state.pomodoro.phase],
+        state.settings.alarmTone,
+      ).catch(() => undefined);
+    }
     clearScheduledPomodoroPhaseEndNotification(state.pomodoro.sessionId).catch(() => undefined);
 
     stopAlarmRef.current?.();
