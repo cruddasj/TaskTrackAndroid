@@ -10,6 +10,7 @@ import { playAlarmTone } from '../services/notifications';
 import { useAppState } from '../state/AppStateContext';
 import { createBackupJson, importBackupJson } from '../state/backup';
 import { exportBackupFile } from '../services/backupExport';
+import { AppState } from '../types';
 import { getAlphabeticalCategories } from './settingsCategories';
 import { getBackupExportSuccessMessage } from './settingsBackupMessages';
 
@@ -64,8 +65,49 @@ export const SettingsScreen = () => {
   const hasBackupPassword = !!backupPassword.trim();
   const alphabeticalCategories = useMemo(() => getAlphabeticalCategories(state.categories), [state.categories]);
 
+  const toRoundedNumber = (value: string): number | null => {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) return null;
+    return Math.round(parsed);
+  };
+
+  const getExportStateWithTimerDrafts = (): AppState => {
+    const minutes = toRoundedNumber(pomodoroMinutes);
+    const shortBreak = toRoundedNumber(shortBreakMinutes);
+    const longBreak = toRoundedNumber(longBreakMinutes);
+    const roundSeconds = toRoundedNumber(debugPomodoroSeconds);
+    const shortBreakSeconds = toRoundedNumber(debugShortBreakSeconds);
+    const longBreakSeconds = toRoundedNumber(debugLongBreakSeconds);
+    const sessions = toRoundedNumber(sessionsBeforeLongBreak);
+    const reviewTimeout = toRoundedNumber(sessionReviewGraceSeconds);
+    const volume = toRoundedNumber(alarmVolume);
+
+    return {
+      ...state,
+      settings: {
+        ...state.settings,
+        pomodoroMinutes: minutes && minutes > 0 ? minutes : state.settings.pomodoroMinutes,
+        shortBreakMinutes: shortBreak && shortBreak > 0 ? shortBreak : state.settings.shortBreakMinutes,
+        longBreakMinutes: longBreak && longBreak > 0 ? longBreak : state.settings.longBreakMinutes,
+        debugPomodoroSeconds: roundSeconds && roundSeconds > 0 ? roundSeconds : state.settings.debugPomodoroSeconds,
+        debugShortBreakSeconds: shortBreakSeconds && shortBreakSeconds > 0 ? shortBreakSeconds : state.settings.debugShortBreakSeconds,
+        debugLongBreakSeconds: longBreakSeconds && longBreakSeconds > 0 ? longBreakSeconds : state.settings.debugLongBreakSeconds,
+        sessionsBeforeLongBreak: sessions && sessions > 1 ? sessions : state.settings.sessionsBeforeLongBreak,
+        sessionReviewGraceSeconds:
+          reviewTimeout && reviewTimeout >= 5 && reviewTimeout <= 600
+            ? reviewTimeout
+            : state.settings.sessionReviewGraceSeconds,
+        alarmVolume:
+          volume !== null && volume >= 0 && volume <= 100
+            ? volume
+            : state.settings.alarmVolume,
+      },
+    };
+  };
+
   const handleExportBackup = async () => {
-    const backupJson = await createBackupJson(state, backupPassword);
+    const backupState = getExportStateWithTimerDrafts();
+    const backupJson = await createBackupJson(backupState, backupPassword);
     const fileName = `tasktrack-backup-${new Date().toISOString().slice(0, 10)}.json`;
     const exportResult = await exportBackupFile(backupJson, fileName);
     showSuccessMessage(getBackupExportSuccessMessage(exportResult, hasBackupPassword));
@@ -159,18 +201,6 @@ export const SettingsScreen = () => {
         <CardContent>
           <Stack spacing={2}>
             <Typography variant="h5">Pomodoro timing</Typography>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={state.settings.debugModeEnabled}
-                  onChange={(_, checked) => {
-                    setDebugModeEnabled(checked);
-                    showSuccessMessage(`Debug timing mode ${checked ? 'enabled' : 'disabled'}.`);
-                  }}
-                />
-              }
-              label="Enable debug timing mode (set durations in seconds)"
-            />
             {state.settings.showFirstTimeGuidance ? (
               <Alert severity="success" icon={<InfoOutlined fontSize="inherit" />} sx={guidanceAlertSx}>
                 <Typography variant="body2" fontWeight={700} mb={0.5}>How Pomodoro works</Typography>
@@ -482,6 +512,26 @@ export const SettingsScreen = () => {
             >
               Clear all app data
             </Button>
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent>
+          <Stack spacing={2}>
+            <Typography variant="h5">Debug mode</Typography>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={state.settings.debugModeEnabled}
+                  onChange={(_, checked) => {
+                    setDebugModeEnabled(checked);
+                    showSuccessMessage(`Debug timing mode ${checked ? 'enabled' : 'disabled'}.`);
+                  }}
+                />
+              }
+              label="Enable debug timing mode (set durations in seconds)"
+            />
           </Stack>
         </CardContent>
       </Card>

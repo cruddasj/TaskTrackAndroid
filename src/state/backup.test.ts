@@ -58,4 +58,30 @@ describe('backup', () => {
     await expect(importBackupJson(backupJson)).rejects.toThrow('This backup is encrypted. Enter the password to import it.');
     await expect(importBackupJson(backupJson, 'wrong-password')).rejects.toThrow('Could not decrypt backup. Check the password and try again.');
   });
+
+  it('preserves customized pomodoro settings in exported backups', async () => {
+    const customState = {
+      ...seedState,
+      settings: {
+        ...seedState.settings,
+        pomodoroMinutes: 42,
+        shortBreakMinutes: 7,
+        longBreakMinutes: 20,
+        debugModeEnabled: true,
+        debugPomodoroSeconds: 111,
+        debugShortBreakSeconds: 22,
+        debugLongBreakSeconds: 55,
+      },
+    };
+    const backupJson = await createBackupJson(customState);
+    const imported = await importBackupJson(backupJson);
+
+    expect(imported.settings.pomodoroMinutes).toBe(42);
+    expect(imported.settings.shortBreakMinutes).toBe(7);
+    expect(imported.settings.longBreakMinutes).toBe(20);
+    expect(imported.settings.debugModeEnabled).toBe(true);
+    expect(imported.settings.debugPomodoroSeconds).toBe(111);
+    expect(imported.settings.debugShortBreakSeconds).toBe(22);
+    expect(imported.settings.debugLongBreakSeconds).toBe(55);
+  });
 });
