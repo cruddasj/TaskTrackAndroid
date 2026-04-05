@@ -62,6 +62,8 @@ type Action =
   | { type: 'SET_SESSION_REVIEW_GRACE_SECONDS'; payload: { seconds: number } }
   | { type: 'SET_ALARM_TONE'; payload: { tone: AlarmTone } }
   | { type: 'SET_ALARM_VOLUME'; payload: { volume: number } }
+  | { type: 'SET_RECURRING_SUGGESTION_COOLDOWN_ENABLED'; payload: { enabled: boolean } }
+  | { type: 'SET_RECURRING_SUGGESTION_COOLDOWN_DAYS'; payload: { days: number } }
   | { type: 'SET_SHOW_FIRST_TIME_GUIDANCE'; payload: { enabled: boolean } }
   | { type: 'SET_HAS_SEEN_WELCOME_MODAL'; payload: { seen: boolean } }
   | { type: 'LOAD_DEMO_DATA' }
@@ -547,6 +549,22 @@ const reducer = (state: AppState, action: Action): AppState => {
           alarmVolume: Math.max(0, Math.min(100, Math.round(action.payload.volume))),
         },
       };
+    case 'SET_RECURRING_SUGGESTION_COOLDOWN_ENABLED':
+      return {
+        ...state,
+        settings: {
+          ...state.settings,
+          recurringSuggestionCooldownEnabled: action.payload.enabled,
+        },
+      };
+    case 'SET_RECURRING_SUGGESTION_COOLDOWN_DAYS':
+      return {
+        ...state,
+        settings: {
+          ...state.settings,
+          recurringSuggestionCooldownDays: Math.max(1, Math.round(action.payload.days)),
+        },
+      };
     case 'SET_SHOW_FIRST_TIME_GUIDANCE':
       return {
         ...state,
@@ -763,6 +781,8 @@ interface AppStateContextValue {
   setSessionReviewGraceSeconds: (seconds: number) => void;
   setAlarmTone: (tone: AlarmTone) => void;
   setAlarmVolume: (volume: number) => void;
+  setRecurringSuggestionCooldownEnabled: (enabled: boolean) => void;
+  setRecurringSuggestionCooldownDays: (days: number) => void;
   setShowFirstTimeGuidance: (enabled: boolean) => void;
   setHasSeenWelcomeModal: (seen: boolean) => void;
   loadDemoData: () => void;
@@ -1057,6 +1077,10 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
       setSessionReviewGraceSeconds: (seconds) => dispatch({ type: 'SET_SESSION_REVIEW_GRACE_SECONDS', payload: { seconds } }),
       setAlarmTone: (tone) => dispatch({ type: 'SET_ALARM_TONE', payload: { tone } }),
       setAlarmVolume: (volume) => dispatch({ type: 'SET_ALARM_VOLUME', payload: { volume } }),
+      setRecurringSuggestionCooldownEnabled: (enabled) =>
+        dispatch({ type: 'SET_RECURRING_SUGGESTION_COOLDOWN_ENABLED', payload: { enabled } }),
+      setRecurringSuggestionCooldownDays: (days) =>
+        dispatch({ type: 'SET_RECURRING_SUGGESTION_COOLDOWN_DAYS', payload: { days } }),
       setShowFirstTimeGuidance: (enabled) => dispatch({ type: 'SET_SHOW_FIRST_TIME_GUIDANCE', payload: { enabled } }),
       setHasSeenWelcomeModal: (seen) => dispatch({ type: 'SET_HAS_SEEN_WELCOME_MODAL', payload: { seen } }),
       loadDemoData: () => dispatch({ type: 'LOAD_DEMO_DATA' }),

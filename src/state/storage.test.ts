@@ -35,6 +35,23 @@ describe('storage', () => {
     expect(loadState().settings.hasSeenWelcomeModal).toBe(true);
   });
 
+  it('saves and loads recurring suggestion cool down settings', () => {
+    const updated = {
+      ...seedState,
+      settings: {
+        ...seedState.settings,
+        recurringSuggestionCooldownEnabled: true,
+        recurringSuggestionCooldownDays: 5,
+      },
+    };
+
+    saveState(updated);
+
+    const loaded = loadState();
+    expect(loaded.settings.recurringSuggestionCooldownEnabled).toBe(true);
+    expect(loaded.settings.recurringSuggestionCooldownDays).toBe(5);
+  });
+
   it('saves and loads debug timer settings', () => {
     const updated = {
       ...seedState,
@@ -171,6 +188,19 @@ describe('storage', () => {
     );
 
     expect(loadState().settings.sessionReviewGraceSeconds).toBe(600);
+  });
+
+  it('normalizes invalid recurring suggestion cool down day values', () => {
+    localStorage.setItem(
+      'tasktrack.state.v2',
+      JSON.stringify({
+        settings: {
+          recurringSuggestionCooldownDays: 0,
+        },
+      }),
+    );
+
+    expect(loadState().settings.recurringSuggestionCooldownDays).toBe(3);
   });
 
   it('falls back to defaults if persisted JSON is invalid', () => {

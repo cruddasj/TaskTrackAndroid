@@ -139,6 +139,7 @@ export const suggestRecurringTaskBankItems = (
   taskBank: TaskBankItem[],
   tasks: Task[],
   plannedDate: string,
+  options: { cooldownEnabled: boolean; cooldownDays: number },
   now: Date = new Date(),
 ): TaskBankItem[] => {
   const nowMs = now.getTime();
@@ -148,6 +149,8 @@ export const suggestRecurringTaskBankItems = (
   const todayDayOfMonth = plannedDateUtc.getUTCDate();
   const daysInCurrentMonth = new Date(Date.UTC(plannedDateUtc.getUTCFullYear(), plannedDateUtc.getUTCMonth() + 1, 0)).getUTCDate();
   const completionByTitle = getLastCompletionTimeByTitle(tasks);
+  const normalizedCooldownDays = Math.max(1, Math.round(options.cooldownDays));
+  const cooldownWindowMs = normalizedCooldownDays * DAY_IN_MS;
   const recentAppearanceByTitle = new Map<string, number>();
   tasks.forEach((task) => {
     const titleKey = normalizeTaskTitle(task.title);
@@ -185,6 +188,14 @@ export const suggestRecurringTaskBankItems = (
     const trackedLastCompletedMs = completionByTitle.get(titleKey);
     const manualLastCompletedMs = item.lastCompletedOn ? parseDayKeyToUtcMs(item.lastCompletedOn) : undefined;
     const lastCompletedMs = Math.max(trackedLastCompletedMs ?? Number.NEGATIVE_INFINITY, manualLastCompletedMs ?? Number.NEGATIVE_INFINITY);
+    const isWeeklyOrMonthlyRecurring = Boolean(
+      (item.recurrenceWeekdays && item.recurrenceWeekdays.length > 0)
+      || (item.recurrenceDayOfMonth && item.recurrenceDayOfMonth >= 1 && item.recurrenceDayOfMonth <= 31),
+    );
+    const shouldApplyCooldown = options.cooldownEnabled && isWeeklyOrMonthlyRecurring;
+    if (shouldApplyCooldown && Number.isFinite(lastCompletedMs) && nowMs - lastCompletedMs < cooldownWindowMs) {
+      return false;
+    }
 
     const recurrenceWeekdays = (item.recurrenceWeekdays ?? []).filter((weekday) => Number.isInteger(weekday) && weekday >= 0 && weekday <= 6);
     if (recurrenceWeekdays.length > 0) {

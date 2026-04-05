@@ -13,6 +13,7 @@ import {
 } from './tasks';
 
 const todayKey = '2026-03-29';
+const cooldownOff = { cooldownEnabled: false, cooldownDays: 3 };
 
 const buildTask = (overrides: Partial<Task>): Task => ({
   id: 'task-id',
@@ -137,7 +138,7 @@ describe('suggestRecurringTaskBankItems', () => {
       { id: 'tb1', title: 'Make bread', description: 'Bake sourdough', category: 'Household chores', estimateMinutes: 25, recurrenceDays: 7 },
     ];
 
-    const suggestions = suggestRecurringTaskBankItems(taskBank, [], todayKey, new Date('2026-03-29T12:00:00.000Z'));
+    const suggestions = suggestRecurringTaskBankItems(taskBank, [], todayKey, cooldownOff, new Date('2026-03-29T12:00:00.000Z'));
 
     expect(suggestions.map((item) => item.id)).toEqual(['tb1']);
   });
@@ -148,7 +149,7 @@ describe('suggestRecurringTaskBankItems', () => {
     ];
     const tasks = [buildTask({ id: 'done-1', title: 'make bread', status: 'done', plannedDate: '2026-03-27', completedAt: '2026-03-27T09:00:00.000Z' })];
 
-    const suggestions = suggestRecurringTaskBankItems(taskBank, tasks, todayKey, new Date('2026-03-29T12:00:00.000Z'));
+    const suggestions = suggestRecurringTaskBankItems(taskBank, tasks, todayKey, cooldownOff, new Date('2026-03-29T12:00:00.000Z'));
 
     expect(suggestions).toEqual([]);
   });
@@ -166,7 +167,7 @@ describe('suggestRecurringTaskBankItems', () => {
       },
     ];
 
-    const suggestions = suggestRecurringTaskBankItems(taskBank, [], todayKey, new Date('2026-03-29T12:00:00.000Z'));
+    const suggestions = suggestRecurringTaskBankItems(taskBank, [], todayKey, cooldownOff, new Date('2026-03-29T12:00:00.000Z'));
 
     expect(suggestions).toEqual([]);
   });
@@ -177,7 +178,7 @@ describe('suggestRecurringTaskBankItems', () => {
     ];
     const tasks = [buildTask({ id: 'done-1', title: 'Make bread', status: 'done', plannedDate: '2026-03-22', completedAt: '2026-03-22T08:00:00.000Z' })];
 
-    const suggestions = suggestRecurringTaskBankItems(taskBank, tasks, todayKey, new Date('2026-03-29T12:00:00.000Z'));
+    const suggestions = suggestRecurringTaskBankItems(taskBank, tasks, todayKey, cooldownOff, new Date('2026-03-29T12:00:00.000Z'));
 
     expect(suggestions.map((item) => item.id)).toEqual(['tb1']);
   });
@@ -188,7 +189,7 @@ describe('suggestRecurringTaskBankItems', () => {
     ];
     const tasks = [buildTask({ id: 'todo-1', title: 'Make bread' })];
 
-    const suggestions = suggestRecurringTaskBankItems(taskBank, tasks, todayKey, new Date('2026-03-29T12:00:00.000Z'));
+    const suggestions = suggestRecurringTaskBankItems(taskBank, tasks, todayKey, cooldownOff, new Date('2026-03-29T12:00:00.000Z'));
 
     expect(suggestions).toEqual([]);
   });
@@ -198,7 +199,7 @@ describe('suggestRecurringTaskBankItems', () => {
       { id: 'tb1', title: 'Sunday reset', description: 'Plan next week', category: 'Personal projects', estimateMinutes: 30, recurrenceWeekdays: [0] },
     ];
 
-    const suggestions = suggestRecurringTaskBankItems(taskBank, [], todayKey, new Date('2026-03-29T12:00:00.000Z'));
+    const suggestions = suggestRecurringTaskBankItems(taskBank, [], todayKey, cooldownOff, new Date('2026-03-29T12:00:00.000Z'));
 
     expect(suggestions.map((item) => item.id)).toEqual(['tb1']);
   });
@@ -209,7 +210,7 @@ describe('suggestRecurringTaskBankItems', () => {
     ];
     const tasks = [buildTask({ id: 'done-1', title: 'washing up', status: 'done', plannedDate: '2026-04-03', completedAt: '2026-04-03T18:00:00.000Z' })];
 
-    const suggestions = suggestRecurringTaskBankItems(taskBank, tasks, '2026-04-04', new Date('2026-04-04T12:00:00.000Z'));
+    const suggestions = suggestRecurringTaskBankItems(taskBank, tasks, '2026-04-04', cooldownOff, new Date('2026-04-04T12:00:00.000Z'));
 
     expect(suggestions).toEqual([]);
   });
@@ -219,7 +220,7 @@ describe('suggestRecurringTaskBankItems', () => {
       { id: 'tb1', title: 'Sunday reset', description: 'Plan next week', category: 'Personal projects', estimateMinutes: 30, recurrenceWeekdays: [0] },
     ];
 
-    const suggestions = suggestRecurringTaskBankItems(taskBank, [], '2026-03-30', new Date('2026-03-30T12:00:00.000Z'));
+    const suggestions = suggestRecurringTaskBankItems(taskBank, [], '2026-03-30', cooldownOff, new Date('2026-03-30T12:00:00.000Z'));
 
     expect(suggestions.map((item) => item.id)).toEqual(['tb1']);
   });
@@ -230,7 +231,7 @@ describe('suggestRecurringTaskBankItems', () => {
     ];
     const tasks = [buildTask({ id: 'todo-1', title: 'Sunday reset', plannedDate: '2026-03-29' })];
 
-    const suggestions = suggestRecurringTaskBankItems(taskBank, tasks, '2026-03-30', new Date('2026-03-30T12:00:00.000Z'));
+    const suggestions = suggestRecurringTaskBankItems(taskBank, tasks, '2026-03-30', cooldownOff, new Date('2026-03-30T12:00:00.000Z'));
 
     expect(suggestions).toEqual([]);
   });
@@ -240,7 +241,7 @@ describe('suggestRecurringTaskBankItems', () => {
       { id: 'tb1', title: 'Pay rent', description: 'Transfer payment', category: 'Errands', estimateMinutes: 5, recurrenceDayOfMonth: 1 },
     ];
 
-    const suggestions = suggestRecurringTaskBankItems(taskBank, [], '2026-04-01', new Date('2026-04-01T12:00:00.000Z'));
+    const suggestions = suggestRecurringTaskBankItems(taskBank, [], '2026-04-01', cooldownOff, new Date('2026-04-01T12:00:00.000Z'));
 
     expect(suggestions.map((item) => item.id)).toEqual(['tb1']);
   });
@@ -251,7 +252,7 @@ describe('suggestRecurringTaskBankItems', () => {
     ];
     const tasks = [buildTask({ id: 'done-1', title: 'Pay rent', status: 'done', plannedDate: '2026-03-31', completedAt: '2026-03-31T09:00:00.000Z' })];
 
-    const suggestions = suggestRecurringTaskBankItems(taskBank, tasks, '2026-04-01', new Date('2026-04-01T12:00:00.000Z'));
+    const suggestions = suggestRecurringTaskBankItems(taskBank, tasks, '2026-04-01', cooldownOff, new Date('2026-04-01T12:00:00.000Z'));
 
     expect(suggestions).toEqual([]);
   });
@@ -261,9 +262,44 @@ describe('suggestRecurringTaskBankItems', () => {
       { id: 'tb1', title: 'Month-end backup', description: 'Archive files', category: 'Work', estimateMinutes: 15, recurrenceDayOfMonth: 31 },
     ];
 
-    const suggestions = suggestRecurringTaskBankItems(taskBank, [], '2026-04-30', new Date('2026-04-30T12:00:00.000Z'));
+    const suggestions = suggestRecurringTaskBankItems(taskBank, [], '2026-04-30', cooldownOff, new Date('2026-04-30T12:00:00.000Z'));
 
     expect(suggestions.map((item) => item.id)).toEqual(['tb1']);
+  });
+
+
+  it('hides weekly suggestions completed within configured cool down days when enabled', () => {
+    const taskBank = [
+      { id: 'tb1', title: 'Sunday reset', description: 'Plan next week', category: 'Personal projects', estimateMinutes: 30, recurrenceWeekdays: [0] },
+    ];
+    const tasks = [buildTask({ id: 'done-1', title: 'Sunday reset', status: 'done', plannedDate: '2026-03-27', completedAt: '2026-03-27T10:00:00.000Z' })];
+
+    const suggestions = suggestRecurringTaskBankItems(
+      taskBank,
+      tasks,
+      todayKey,
+      { cooldownEnabled: true, cooldownDays: 3 },
+      new Date('2026-03-29T12:00:00.000Z'),
+    );
+
+    expect(suggestions).toEqual([]);
+  });
+
+  it('hides day-of-month suggestions completed within configured cool down days when enabled', () => {
+    const taskBank = [
+      { id: 'tb1', title: 'Pay rent', description: 'Transfer payment', category: 'Errands', estimateMinutes: 5, recurrenceDayOfMonth: 1 },
+    ];
+    const tasks = [buildTask({ id: 'done-1', title: 'Pay rent', status: 'done', plannedDate: '2026-03-31', completedAt: '2026-03-31T09:00:00.000Z' })];
+
+    const suggestions = suggestRecurringTaskBankItems(
+      taskBank,
+      tasks,
+      '2026-04-01',
+      { cooldownEnabled: true, cooldownDays: 2 },
+      new Date('2026-04-01T12:00:00.000Z'),
+    );
+
+    expect(suggestions).toEqual([]);
   });
 });
 

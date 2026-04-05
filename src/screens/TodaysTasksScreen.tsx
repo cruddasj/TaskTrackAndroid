@@ -138,7 +138,15 @@ export const TodaysTasksScreen = () => {
   };
 
   const openRecurringSuggestions = () => {
-    const suggestions = suggestRecurringTaskBankItems(state.taskBank, state.tasks, selectedDateKey);
+    const suggestions = suggestRecurringTaskBankItems(
+      state.taskBank,
+      state.tasks,
+      selectedDateKey,
+      {
+        cooldownEnabled: state.settings.recurringSuggestionCooldownEnabled,
+        cooldownDays: state.settings.recurringSuggestionCooldownDays,
+      },
+    );
     setRecurringSuggestions(suggestions);
     setSelectedRecurringSuggestionIds(getDefaultSelectedRecurringSuggestionIds(suggestions));
     setSuggestionsOpen(true);
