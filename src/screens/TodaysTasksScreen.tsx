@@ -423,6 +423,7 @@ export const TodaysTasksScreen = () => {
         PaperProps={{
           sx: {
             maxHeight: 'min(92dvh, 760px)',
+            mb: 'calc(16px + env(safe-area-inset-bottom, 0px))',
           },
         }}
       >
@@ -458,7 +459,7 @@ export const TodaysTasksScreen = () => {
             </Stack>
           )}
         </DialogContent>
-        <DialogActions sx={{ pb: 'max(8px, env(safe-area-inset-bottom))' }}>
+        <DialogActions sx={{ pb: 'calc(8px + env(safe-area-inset-bottom, 0px))' }}>
           <Button onClick={() => setSuggestionsOpen(false)}>Cancel</Button>
           <Button variant="contained" onClick={addRecurringSuggestions} disabled={recurringSuggestions.length === 0 || selectedRecurringSuggestionIds.length === 0}>
             Add suggested tasks
