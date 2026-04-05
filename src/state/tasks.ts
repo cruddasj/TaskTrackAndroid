@@ -150,10 +150,16 @@ export const suggestRecurringTaskBankItems = (
   const completionByTitle = getLastCompletionTimeByTitle(tasks);
   const normalizedCooldownDays = Math.max(1, Math.round(options.cooldownDays));
   const cooldownWindowMs = normalizedCooldownDays * DAY_IN_MS;
+
+  const plannedDateTasksTitles = new Set<string>();
   const recentAppearanceByTitle = new Map<string, number>();
+
   tasks.forEach((task) => {
     const titleKey = normalizeTaskTitle(task.title);
     if (!titleKey) return;
+    if (task.plannedDate === plannedDate) {
+      plannedDateTasksTitles.add(titleKey);
+    }
     const plannedMs = parseDayKeyToUtcMs(task.plannedDate);
     if (!Number.isFinite(plannedMs)) return;
     const existing = recentAppearanceByTitle.get(titleKey);
@@ -162,8 +168,7 @@ export const suggestRecurringTaskBankItems = (
     }
   });
 
-  const hasScheduledWeekdayInPastWeek = (recurrenceWeekdays: number[]): boolean => {
-    const unique = new Set(recurrenceWeekdays);
+  const hasScheduledWeekdayInPastWeek = (unique: Set<number>): boolean => {
     for (let daysAgo = 1; daysAgo <= 7; daysAgo += 1) {
       const weekday = (todayWeekday - daysAgo + 7) % 7;
       if (unique.has(weekday)) return true;
@@ -171,8 +176,7 @@ export const suggestRecurringTaskBankItems = (
     return false;
   };
 
-  const getMostRecentWeekdayOccurrenceMs = (recurrenceWeekdays: number[], includeToday: boolean): number | null => {
-    const uniqueWeekdays = new Set(recurrenceWeekdays);
+  const getMostRecentWeekdayOccurrenceMs = (uniqueWeekdays: Set<number>, includeToday: boolean): number | null => {
     for (let daysAgo = includeToday ? 0 : 1; daysAgo <= 7; daysAgo += 1) {
       const weekday = (todayWeekday - daysAgo + 7) % 7;
       if (uniqueWeekdays.has(weekday)) return todayStartMs - daysAgo * DAY_IN_MS;
@@ -181,33 +185,37 @@ export const suggestRecurringTaskBankItems = (
   };
 
   return taskBank.filter((item) => {
-    if (hasDuplicateTodayTaskTitle(tasks, plannedDate, item.title)) return false;
-
     const titleKey = normalizeTaskTitle(item.title);
+    if (plannedDateTasksTitles.has(titleKey)) return false;
+
     const trackedLastCompletedMs = completionByTitle.get(titleKey);
     const manualLastCompletedMs = item.lastCompletedOn ? parseDayKeyToUtcMs(item.lastCompletedOn) : undefined;
     const lastCompletedMs = Math.max(trackedLastCompletedMs ?? Number.NEGATIVE_INFINITY, manualLastCompletedMs ?? Number.NEGATIVE_INFINITY);
+
     const isWeeklyOrMonthlyRecurring = Boolean(
       (item.recurrenceWeekdays && item.recurrenceWeekdays.length > 0)
       || (item.recurrenceDayOfMonth && item.recurrenceDayOfMonth >= 1 && item.recurrenceDayOfMonth <= 31),
     );
     const shouldApplyCooldown = options.cooldownEnabled && isWeeklyOrMonthlyRecurring;
+
     if (shouldApplyCooldown && Number.isFinite(lastCompletedMs) && nowMs - lastCompletedMs < cooldownWindowMs) {
       return false;
     }
 
-    const recurrenceWeekdays = (item.recurrenceWeekdays ?? []).filter((weekday) => Number.isInteger(weekday) && weekday >= 0 && weekday <= 6);
-    if (recurrenceWeekdays.length > 0) {
-      const previousOccurrenceMs = getMostRecentWeekdayOccurrenceMs(recurrenceWeekdays, false);
-      const completedWithinCurrentWeekdayPeriod = Number.isFinite(lastCompletedMs)
-        && previousOccurrenceMs !== null
-        && lastCompletedMs >= previousOccurrenceMs;
-      if (recurrenceWeekdays.includes(todayWeekday)) return !completedWithinCurrentWeekdayPeriod;
+    if (item.recurrenceWeekdays && item.recurrenceWeekdays.length > 0) {
+      const uniqueRecurrenceWeekdays = new Set(item.recurrenceWeekdays.filter((weekday) => Number.isInteger(weekday) && weekday >= 0 && weekday <= 6));
+      if (uniqueRecurrenceWeekdays.size > 0) {
+        const previousOccurrenceMs = getMostRecentWeekdayOccurrenceMs(uniqueRecurrenceWeekdays, false);
+        const completedWithinCurrentWeekdayPeriod = Number.isFinite(lastCompletedMs)
+          && previousOccurrenceMs !== null
+          && lastCompletedMs >= previousOccurrenceMs;
+        if (uniqueRecurrenceWeekdays.has(todayWeekday)) return !completedWithinCurrentWeekdayPeriod;
 
-      if (!hasScheduledWeekdayInPastWeek(recurrenceWeekdays)) return false;
-      const lastAppearanceMs = recentAppearanceByTitle.get(titleKey);
-      if (!(lastAppearanceMs === undefined || nowMs - lastAppearanceMs >= 7 * DAY_IN_MS)) return false;
-      return !completedWithinCurrentWeekdayPeriod;
+        if (!hasScheduledWeekdayInPastWeek(uniqueRecurrenceWeekdays)) return false;
+        const lastAppearanceMs = recentAppearanceByTitle.get(titleKey);
+        if (!(lastAppearanceMs === undefined || nowMs - lastAppearanceMs >= 7 * DAY_IN_MS)) return false;
+        return !completedWithinCurrentWeekdayPeriod;
+      }
     }
 
     const recurrenceDayOfMonth = item.recurrenceDayOfMonth;
