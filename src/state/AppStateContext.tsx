@@ -6,6 +6,7 @@ import {
   clearActivePomodoroNotification,
   clearScheduledPomodoroPhaseEndNotification,
   dismissNativeAlarmNotifications,
+  logNativeNotificationDiagnosticsOnStart,
   notifyPomodoroComplete,
   requestNotificationPermissions,
   schedulePomodoroPhaseEndNotification,
@@ -809,6 +810,7 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
   });
 
   useEffect(() => {
+    logNativeNotificationDiagnosticsOnStart();
     requestNotificationPermissions().catch(() => undefined);
     initializePushNotifications().catch(() => undefined);
   }, []);
