@@ -31,6 +31,8 @@ export const SettingsScreen = () => {
     setSessionReviewGraceSeconds,
     setAlarmTone,
     setAlarmVolume,
+    setRecurringSuggestionCooldownEnabled,
+    setRecurringSuggestionCooldownDays,
     setShowFirstTimeGuidance,
     setHasSeenWelcomeModal,
     loadDemoData,
@@ -49,6 +51,8 @@ export const SettingsScreen = () => {
   const [sessionsBeforeLongBreak, setSessionsBeforeLongBreakInput] = useState(state.settings.sessionsBeforeLongBreak.toString());
   const [sessionReviewGraceSeconds, setSessionReviewGraceSecondsInput] = useState(state.settings.sessionReviewGraceSeconds.toString());
   const [alarmVolume, setAlarmVolumeInput] = useState(state.settings.alarmVolume.toString());
+  const [recurringSuggestionCooldownDays, setRecurringSuggestionCooldownDaysInput] =
+    useState(state.settings.recurringSuggestionCooldownDays.toString());
   const [categoryPendingDelete, setCategoryPendingDelete] = useState<string | null>(null);
   const [backupPassword, setBackupPassword] = useState('');
   const [importError, setImportError] = useState<string | null>(null);
@@ -81,6 +85,7 @@ export const SettingsScreen = () => {
     const sessions = toRoundedNumber(sessionsBeforeLongBreak);
     const reviewTimeout = toRoundedNumber(sessionReviewGraceSeconds);
     const volume = toRoundedNumber(alarmVolume);
+    const cooldownDays = toRoundedNumber(recurringSuggestionCooldownDays);
 
     return {
       ...state,
@@ -101,6 +106,10 @@ export const SettingsScreen = () => {
           volume !== null && volume >= 0 && volume <= 100
             ? volume
             : state.settings.alarmVolume,
+        recurringSuggestionCooldownDays:
+          cooldownDays && cooldownDays > 0
+            ? cooldownDays
+            : state.settings.recurringSuggestionCooldownDays,
       },
     };
   };
@@ -362,6 +371,62 @@ export const SettingsScreen = () => {
               }
             >
               Save timer settings
+            </Button>
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent>
+          <Stack spacing={2}>
+            <Typography variant="h5">Recurring suggestion cool down</Typography>
+            <Alert severity="success" icon={<InfoOutlined fontSize="inherit" />} sx={guidanceAlertSx}>
+              <Typography variant="body2" fontWeight={700} mb={0.5}>How this works</Typography>
+              <Typography variant="body2">
+                When enabled, weekly and monthly recurring tasks are hidden from &quot;Suggest recurring tasks&quot;
+                if they were completed recently.
+              </Typography>
+              <Typography variant="body2" mt={1}>
+                Set the cool down days to control how long a completed task stays out of suggestions.
+              </Typography>
+            </Alert>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={state.settings.recurringSuggestionCooldownEnabled}
+                  onChange={(_, checked) => {
+                    setRecurringSuggestionCooldownEnabled(checked);
+                    showSuccessMessage(`Recurring suggestion cool down ${checked ? 'enabled' : 'disabled'}.`);
+                  }}
+                />
+              }
+              label="Enable recurring suggestion cool down"
+            />
+            <TextField
+              label="Cool down period (days)"
+              type="number"
+              inputProps={{ min: 1 }}
+              value={recurringSuggestionCooldownDays}
+              onChange={(event) => setRecurringSuggestionCooldownDaysInput(event.target.value)}
+              helperText="Only applies to weekly and day-of-month recurring tasks."
+              disabled={!state.settings.recurringSuggestionCooldownEnabled}
+            />
+            <Button
+              variant="contained"
+              onClick={() => {
+                const cooldownDays = Number(recurringSuggestionCooldownDays);
+                if (!Number.isFinite(cooldownDays) || cooldownDays <= 0) return;
+                setRecurringSuggestionCooldownDays(cooldownDays);
+                setRecurringSuggestionCooldownDaysInput(String(Math.max(1, Math.round(cooldownDays))));
+                showSuccessMessage('Recurring suggestion cool down saved.');
+              }}
+              disabled={
+                !state.settings.recurringSuggestionCooldownEnabled
+                || !recurringSuggestionCooldownDays.trim()
+                || Number(recurringSuggestionCooldownDays) <= 0
+              }
+            >
+              Save recurring suggestion cool down
             </Button>
           </Stack>
         </CardContent>

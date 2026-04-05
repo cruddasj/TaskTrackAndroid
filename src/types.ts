@@ -71,6 +71,8 @@ export interface AppState {
     sessionReviewGraceSeconds: number;
     alarmTone: AlarmTone;
     alarmVolume: number;
+    recurringSuggestionCooldownEnabled: boolean;
+    recurringSuggestionCooldownDays: number;
     showFirstTimeGuidance: boolean;
     hasSeenWelcomeModal: boolean;
   };
