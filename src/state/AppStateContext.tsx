@@ -17,6 +17,7 @@ import { AppState, PomodoroState, Round, Task, TaskBankItem } from '../types';
 import { buildNewRound, getDefaultRoundTitle, getRoundPlannedDate, isRoundCompleted, isRoundLockedByActivePomodoro, moveTaskInRound, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
 import { applyWorkPhaseRoundAdvance, getNextPomodoroPhase } from './pomodoroTransition';
 import { getRemainingSecondsFromClock } from './pomodoroClock';
+import { getTasksAfterRoundDeletion } from './roundDeletion';
 import { clearStoredState, createDemoState, loadState, saveState, seedState } from './storage';
 import { getAssignmentRoundUpdate, getRevivedTaskRoundUpdate } from './taskRoundHistory';
 import { shouldPlayInAppCompletionAlarm } from './alarmPlayback';
@@ -216,15 +217,17 @@ const reducer = (state: AppState, action: Action): AppState => {
       };
     case 'DELETE_ROUND': {
       const roundId = action.payload.roundId;
+      const targetRound = state.rounds.find((round) => round.id === roundId);
       if (isRoundLockedByActivePomodoro(roundId, state.pomodoro.activeRoundId)) {
         return state;
       }
       const rounds = removeRoundAndNormalizeStatuses(state.rounds, roundId);
       const activeRoundId = state.pomodoro.activeRoundId === roundId ? undefined : state.pomodoro.activeRoundId;
+      const reviveCompletedTasks = state.settings.debugModeEnabled && targetRound?.status === 'done';
       return {
         ...state,
         rounds,
-        tasks: unassignTasksFromRound(state.tasks, roundId),
+        tasks: getTasksAfterRoundDeletion(state.tasks, roundId, reviveCompletedTasks),
         pomodoro: {
           ...state.pomodoro,
           activeRoundId,
