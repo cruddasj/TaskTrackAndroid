@@ -163,7 +163,16 @@ export const FocusScreen = () => {
         minHeight: '100dvh',
         overflowY: 'auto',
         WebkitOverflowScrolling: 'touch',
-        px: { xs: 2, sm: 3, md: 4 },
+        pl: {
+          xs: 'calc(env(safe-area-inset-left, 0px) + 16px)',
+          sm: 'calc(env(safe-area-inset-left, 0px) + 24px)',
+          md: 'calc(env(safe-area-inset-left, 0px) + 32px)',
+        },
+        pr: {
+          xs: 'calc(env(safe-area-inset-right, 0px) + 16px)',
+          sm: 'calc(env(safe-area-inset-right, 0px) + 24px)',
+          md: 'calc(env(safe-area-inset-right, 0px) + 32px)',
+        },
         pt: 'calc(env(safe-area-inset-top, 0px) + 16px)',
         pb: 'calc(env(safe-area-inset-bottom, 0px) + 20px)',
         display: 'flex',

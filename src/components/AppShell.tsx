@@ -32,6 +32,7 @@ export const AppShell = () => {
   const topPadding = Capacitor.isNativePlatform()
     ? 'calc(max(env(safe-area-inset-top, 0px), 24px) + 12px)'
     : '16px';
+  const horizontalSafeArea = 'max(env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px))';
 
   return (
     <Box
@@ -39,6 +40,8 @@ export const AppShell = () => {
       bgcolor="background.default"
       pb="calc(96px + env(safe-area-inset-bottom, 0px))"
       pt={topPadding}
+      pl="env(safe-area-inset-left, 0px)"
+      pr="env(safe-area-inset-right, 0px)"
     >
       <Box px={{ xs: 2, md: 4 }} py={3}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
@@ -68,6 +71,8 @@ export const AppShell = () => {
           bgcolor: '#121212',
           backgroundImage: 'none',
           pb: 'env(safe-area-inset-bottom, 0px)',
+          pl: 'env(safe-area-inset-left, 0px)',
+          pr: 'env(safe-area-inset-right, 0px)',
           zIndex: (theme) => theme.zIndex.appBar,
           borderTop: '1px solid rgba(145, 247, 142, 0.14)',
         }}
@@ -107,7 +112,11 @@ export const AppShell = () => {
         onClose={clearSuccessMessage}
         message={successMessage}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        sx={{ mb: 'calc(70px + env(safe-area-inset-bottom, 0px))' }}
+        sx={{
+          mb: 'calc(70px + env(safe-area-inset-bottom, 0px))',
+          ml: `calc(${horizontalSafeArea} / 2)`,
+          mr: `calc(${horizontalSafeArea} / 2)`,
+        }}
       />
     </Box>
   );
