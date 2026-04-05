@@ -3,6 +3,7 @@ import CheckCircleRounded from '@mui/icons-material/CheckCircleRounded';
 import DeleteOutlineRounded from '@mui/icons-material/DeleteOutlineRounded';
 import EditOutlined from '@mui/icons-material/EditOutlined';
 import CircleOutlined from '@mui/icons-material/CircleOutlined';
+import EastRounded from '@mui/icons-material/EastRounded';
 import { Alert, Box, Button, Card, CardContent, Checkbox, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
@@ -249,6 +250,8 @@ export const TodaysTasksScreen = () => {
           </Stack>
           <Button
             size="small"
+            variant="outlined"
+            startIcon={task.status === 'done' ? <CircleOutlined fontSize="small" /> : <CheckCircleRounded fontSize="small" />}
             sx={{ mt: 1.25, alignSelf: 'flex-start' }}
             onClick={primaryAction.onClick}
           >
@@ -257,7 +260,9 @@ export const TodaysTasksScreen = () => {
           {secondaryActionLabel && (
             <Button
               size="small"
-              sx={{ mt: 1.25, alignSelf: 'flex-start', display: 'block' }}
+              variant="outlined"
+              startIcon={<EastRounded fontSize="small" />}
+              sx={{ mt: 1, alignSelf: 'flex-start', display: 'block' }}
               onClick={() => {
                 updateTask({ ...task, plannedDate: tomorrowKey });
                 showSuccessMessage('Task moved to tomorrow.');
