@@ -269,6 +269,38 @@ describe('storage', () => {
     expect(loaded.taskBank[1].recurrenceDayOfMonth).toBe(15);
   });
 
+  it('sorts and deduplicates valid recurrence weekdays and adds missing round plannedDate', () => {
+    localStorage.setItem(
+      'tasktrack.state.v2',
+      JSON.stringify({
+        taskBank: [
+          {
+            id: 'tb-3',
+            title: 'Weekly prep',
+            description: 'Plan and prep',
+            category: 'Work and study',
+            estimateMinutes: 30,
+            recurrenceWeekdays: [5, 2, 5, 1],
+          },
+        ],
+        rounds: [
+          {
+            id: 'round-1',
+            title: 'Round 1',
+            scheduledTime: '09:00 AM',
+            durationMinutes: 25,
+            taskIds: [],
+            status: 'active',
+          },
+        ],
+      }),
+    );
+
+    const loaded = loadState();
+    expect(loaded.taskBank[0].recurrenceWeekdays).toEqual([1, 2, 5]);
+    expect(loaded.rounds[0].plannedDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
   it('creates demo data with historical completed tasks', () => {
     const demoState = createDemoState(seedState);
     const todayKey = getTodayKey();

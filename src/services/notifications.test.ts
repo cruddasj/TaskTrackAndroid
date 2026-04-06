@@ -97,6 +97,21 @@ describe('notifications service', () => {
     }));
   });
 
+  it('falls back to the default pomodoro channel when alarm channel creation fails', async () => {
+    isNativePlatformMock.mockReturnValue(true);
+    createChannelMock.mockResolvedValueOnce(undefined).mockRejectedValueOnce(new Error('create failed'));
+
+    await schedulePomodoroPhaseEndNotification(4321, 1_700_000_000_000, 75_000, 'Done', 'Body', 'clock_bell');
+
+    expect(scheduleMock).toHaveBeenCalledTimes(1);
+    const payload = scheduleMock.mock.calls[0][0];
+    expect(payload.notifications[0]).toEqual(expect.objectContaining({
+      id: 4321,
+      channelId: 'pomodoro',
+      sound: 'alarm_clock_bell.mp3',
+    }));
+  });
+
 
   it('does not schedule native phase-end notifications when notification permission is denied', async () => {
     isNativePlatformMock.mockReturnValue(true);
@@ -124,6 +139,22 @@ describe('notifications service', () => {
     }));
   });
 
+  it('schedules completion notification without channel id when channel creation fails', async () => {
+    isNativePlatformMock.mockReturnValue(true);
+    createChannelMock.mockRejectedValueOnce(new Error('channel unavailable'));
+
+    await notifyPomodoroComplete('Done', 'Body', 'clock_bell');
+
+    expect(scheduleMock).toHaveBeenCalledTimes(1);
+    const payload = scheduleMock.mock.calls[0][0];
+    expect(payload.notifications[0]).toEqual(expect.objectContaining({
+      title: 'Done',
+      body: 'Body',
+      sound: 'alarm_clock_bell.mp3',
+    }));
+    expect(payload.notifications[0]).not.toHaveProperty('channelId');
+  });
+
   it('logs native raw alarm diagnostics on app startup', () => {
     const consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation(() => undefined);
     isNativePlatformMock.mockReturnValue(true);
@@ -140,6 +171,15 @@ describe('notifications service', () => {
     consoleInfoSpy.mockRestore();
   });
 
+  it('does not log native diagnostics on web', () => {
+    const consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation(() => undefined);
+
+    logNativeNotificationDiagnosticsOnStart();
+
+    expect(consoleInfoSpy).not.toHaveBeenCalled();
+    consoleInfoSpy.mockRestore();
+  });
+
   it('requests browser notification permission on web when permission is default', async () => {
     const requestPermission = jest.fn().mockResolvedValue('granted');
     Object.defineProperty(window, 'Notification', {
@@ -152,6 +192,18 @@ describe('notifications service', () => {
     expect(requestPermission).toHaveBeenCalledTimes(1);
   });
 
+  it('does not request browser permission on web when permission is already decided', async () => {
+    const requestPermission = jest.fn();
+    Object.defineProperty(window, 'Notification', {
+      configurable: true,
+      value: { permission: 'denied', requestPermission },
+    });
+
+    await requestNotificationPermissions();
+
+    expect(requestPermission).not.toHaveBeenCalled();
+  });
+
   it('shows browser notification on web when permission is granted', async () => {
     const notificationConstructor = jest.fn();
     Object.defineProperty(window, 'Notification', {
@@ -162,6 +214,18 @@ describe('notifications service', () => {
     await notifyPomodoroComplete('Done', 'Body', 'clock_bell');
 
     expect(notificationConstructor).toHaveBeenCalledWith('Done', { body: 'Body' });
+  });
+
+  it('does not show browser notification when web permission is denied', async () => {
+    const notificationConstructor = jest.fn();
+    Object.defineProperty(window, 'Notification', {
+      configurable: true,
+      value: Object.assign(notificationConstructor, { permission: 'denied' }),
+    });
+
+    await notifyPomodoroComplete('Done', 'Body', 'clock_bell');
+
+    expect(notificationConstructor).not.toHaveBeenCalled();
   });
 
   it('cancels and clears pending native notifications', async () => {
@@ -179,12 +243,40 @@ describe('notifications service', () => {
     expect(getPendingMock).not.toHaveBeenCalled();
   });
 
+  it('still clears delivered notifications when there are no pending notifications', async () => {
+    isNativePlatformMock.mockReturnValue(true);
+    getPendingMock.mockResolvedValue({ notifications: [] });
+
+    await dismissNativeAlarmNotifications();
+
+    expect(cancelMock).not.toHaveBeenCalled();
+    expect(removeAllDeliveredNotificationsMock).toHaveBeenCalledTimes(1);
+  });
+
   it('clears the scheduled native phase-end notification', async () => {
     isNativePlatformMock.mockReturnValue(true);
 
     await clearScheduledPomodoroPhaseEndNotification(42);
 
     expect(cancelMock).toHaveBeenCalledWith({ notifications: [{ id: 42 }] });
+  });
+
+  it('returns early when clearing scheduled notification on web', async () => {
+    await clearScheduledPomodoroPhaseEndNotification(42);
+    expect(cancelMock).not.toHaveBeenCalled();
+  });
+
+  it('returns early when scheduling phase-end notifications on web', async () => {
+    await schedulePomodoroPhaseEndNotification(1234, Date.now(), 75_000, 'Done', 'Body', 'clock_bell');
+    expect(scheduleMock).not.toHaveBeenCalled();
+  });
+
+  it('returns early for schedule clear when no session id is provided', async () => {
+    isNativePlatformMock.mockReturnValue(true);
+
+    await clearScheduledPomodoroPhaseEndNotification(undefined);
+
+    expect(cancelMock).not.toHaveBeenCalled();
   });
 
   it('syncs an ongoing native notification for active timer state', async () => {
@@ -209,12 +301,32 @@ describe('notifications service', () => {
     }));
   });
 
+  it('syncs short and long break labels for active timer notification', async () => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-04-04T09:00:00Z'));
+    isNativePlatformMock.mockReturnValue(true);
+
+    await syncActivePomodoroNotification('short_break', 301);
+    await syncActivePomodoroNotification('long_break', 301);
+
+    expect(scheduleMock).toHaveBeenNthCalledWith(1, expect.objectContaining({
+      notifications: [expect.objectContaining({ body: 'Short break ends at 09:05' })],
+    }));
+    expect(scheduleMock).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      notifications: [expect.objectContaining({ body: 'Long break ends at 09:05' })],
+    }));
+  });
+
   it('clears the active timer notification on native platforms', async () => {
     isNativePlatformMock.mockReturnValue(true);
 
     await clearActivePomodoroNotification();
 
     expect(cancelMock).toHaveBeenCalledWith({ notifications: [{ id: 91100001 }] });
+  });
+
+  it('returns early when clearing active timer notification on web', async () => {
+    await clearActivePomodoroNotification();
+    expect(cancelMock).not.toHaveBeenCalled();
   });
 
   it('falls back to vibrate when haptics notification feedback fails', async () => {
@@ -243,6 +355,22 @@ describe('notifications service', () => {
 
     const src = AudioMock.mock.calls[0][0] as string;
     expect(src).toContain('/tasktrack/custom_alarm_sounds/alarm_clock_bell.mp3');
+  });
+
+  it('clamps audio volume and handles playback rejections', async () => {
+    const playMock = jest.fn().mockRejectedValue(new Error('autoplay blocked'));
+    const AudioMock = jest.fn().mockImplementation(() => ({
+      volume: 0,
+      play: playMock,
+    }));
+    Object.defineProperty(window, 'Audio', { configurable: true, value: AudioMock });
+
+    playAlarmTone('clock_bell', 2);
+    playAlarmTone('clock_bell', -1);
+    await Promise.resolve();
+
+    expect((AudioMock.mock.results[0].value as { volume: number }).volume).toBe(1);
+    expect((AudioMock.mock.results[1].value as { volume: number }).volume).toBe(0);
   });
 
   it('plays all alarm tone variants through the Audio element', () => {
@@ -289,5 +417,31 @@ describe('notifications service', () => {
 
     expect(player).toHaveBeenCalledTimes(1);
     expect(onComplete).toHaveBeenCalledTimes(1);
+  });
+
+  it('normalizes repeat count to at least one and keeps completion callback idempotent', () => {
+    const player = jest.fn();
+    const onComplete = jest.fn();
+
+    const stop = startRepeatingAlarm('digital', 0, 0.8, onComplete, player);
+    stop();
+    stop();
+
+    expect(player).toHaveBeenCalledTimes(1);
+    expect(onComplete).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses the default alarm player when no custom player is provided', () => {
+    jest.useFakeTimers();
+    const playMock = jest.fn().mockResolvedValue(undefined);
+    const AudioMock = jest.fn().mockImplementation(() => ({
+      volume: 0,
+      play: playMock,
+    }));
+    Object.defineProperty(window, 'Audio', { configurable: true, value: AudioMock });
+
+    startRepeatingAlarm('chirp', 1, 0.5);
+
+    expect(AudioMock).toHaveBeenCalledTimes(1);
   });
 });
