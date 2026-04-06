@@ -209,7 +209,7 @@ export const TaskBankScreen = () => {
         </Card>
       )}
       <Card>
-        <CardContent>
+        <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
           <Stack spacing={1.5}>
             <Button
               variant="outlined"
@@ -219,7 +219,7 @@ export const TaskBankScreen = () => {
             >
               {showSearchFilters ? 'Hide search and filters' : 'Show search and filters'}
             </Button>
-            <Collapse in={showSearchFilters}>
+            <Collapse in={showSearchFilters} sx={{ mt: 1 }}>
               <Stack spacing={1.5}>
                 <TextField
                   label="Search Task Bank"
@@ -425,6 +425,12 @@ export const TaskBankScreen = () => {
             value={form.lastCompletedOn}
             onChange={(event) => setForm((current) => ({ ...current, lastCompletedOn: event.target.value }))}
             InputLabelProps={{ shrink: true }}
+            sx={{
+              '& input[type="date"]::-webkit-calendar-picker-indicator': {
+                filter: 'invert(1)',
+                opacity: 0.85,
+              },
+            }}
           />
           <TextField
             margin="dense"

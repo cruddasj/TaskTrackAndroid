@@ -355,7 +355,8 @@ export const RoundsScreen = () => {
               </Typography>
             ) : (
               <Stack
-                direction="row"
+                direction={isActivePomodoroRound ? 'column' : 'row'}
+                alignItems="flex-start"
                 spacing={1}
                 flexWrap="wrap"
                 useFlexGap
