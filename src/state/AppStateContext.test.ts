@@ -1,5 +1,9 @@
 import { AppState } from '../types';
-import { shouldPlayInAppCompletionAlarm, shouldSendCompletionNotification } from './alarmPlayback';
+import {
+  shouldPlayInAppCompletionAlarm,
+  shouldSendCompletionNotification,
+  shouldSkipInAppAlarmAfterRecentResume,
+} from './alarmPlayback';
 import { getCarryHistoryForRound } from './rounds';
 import { getAssignmentRoundUpdate, getRevivedTaskRoundUpdate } from './taskRoundHistory';
 
@@ -57,6 +61,15 @@ describe('AppStateContext reducer round history behavior', () => {
     expect(shouldSendCompletionNotification(false, false)).toBe(true);
     expect(shouldSendCompletionNotification(true, true)).toBe(false);
     expect(shouldSendCompletionNotification(true, false)).toBe(true);
+  });
+
+  it('suppresses the in-app alarm briefly after native app resume', () => {
+    const resumeTimestamp = 1_000;
+
+    expect(shouldSkipInAppAlarmAfterRecentResume(true, resumeTimestamp, 1_500)).toBe(true);
+    expect(shouldSkipInAppAlarmAfterRecentResume(true, resumeTimestamp, 4_500)).toBe(false);
+    expect(shouldSkipInAppAlarmAfterRecentResume(false, resumeTimestamp, 1_500)).toBe(false);
+    expect(shouldSkipInAppAlarmAfterRecentResume(true, null, 1_500)).toBe(false);
   });
 
   it('unassigns revived tasks from done rounds', () => {
