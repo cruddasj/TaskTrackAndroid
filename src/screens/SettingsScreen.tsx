@@ -307,7 +307,14 @@ export const SettingsScreen = () => {
                 <MenuItem key={tone} value={tone}>{getAlarmToneLabel(tone)}</MenuItem>
               ))}
             </TextField>
-            <FormControl fullWidth>
+            <FormControl
+              fullWidth
+              sx={{
+                maxWidth: '99%',
+                px: 0.5,
+                boxSizing: 'border-box',
+              }}
+            >
               <Typography gutterBottom id="alarm-volume-slider-label" variant="body2">
                 Alarm volume ({alarmVolume}%)
               </Typography>
