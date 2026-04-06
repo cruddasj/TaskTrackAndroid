@@ -9,6 +9,7 @@ const ANDROID_CHANNEL_VERSION = 'v5';
 const POMODORO_CHANNEL_ID = 'pomodoro';
 const ACTIVE_TIMER_CHANNEL_ID = 'pomodoro-active-timer';
 const ACTIVE_TIMER_NOTIFICATION_ID = 91_100_001;
+const ANDROID_TIMER_SMALL_ICON = 'ic_stat_timer';
 const NATIVE_ALARM_FILE_EXTENSION = '.mp3';
 const getAlarmFileName = (tone: AlarmTone): string => `alarm_${tone}`;
 const getNativeAlarmSound = (tone: AlarmTone): string => `${getAlarmFileName(tone)}${NATIVE_ALARM_FILE_EXTENSION}`;
@@ -121,6 +122,7 @@ export const notifyPomodoroComplete = async (
       title,
       body,
       sound: getNativeAlarmSound(tone),
+      smallIcon: ANDROID_TIMER_SMALL_ICON,
       ...(channelId
         ? {
           channelId,
@@ -169,6 +171,7 @@ export const schedulePomodoroPhaseEndNotification = async (
     schedule: { at: fireAt, allowWhileIdle: true },
     channelId: channelId ?? POMODORO_CHANNEL_ID,
     sound: getNativeAlarmSound(tone),
+    smallIcon: ANDROID_TIMER_SMALL_ICON,
   };
 
   await LocalNotifications.cancel({ notifications: [{ id: sessionId }] });
@@ -202,6 +205,7 @@ export const syncActivePomodoroNotification = async (
         title: 'TaskTrack timer running',
         body: `${phaseLabel} ends at ${formatRemainingEndTime(remainingSeconds)}`,
         channelId: ACTIVE_TIMER_CHANNEL_ID,
+        smallIcon: ANDROID_TIMER_SMALL_ICON,
         ongoing: true,
         autoCancel: false,
       },
