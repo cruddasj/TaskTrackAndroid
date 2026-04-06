@@ -21,7 +21,11 @@ import { getRemainingSecondsFromClock } from './pomodoroClock';
 import { getTasksAfterRoundDeletion } from './roundDeletion';
 import { clearStoredState, createDemoState, loadState, saveState, seedState } from './storage';
 import { getAssignmentRoundUpdate, getRevivedTaskRoundUpdate } from './taskRoundHistory';
-import { shouldPlayInAppCompletionAlarm, shouldSendCompletionNotification } from './alarmPlayback';
+import {
+  shouldPlayInAppCompletionAlarm,
+  shouldSendCompletionNotification,
+  shouldSkipInAppAlarmAfterRecentResume,
+} from './alarmPlayback';
 import { getTodayKey } from '../utils';
 
 type NewTask = Omit<Task, 'id' | 'status' | 'plannedDate' | 'completedAt'> & { plannedDate?: string };
@@ -834,6 +838,8 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
   const [isAppActive, setIsAppActive] = useState(() => document.visibilityState !== 'hidden');
   const stopAlarmRef = useRef<(() => void) | null>(null);
   const handledCompletionAlarmKeyRef = useRef<string | null>(null);
+  const resumedAtRef = useRef<number | null>(null);
+  const lastAppActiveRef = useRef(document.visibilityState !== 'hidden');
   const activeNotificationSyncRef = useRef({
     isAppActive: document.visibilityState !== 'hidden',
     isRunning: state.pomodoro.isRunning,
@@ -853,16 +859,25 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
   useEffect(() => {
     const syncClock = () => dispatch({ type: 'SYNC_POMODORO_CLOCK', payload: { now: Date.now() } });
     syncClock();
+    const updateAppActiveState = (nextIsActive: boolean, syncOnActivate = false) => {
+      if (nextIsActive && !lastAppActiveRef.current) {
+        resumedAtRef.current = Date.now();
+      }
+      lastAppActiveRef.current = nextIsActive;
+      setIsAppActive(nextIsActive);
+      if (syncOnActivate && nextIsActive) {
+        syncClock();
+      }
+    };
 
     const onFocus = () => {
-      setIsAppActive(true);
-      syncClock();
+      updateAppActiveState(true, true);
     };
     const onBlur = () => {
-      setIsAppActive(false);
+      updateAppActiveState(false);
     };
     const onVisibilityChange = () => {
-      setIsAppActive(document.visibilityState !== 'hidden');
+      updateAppActiveState(document.visibilityState !== 'hidden');
     };
     window.addEventListener('focus', onFocus);
     window.addEventListener('blur', onBlur);
@@ -871,10 +886,7 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
     let isMounted = true;
     let removeNativeListener: (() => void) | undefined;
     CapacitorApp.addListener('appStateChange', ({ isActive }) => {
-      setIsAppActive(isActive);
-      if (isActive) {
-        syncClock();
-      }
+      updateAppActiveState(isActive, true);
     })
       .then((listener) => {
         if (!isMounted) {
@@ -997,7 +1009,9 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
     clearScheduledPomodoroPhaseEndNotification(state.pomodoro.sessionId).catch(() => undefined);
 
     stopAlarmRef.current?.();
-    if (shouldPlayInAppCompletionAlarm(Capacitor.isNativePlatform(), isAppActive)) {
+    const isNativePlatform = Capacitor.isNativePlatform();
+    const shouldSkipInAppAlarm = shouldSkipInAppAlarmAfterRecentResume(isNativePlatform, resumedAtRef.current, Date.now());
+    if (shouldPlayInAppCompletionAlarm(isNativePlatform, isAppActive) && !shouldSkipInAppAlarm) {
       setAlarmActive(true);
       stopAlarmRef.current = startRepeatingAlarm(state.settings.alarmTone, ALARM_REPEAT_COUNT, state.settings.alarmVolume / 100, () => {
         stopAlarmRef.current = null;
@@ -1007,6 +1021,7 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
       stopAlarmRef.current = null;
       setAlarmActive(false);
     }
+    resumedAtRef.current = null;
     if (state.pomodoro.phase !== 'work') {
       dispatch({ type: 'ADVANCE_POMODORO_PHASE' });
       return;
