@@ -280,6 +280,7 @@ export const FocusScreen = () => {
                       <Button
                         size="small"
                         variant="outlined"
+                        sx={{ whiteSpace: 'nowrap', flexShrink: 0 }}
                         startIcon={task.status === 'done' ? <CheckCircleRounded color="success" /> : <CircleOutlined color="disabled" />}
                         onClick={() => {
                           if (!canMarkTasksDone) {
