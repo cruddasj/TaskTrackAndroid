@@ -176,7 +176,10 @@ export const createDemoState = (state: AppState): AppState => {
         plannedDate: todayKey,
         scheduledTime: '09:00 AM',
         durationMinutes: state.settings.pomodoroMinutes,
-        taskIds: tasks.filter((task) => task.roundId === todayRound1Id).map((task) => task.id),
+        taskIds: tasks.reduce<string[]>((acc, task) => {
+          if (task.roundId === todayRound1Id) acc.push(task.id);
+          return acc;
+        }, []),
         status: 'active',
       },
       {
@@ -185,7 +188,10 @@ export const createDemoState = (state: AppState): AppState => {
         plannedDate: todayKey,
         scheduledTime: '10:00 AM',
         durationMinutes: state.settings.pomodoroMinutes,
-        taskIds: tasks.filter((task) => task.roundId === todayRound2Id).map((task) => task.id),
+        taskIds: tasks.reduce<string[]>((acc, task) => {
+          if (task.roundId === todayRound2Id) acc.push(task.id);
+          return acc;
+        }, []),
         status: 'upcoming',
       },
     ],

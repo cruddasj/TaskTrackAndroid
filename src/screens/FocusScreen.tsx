@@ -87,7 +87,10 @@ export const FocusScreen = () => {
 
   useEffect(() => {
     if (state.pomodoro.remainingSeconds !== 0 || state.pomodoro.isRunning || unfinishedRoundTasks.length === 0) return;
-    setConfirmedDoneIds(roundTasks.filter((task) => task.status === 'done').map((task) => task.id));
+    setConfirmedDoneIds(roundTasks.reduce<string[]>((acc, task) => {
+      if (task.status === 'done') acc.push(task.id);
+      return acc;
+    }, []));
     setSessionReviewOpen(true);
   }, [state.pomodoro.remainingSeconds, state.pomodoro.isRunning, unfinishedRoundTasks.length, roundTasks]);
 
@@ -114,7 +117,10 @@ export const FocusScreen = () => {
       return;
     }
 
-    setConfirmedDoneIds(roundTasks.filter((task) => task.status === 'done').map((task) => task.id));
+    setConfirmedDoneIds(roundTasks.reduce<string[]>((acc, task) => {
+      if (task.status === 'done') acc.push(task.id);
+      return acc;
+    }, []));
     setSessionReviewOpen(true);
   };
 
@@ -132,7 +138,10 @@ export const FocusScreen = () => {
       return;
     }
 
-    const carryForwardIds = roundTasks.filter((task) => !confirmedDoneSet.has(task.id)).map((task) => task.id);
+    const carryForwardIds = roundTasks.reduce<string[]>((acc, task) => {
+      if (!confirmedDoneSet.has(task.id)) acc.push(task.id);
+      return acc;
+    }, []);
     if (carryForwardIds.length > 0) {
       const nextRound = getCarryForwardRound(todayRounds, activeRound.id);
       const targetRoundId = nextRound?.id ?? createRound({ plannedDate: todayKey });
