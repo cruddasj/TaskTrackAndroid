@@ -1,5 +1,9 @@
 import DeleteOutlineRounded from '@mui/icons-material/DeleteOutlineRounded';
 import InfoOutlined from '@mui/icons-material/InfoOutlined';
+import Filter1 from '@mui/icons-material/Filter1';
+import Filter2 from '@mui/icons-material/Filter2';
+import Filter3 from '@mui/icons-material/Filter3';
+import Filter4 from '@mui/icons-material/Filter4';
 import DownloadRounded from '@mui/icons-material/DownloadRounded';
 import UploadFileRounded from '@mui/icons-material/UploadFileRounded';
 import VolumeUpRounded from '@mui/icons-material/VolumeUpRounded';
@@ -75,6 +79,7 @@ export const SettingsScreen = () => {
   const alphabeticalCategories = useMemo(() => getAlphabeticalCategories(state.categories), [state.categories]);
   const showBatteryOptimizationSettingsCard = batteryOptimizationEnabled !== null;
   const firstTimeWorkflowSteps = getFirstTimeWorkflowSteps();
+  const welcomeStepIcons = [Filter1, Filter2, Filter3, Filter4];
 
   useEffect(() => {
     let isMounted = true;
@@ -713,12 +718,16 @@ export const SettingsScreen = () => {
             <Typography color="text.secondary">
               You&apos;re all set, {state.userName.trim()}. Here&apos;s the quickest way to use TaskTrack day to day.
             </Typography>
-            {firstTimeWorkflowSteps.map((step) => (
-              <Alert key={step.title} severity="success" icon={<InfoOutlined fontSize="inherit" />} sx={guidanceAlertSx}>
+            {firstTimeWorkflowSteps.map((step, index) => {
+              const StepIcon = welcomeStepIcons[index];
+
+              return (
+                <Alert key={step.title} severity="success" icon={StepIcon ? <StepIcon fontSize="inherit" /> : <InfoOutlined fontSize="inherit" />} sx={guidanceAlertSx}>
                 <Typography variant="body2" fontWeight={700} mb={0.5}>{step.title}</Typography>
                 <Typography variant="body2">{step.description}</Typography>
               </Alert>
-            ))}
+              );
+            })}
             <Typography color="text.secondary">You can reopen similar hints anytime by enabling first-time guidance in Settings.</Typography>
           </Stack>
         </DialogContent>
