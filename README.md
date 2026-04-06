@@ -96,6 +96,8 @@ The app schedules native local notifications with sound references in the format
 
 Custom tone source files live in `public/custom_alarm_sounds/` and `npm run cap:sync` now copies supported files (`.mp3`, `.wav`, `.ogg`) into `android/app/src/main/res/raw/` automatically.
 
+For the ongoing timer/phase-complete notification status-bar glyph, `npm run cap:sync` also writes `android/app/src/main/res/drawable/ic_stat_timer.xml` (the Android `smallIcon` resource used by local notifications). This icon must live in a drawable resource directory (not `res/raw`).
+
 If you need to copy without a full sync, run `npm run cap:copy-alarm-sounds`.
 
 ## Android Pomodoro background reliability notes

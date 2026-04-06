@@ -93,6 +93,7 @@ describe('notifications service', () => {
       title: 'Done',
       body: 'Body',
       sound: 'alarm_clock_bell.mp3',
+      smallIcon: 'ic_stat_timer',
       schedule: expect.objectContaining({ allowWhileIdle: true }),
     }));
   });
@@ -136,6 +137,7 @@ describe('notifications service', () => {
       body: 'Body',
       channelId: 'round-finish-clock_bell-v5',
       sound: 'alarm_clock_bell.mp3',
+      smallIcon: 'ic_stat_timer',
     }));
   });
 
@@ -298,6 +300,7 @@ describe('notifications service', () => {
       ongoing: true,
       autoCancel: false,
       channelId: 'pomodoro-active-timer',
+      smallIcon: 'ic_stat_timer',
     }));
   });
 
