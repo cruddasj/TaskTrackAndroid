@@ -51,10 +51,10 @@ describe('getFirstTimeWorkflowSteps', () => {
 
     expect(steps).toHaveLength(4);
     expect(steps.map((step) => step.title)).toEqual([
-      '1) Dashboard: see what needs attention now',
-      '2) Task Bank: collect everything you might work on',
-      '3) Tasks: choose what you want to finish today',
-      '4) Rounds: group today\'s tasks for Pomodoro focus',
+      'Dashboard: see what needs attention now',
+      'Task Bank: collect everything you might work on',
+      'Tasks: choose what you want to finish today',
+      'Rounds: group today\'s tasks for Pomodoro focus',
     ]);
   });
 });
