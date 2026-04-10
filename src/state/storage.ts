@@ -72,9 +72,45 @@ const defaultState: AppState = {
     remainingSeconds: DEFAULT_POMODORO_MINUTES * 60,
     phase: 'work',
     completedWorkSessions: 0,
+    lastResetDateKey: getDateKey(),
     activeTaskId: undefined,
     activeRoundId: undefined,
   },
+};
+
+const getWorkPhaseResetSeconds = (state: Pick<AppState, 'settings'>): number => (
+  state.settings.debugModeEnabled ? state.settings.debugPomodoroSeconds : state.settings.pomodoroMinutes * 60
+);
+
+const normalizePomodoroForDay = (state: AppState): AppState['pomodoro'] => {
+  const todayKey = getDateKey();
+  const totalSeconds = getWorkPhaseResetSeconds(state);
+  const baselinePomodoro = {
+    ...state.pomodoro,
+    lastResetDateKey: state.pomodoro.lastResetDateKey ?? todayKey,
+  };
+
+  if (baselinePomodoro.lastResetDateKey === todayKey) {
+    return baselinePomodoro;
+  }
+
+  return {
+    ...baselinePomodoro,
+    sessionId: null,
+    startTime: null,
+    duration: totalSeconds * 1000,
+    remaining: null,
+    isPaused: false,
+    isRunning: false,
+    startedAt: null,
+    totalSeconds,
+    remainingSeconds: totalSeconds,
+    phase: 'work',
+    completedWorkSessions: 0,
+    activeTaskId: undefined,
+    activeRoundId: undefined,
+    lastResetDateKey: todayKey,
+  };
 };
 
 export const createDemoState = (state: AppState): AppState => {
@@ -231,7 +267,7 @@ export const normalizeState = (raw: Partial<AppState>): AppState => {
       recurrenceDayOfMonth: undefined,
     })) ??
     defaultState.taskBank;
-  return {
+  const normalizedState: AppState = {
     ...defaultState,
     ...raw,
     userName: raw.userName ?? '',
@@ -320,6 +356,11 @@ export const normalizeState = (raw: Partial<AppState>): AppState => {
       ...defaultState.pomodoro,
       ...raw.pomodoro,
     },
+  };
+
+  return {
+    ...normalizedState,
+    pomodoro: normalizePomodoroForDay(normalizedState),
   };
 };
 
