@@ -79,6 +79,7 @@ type Action =
   | { type: 'ABANDON_ACTIVE_ROUND' }
   | { type: 'SYNC_POMODORO_CLOCK'; payload?: { now?: number } }
   | { type: 'RESET_POMODORO' }
+  | { type: 'RESET_POMODORO_FOR_NEW_DAY'; payload: { todayKey: string } }
   | { type: 'ADVANCE_POMODORO_PHASE' };
 
 const createPomodoroSessionId = (): number => Math.floor(Date.now() % 2147483000);
@@ -93,6 +94,10 @@ const getPhaseSeconds = (state: AppState, phase: PomodoroState['phase']): number
   if (phase === 'long_break') return state.settings.longBreakMinutes * 60;
   return state.settings.pomodoroMinutes * 60;
 };
+
+const getWorkPhaseSeconds = (state: AppState): number => (
+  state.settings.debugModeEnabled ? state.settings.debugPomodoroSeconds : state.settings.pomodoroMinutes * 60
+);
 
 const reducer = (state: AppState, action: Action): AppState => {
   switch (action.type) {
@@ -728,6 +733,29 @@ const reducer = (state: AppState, action: Action): AppState => {
         },
       };
     }
+    case 'RESET_POMODORO_FOR_NEW_DAY': {
+      const totalSeconds = getWorkPhaseSeconds(state);
+      return {
+        ...state,
+        pomodoro: {
+          ...state.pomodoro,
+          sessionId: null,
+          startTime: null,
+          duration: totalSeconds * 1000,
+          remaining: null,
+          isPaused: false,
+          isRunning: false,
+          startedAt: null,
+          totalSeconds,
+          remainingSeconds: totalSeconds,
+          phase: 'work',
+          completedWorkSessions: 0,
+          activeTaskId: undefined,
+          activeRoundId: undefined,
+          lastResetDateKey: action.payload.todayKey,
+        },
+      };
+    }
     case 'ADVANCE_POMODORO_PHASE': {
       const completedWorkSessions =
         state.pomodoro.phase === 'work' ? state.pomodoro.completedWorkSessions + 1 : state.pomodoro.completedWorkSessions;
@@ -855,6 +883,20 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
   useEffect(() => {
     saveState(state);
   }, [state]);
+
+  useEffect(() => {
+    const checkDayRollover = () => {
+      const todayKey = getTodayKey();
+      if (state.pomodoro.lastResetDateKey === todayKey) return;
+      dispatch({ type: 'RESET_POMODORO_FOR_NEW_DAY', payload: { todayKey } });
+    };
+
+    checkDayRollover();
+    const interval = window.setInterval(checkDayRollover, 30_000);
+    return () => {
+      window.clearInterval(interval);
+    };
+  }, [state.pomodoro.lastResetDateKey]);
 
   useEffect(() => {
     const syncClock = () => dispatch({ type: 'SYNC_POMODORO_CLOCK', payload: { now: Date.now() } });

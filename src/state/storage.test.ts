@@ -166,6 +166,61 @@ describe('storage', () => {
     expect(loaded.settings.debugLongBreakSeconds).toBe(2);
   });
 
+  it('resets pomodoro progress when persisted state is from a previous day', () => {
+    localStorage.setItem(
+      'tasktrack.state.v2',
+      JSON.stringify({
+        settings: {
+          pomodoroMinutes: 30,
+        },
+        pomodoro: {
+          isRunning: true,
+          isPaused: true,
+          phase: 'long_break',
+          remainingSeconds: 12,
+          totalSeconds: 120,
+          completedWorkSessions: 7,
+          activeTaskId: 'task-1',
+          activeRoundId: 'round-1',
+          lastResetDateKey: '2026-01-01',
+        },
+      }),
+    );
+
+    const loaded = loadState();
+    expect(loaded.pomodoro.isRunning).toBe(false);
+    expect(loaded.pomodoro.isPaused).toBe(false);
+    expect(loaded.pomodoro.phase).toBe('work');
+    expect(loaded.pomodoro.remainingSeconds).toBe(30 * 60);
+    expect(loaded.pomodoro.totalSeconds).toBe(30 * 60);
+    expect(loaded.pomodoro.completedWorkSessions).toBe(0);
+    expect(loaded.pomodoro.activeTaskId).toBeUndefined();
+    expect(loaded.pomodoro.activeRoundId).toBeUndefined();
+    expect(loaded.pomodoro.lastResetDateKey).toBe(getTodayKey());
+  });
+
+  it('preserves pomodoro progress when persisted state is already for today', () => {
+    const todayKey = getTodayKey();
+    localStorage.setItem(
+      'tasktrack.state.v2',
+      JSON.stringify({
+        pomodoro: {
+          isRunning: true,
+          completedWorkSessions: 3,
+          lastResetDateKey: todayKey,
+          remainingSeconds: 200,
+          totalSeconds: 1500,
+        },
+      }),
+    );
+
+    const loaded = loadState();
+    expect(loaded.pomodoro.isRunning).toBe(true);
+    expect(loaded.pomodoro.completedWorkSessions).toBe(3);
+    expect(loaded.pomodoro.lastResetDateKey).toBe(todayKey);
+    expect(loaded.pomodoro.remainingSeconds).toBe(200);
+  });
+
   it('normalizes invalid session review timeout values', () => {
     localStorage.setItem(
       'tasktrack.state.v2',

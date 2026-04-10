@@ -49,6 +49,7 @@ export interface PomodoroState {
   totalSeconds: number;
   phase: 'work' | 'short_break' | 'long_break';
   completedWorkSessions: number;
+  lastResetDateKey?: string;
   activeTaskId?: string;
   activeRoundId?: string;
 }
