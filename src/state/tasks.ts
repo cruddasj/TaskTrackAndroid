@@ -4,6 +4,12 @@ const DAY_IN_MS = 24 * 60 * 60 * 1000;
 
 const normalizeTaskTitle = (title: string): string => title.trim().toLocaleLowerCase();
 const parseDayKeyToUtcMs = (dayKey: string): number => new Date(`${dayKey}T00:00:00.000Z`).getTime();
+const formatLocalDayKey = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 export const WEEKDAY_LABELS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] as const;
 export const WEEKDAY_SELECTION_ORDER = [1, 2, 3, 4, 5, 6, 0] as const;
@@ -155,7 +161,7 @@ export const suggestRecurringTaskBankItems = (
   const completionByTitle = getLastCompletionTimeByTitle(tasks);
   const normalizedCooldownDays = Math.max(1, Math.round(options.cooldownDays));
   const cooldownWindowMs = normalizedCooldownDays * DAY_IN_MS;
-  const planningTomorrow = todayStartMs - parseDayKeyToUtcMs(now.toISOString().slice(0, 10)) === DAY_IN_MS;
+  const planningTomorrow = todayStartMs - parseDayKeyToUtcMs(formatLocalDayKey(now)) === DAY_IN_MS;
   const previousDayKey = new Date(todayStartMs - DAY_IN_MS).toISOString().slice(0, 10);
 
   const plannedDateTasksTitles = new Set<string>();

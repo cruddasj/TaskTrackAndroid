@@ -1,25 +1,22 @@
-import { formatRemainingEndTime, normalizeOptionalDescription } from './utils';
+import { getDateKeyWithOffset, getTodayKey, getTomorrowKey } from './utils';
 
-describe('formatRemainingEndTime', () => {
-  it('formats the end time in 24-hour hh:mm', () => {
-    const now = new Date('2026-04-04T09:18:00');
+describe('date key helpers', () => {
+  it('uses local calendar components for today key', () => {
+    const baseDate = new Date(2026, 3, 10, 23, 45, 0, 0);
 
-    expect(formatRemainingEndTime(30 * 60, now)).toBe('09:48');
+    expect(getTodayKey(baseDate)).toBe('2026-04-10');
   });
 
-  it('clamps negative seconds to the current time', () => {
-    const now = new Date('2026-04-04T16:05:00');
+  it('computes date keys with offsets from a provided base date', () => {
+    const baseDate = new Date(2026, 3, 10, 23, 45, 0, 0);
 
-    expect(formatRemainingEndTime(-120, now)).toBe('16:05');
-  });
-});
-
-describe('normalizeOptionalDescription', () => {
-  it('returns an empty string when description is blank', () => {
-    expect(normalizeOptionalDescription('   ')).toBe('');
+    expect(getDateKeyWithOffset(1, baseDate)).toBe('2026-04-11');
+    expect(getTomorrowKey(baseDate)).toBe('2026-04-11');
   });
 
-  it('returns trimmed text when description is provided', () => {
-    expect(normalizeOptionalDescription('  Plan next sprint  ')).toBe('Plan next sprint');
+  it('handles month boundaries when computing tomorrow key', () => {
+    const baseDate = new Date(2026, 0, 31, 8, 0, 0, 0);
+
+    expect(getTomorrowKey(baseDate)).toBe('2026-02-01');
   });
 });

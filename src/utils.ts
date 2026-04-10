@@ -4,17 +4,22 @@ export const formatTime = (seconds: number): string => {
   return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
 };
 
-export const getTodayKey = (): string => {
-  return new Date().toISOString().slice(0, 10);
+const formatDateKey = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };
 
-export const getDateKeyWithOffset = (daysFromToday: number): string => {
-  const date = new Date();
+export const getTodayKey = (baseDate: Date = new Date()): string => formatDateKey(baseDate);
+
+export const getDateKeyWithOffset = (daysFromToday: number, baseDate: Date = new Date()): string => {
+  const date = new Date(baseDate);
   date.setDate(date.getDate() + daysFromToday);
-  return date.toISOString().slice(0, 10);
+  return formatDateKey(date);
 };
 
-export const getTomorrowKey = (): string => getDateKeyWithOffset(1);
+export const getTomorrowKey = (baseDate: Date = new Date()): string => getDateKeyWithOffset(1, baseDate);
 
 const timeFormat = new Intl.DateTimeFormat('en-GB', {
   hour: '2-digit',
