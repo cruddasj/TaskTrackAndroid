@@ -12,3 +12,25 @@ export const getWorkSkipOutcome = (options: {
 
   return 'open_review';
 };
+
+export const shouldPromptRoundCompletion = (options: {
+  isWorkPhase: boolean;
+  hasActivePomodoroRound: boolean;
+  hasRoundTasks: boolean;
+  unfinishedRoundTaskCount: number;
+  remainingSeconds: number;
+}): boolean => {
+  const {
+    isWorkPhase,
+    hasActivePomodoroRound,
+    hasRoundTasks,
+    unfinishedRoundTaskCount,
+    remainingSeconds,
+  } = options;
+
+  return isWorkPhase
+    && hasActivePomodoroRound
+    && hasRoundTasks
+    && unfinishedRoundTaskCount === 0
+    && remainingSeconds > 0;
+};

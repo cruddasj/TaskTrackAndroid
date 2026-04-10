@@ -15,7 +15,7 @@ import type { Task } from '../types';
 import { formatRemainingEndTime, formatTime, getTodayKey } from '../utils';
 import { canMarkTaskDone, getMarkTaskDoneBlockedMessage } from './focusTaskToggle';
 import { allowScreenSleep, keepScreenAwake } from '../services/keepAwake';
-import { getWorkSkipOutcome } from './focusSkip';
+import { getWorkSkipOutcome, shouldPromptRoundCompletion } from './focusSkip';
 
 export const FocusScreen = () => {
   const navigate = useNavigate();
@@ -35,6 +35,8 @@ export const FocusScreen = () => {
     clearSuccessMessage,
   } = useAppState();
   const [sessionReviewOpen, setSessionReviewOpen] = useState(false);
+  const [roundCompletionPromptOpen, setRoundCompletionPromptOpen] = useState(false);
+  const [roundCompletionDeferredSessionId, setRoundCompletionDeferredSessionId] = useState<number | null>(null);
   const [abandonRoundDialogOpen, setAbandonRoundDialogOpen] = useState(false);
   const [confirmedDoneIds, setConfirmedDoneIds] = useState<string[]>([]);
   const requestedRoundId = searchParams.get('roundId') ?? undefined;
@@ -50,6 +52,7 @@ export const FocusScreen = () => {
     [todayRounds, visibleRoundId],
   );
   const canAbandonActiveRound = !!activeRound && state.pomodoro.activeRoundId === activeRound.id;
+  const hasActivePomodoroRound = !!activeRound && state.pomodoro.activeRoundId === activeRound.id;
 
   const roundTasks = useMemo(() => {
     if (activeRound) {
@@ -93,6 +96,45 @@ export const FocusScreen = () => {
     }, []));
     setSessionReviewOpen(true);
   }, [state.pomodoro.remainingSeconds, state.pomodoro.isRunning, unfinishedRoundTasks.length, roundTasks]);
+
+  useEffect(() => {
+    if (!roundCompletionPromptOpen) return;
+    const timeoutId = window.setTimeout(() => {
+      skipPomodoro();
+      setRoundCompletionPromptOpen(false);
+    }, state.settings.sessionReviewGraceSeconds * 1000);
+    return () => window.clearTimeout(timeoutId);
+  }, [roundCompletionPromptOpen, skipPomodoro, state.settings.sessionReviewGraceSeconds]);
+
+  useEffect(() => {
+    const shouldShowCompletionPrompt = shouldPromptRoundCompletion({
+      isWorkPhase: state.pomodoro.phase === 'work',
+      hasActivePomodoroRound,
+      hasRoundTasks: roundTasks.length > 0,
+      unfinishedRoundTaskCount: unfinishedRoundTasks.length,
+      remainingSeconds: state.pomodoro.remainingSeconds,
+    });
+    const isDeferredForCurrentSession = state.pomodoro.sessionId !== null
+      && state.pomodoro.sessionId === roundCompletionDeferredSessionId;
+
+    if (!shouldShowCompletionPrompt) {
+      setRoundCompletionPromptOpen(false);
+      return;
+    }
+
+    if (!sessionReviewOpen && !isDeferredForCurrentSession) {
+      setRoundCompletionPromptOpen(true);
+    }
+  }, [
+    state.pomodoro.phase,
+    state.pomodoro.sessionId,
+    state.pomodoro.remainingSeconds,
+    hasActivePomodoroRound,
+    roundTasks.length,
+    unfinishedRoundTasks.length,
+    roundCompletionDeferredSessionId,
+    sessionReviewOpen,
+  ]);
 
   const handleSkip = () => {
     if (state.pomodoro.phase !== 'work') {
@@ -338,7 +380,7 @@ export const FocusScreen = () => {
         <DialogContent>
           <Typography color="text.secondary" mb={2}>
             Mark anything you completed. Tasks left unfinished will move into your next focus round automatically.
-            If you do not confirm in time, this step continues automatically based on your Settings timeout.
+            If you do not confirm in time, this step continues automatically based on your confirmation inactivity timeout in Settings.
           </Typography>
           <Stack spacing={1}>
             {roundTasks.map((task) => {
@@ -385,6 +427,36 @@ export const FocusScreen = () => {
             }}
           >
             Abandon round
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={roundCompletionPromptOpen} onClose={() => setRoundCompletionPromptOpen(false)} fullWidth maxWidth="xs">
+        <DialogTitle>All round tasks are done</DialogTitle>
+        <DialogContent>
+          <Typography color="text.secondary">
+            Do you want to complete this round now and start your break, or keep the timer running naturally?
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 3, display: 'flex', gap: 1.5 }}>
+          <Button
+            variant="outlined"
+            fullWidth
+            onClick={() => {
+              setRoundCompletionPromptOpen(false);
+              setRoundCompletionDeferredSessionId(state.pomodoro.sessionId);
+            }}
+          >
+            Let timer continue
+          </Button>
+          <Button
+            variant="contained"
+            fullWidth
+            onClick={() => {
+              skipPomodoro();
+              setRoundCompletionPromptOpen(false);
+            }}
+          >
+            Complete round now
           </Button>
         </DialogActions>
       </Dialog>

@@ -338,12 +338,12 @@ export const SettingsScreen = () => {
               </FormHelperText>
             </FormControl>
             <TextField
-              label="Task confirmation timeout (seconds)"
+              label="Confirmation inactivity timeout (seconds)"
               type="number"
               inputProps={{ min: 5, max: 600 }}
               value={sessionReviewGraceSeconds}
               onChange={(event) => setSessionReviewGraceSecondsInput(event.target.value)}
-              helperText="If you do not confirm completed tasks in time, the app starts your break automatically."
+              helperText="If a timer confirmation prompt is left idle, the app auto-continues after this timeout."
             />
             <Button
               variant="outlined"
