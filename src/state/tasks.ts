@@ -215,6 +215,7 @@ export const suggestRecurringTaskBankItems = (
       || (item.recurrenceDayOfMonth && item.recurrenceDayOfMonth >= 1 && item.recurrenceDayOfMonth <= 31),
     );
     const shouldApplyCooldown = options.cooldownEnabled && isWeeklyOrMonthlyRecurring;
+    const enforceRecurrencePeriodCompletionGate = !options.cooldownEnabled;
 
     if (shouldApplyCooldown && Number.isFinite(lastCompletedMs) && nowMs - lastCompletedMs < cooldownWindowMs) {
       return false;
@@ -226,13 +227,15 @@ export const suggestRecurringTaskBankItems = (
         const previousOccurrenceMs = getMostRecentWeekdayOccurrenceMs(uniqueRecurrenceWeekdays, false);
         const completedWithinCurrentWeekdayPeriod = Number.isFinite(lastCompletedMs)
           && previousOccurrenceMs !== null
-          && lastCompletedMs >= previousOccurrenceMs;
-        if (uniqueRecurrenceWeekdays.has(todayWeekday)) return !completedWithinCurrentWeekdayPeriod;
+          && lastCompletedMs > previousOccurrenceMs;
+        if (uniqueRecurrenceWeekdays.has(todayWeekday)) {
+          return !(enforceRecurrencePeriodCompletionGate && completedWithinCurrentWeekdayPeriod);
+        }
 
         if (!hasScheduledWeekdayInPastWeek(uniqueRecurrenceWeekdays)) return false;
         const lastAppearanceMs = recentAppearanceByTitle.get(titleKey);
         if (!(lastAppearanceMs === undefined || nowMs - lastAppearanceMs >= 7 * DAY_IN_MS)) return false;
-        return !completedWithinCurrentWeekdayPeriod;
+        return !(enforceRecurrencePeriodCompletionGate && completedWithinCurrentWeekdayPeriod);
       }
     }
 
