@@ -194,6 +194,17 @@ describe('suggestRecurringTaskBankItems', () => {
     expect(suggestions).toEqual([]);
   });
 
+  it('does not suggest items for tomorrow when already planned today', () => {
+    const taskBank = [
+      { id: 'tb1', title: 'Make bread', description: 'Bake sourdough', category: 'Household chores', estimateMinutes: 25, recurrenceDays: 1 },
+    ];
+    const tasks = [buildTask({ id: 'todo-1', title: 'Make bread', plannedDate: '2026-03-29' })];
+
+    const suggestions = suggestRecurringTaskBankItems(taskBank, tasks, '2026-03-30', cooldownOff, new Date('2026-03-29T12:00:00.000Z'));
+
+    expect(suggestions).toEqual([]);
+  });
+
   it('suggests weekday-recurring items when today matches the configured weekday', () => {
     const taskBank = [
       { id: 'tb1', title: 'Sunday reset', description: 'Plan next week', category: 'Personal projects', estimateMinutes: 30, recurrenceWeekdays: [0] },

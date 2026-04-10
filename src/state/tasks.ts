@@ -150,8 +150,11 @@ export const suggestRecurringTaskBankItems = (
   const completionByTitle = getLastCompletionTimeByTitle(tasks);
   const normalizedCooldownDays = Math.max(1, Math.round(options.cooldownDays));
   const cooldownWindowMs = normalizedCooldownDays * DAY_IN_MS;
+  const planningTomorrow = todayStartMs - parseDayKeyToUtcMs(now.toISOString().slice(0, 10)) === DAY_IN_MS;
+  const previousDayKey = new Date(todayStartMs - DAY_IN_MS).toISOString().slice(0, 10);
 
   const plannedDateTasksTitles = new Set<string>();
+  const previousDayTaskTitles = new Set<string>();
   const recentAppearanceByTitle = new Map<string, number>();
 
   tasks.forEach((task) => {
@@ -159,6 +162,9 @@ export const suggestRecurringTaskBankItems = (
     if (!titleKey) return;
     if (task.plannedDate === plannedDate) {
       plannedDateTasksTitles.add(titleKey);
+    }
+    if (planningTomorrow && task.plannedDate === previousDayKey) {
+      previousDayTaskTitles.add(titleKey);
     }
     const plannedMs = parseDayKeyToUtcMs(task.plannedDate);
     if (!Number.isFinite(plannedMs)) return;
@@ -187,6 +193,7 @@ export const suggestRecurringTaskBankItems = (
   return taskBank.filter((item) => {
     const titleKey = normalizeTaskTitle(item.title);
     if (plannedDateTasksTitles.has(titleKey)) return false;
+    if (planningTomorrow && previousDayTaskTitles.has(titleKey)) return false;
 
     const trackedLastCompletedMs = completionByTitle.get(titleKey);
     const manualLastCompletedMs = item.lastCompletedOn ? parseDayKeyToUtcMs(item.lastCompletedOn) : undefined;
