@@ -1,5 +1,5 @@
-import { getUnassignedTodoTasks, shouldShowCategoryGroupingSuggestion } from './roundsScreenVisibility';
-import { Task } from '../types';
+import { getRoundDisplaySections, getUnassignedTodoTasks, shouldShowCategoryGroupingSuggestion } from './roundsScreenVisibility';
+import { Round, Task } from '../types';
 
 const buildTask = (overrides: Partial<Task> = {}): Task => ({
   id: 'task-1',
@@ -9,6 +9,16 @@ const buildTask = (overrides: Partial<Task> = {}): Task => ({
   estimateMinutes: 25,
   status: 'todo',
   plannedDate: '2026-03-31',
+  ...overrides,
+});
+
+const buildRound = (overrides: Partial<Round> = {}): Round => ({
+  id: 'round-1',
+  title: 'Round 1',
+  scheduledTime: '',
+  durationMinutes: 25,
+  taskIds: [],
+  status: 'upcoming',
   ...overrides,
 });
 
@@ -54,5 +64,27 @@ describe('getUnassignedTodoTasks', () => {
       expect.objectContaining({ id: 'task-1' }),
       expect.objectContaining({ id: 'task-5' }),
     ]);
+  });
+});
+
+describe('getRoundDisplaySections', () => {
+  it('splits rounds into planned and completed sections while retaining original order', () => {
+    const rounds = [
+      buildRound({ id: 'round-1', title: 'Round 1', status: 'active' }),
+      buildRound({ id: 'round-2', title: 'Round 2', status: 'done' }),
+      buildRound({ id: 'round-3', title: 'Round 3', status: 'upcoming' }),
+      buildRound({ id: 'round-4', title: 'Round 4', status: 'done' }),
+    ];
+
+    expect(getRoundDisplaySections(rounds)).toEqual({
+      plannedRounds: [
+        expect.objectContaining({ id: 'round-1' }),
+        expect.objectContaining({ id: 'round-3' }),
+      ],
+      completedRounds: [
+        expect.objectContaining({ id: 'round-2' }),
+        expect.objectContaining({ id: 'round-4' }),
+      ],
+    });
   });
 });
