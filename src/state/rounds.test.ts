@@ -104,6 +104,25 @@ describe('round helpers', () => {
     ]);
   });
 
+  it('preserves completed round numbers and starts planned rounds after them', () => {
+    expect(
+      normalizeRoundTitlesForDate(
+        [
+          { id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'done', plannedDate: '2026-04-05' },
+          { id: 'r2', title: 'Round 2', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'done', plannedDate: '2026-04-05' },
+          { id: 'r3', title: 'Custom active', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'active', plannedDate: '2026-04-05' },
+          { id: 'r4', title: 'Custom upcoming', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'upcoming', plannedDate: '2026-04-05' },
+        ],
+        '2026-04-05',
+      ),
+    ).toEqual([
+      { id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'done', plannedDate: '2026-04-05' },
+      { id: 'r2', title: 'Round 2', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'done', plannedDate: '2026-04-05' },
+      { id: 'r3', title: 'Round 3', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'active', plannedDate: '2026-04-05' },
+      { id: 'r4', title: 'Round 4', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'upcoming', plannedDate: '2026-04-05' },
+    ]);
+  });
+
   it('creates an active round when all existing rounds are done', () => {
     const round = buildNewRound(
       [{ id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: ['t1'], status: 'done' }],
