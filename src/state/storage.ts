@@ -82,6 +82,10 @@ const getWorkPhaseResetSeconds = (state: Pick<AppState, 'settings'>): number => 
   state.settings.debugModeEnabled ? state.settings.debugPomodoroSeconds : state.settings.pomodoroMinutes * 60
 );
 
+const normalizeRoundPlacementPreference = (value: unknown): 'early' | 'late' | undefined => (
+  value === 'early' || value === 'late' ? value : undefined
+);
+
 const normalizePomodoroForDay = (state: AppState): AppState['pomodoro'] => {
   const todayKey = getDateKey();
   const totalSeconds = getWorkPhaseResetSeconds(state);
@@ -265,6 +269,7 @@ export const normalizeState = (raw: Partial<AppState>): AppState => {
       recurrenceDays: undefined,
       recurrenceWeekdays: undefined,
       recurrenceDayOfMonth: undefined,
+      roundPlacementPreference: normalizeRoundPlacementPreference(task.roundPlacementPreference),
     })) ??
     defaultState.taskBank;
   const normalizedState: AppState = {
@@ -276,6 +281,7 @@ export const normalizeState = (raw: Partial<AppState>): AppState => {
       raw.tasks?.map((task) => ({
         ...task,
         plannedDate: task.plannedDate ?? getDateKey(),
+        roundPlacementPreference: normalizeRoundPlacementPreference(task.roundPlacementPreference),
       })) ?? defaultState.tasks,
     taskBank: taskBank.map((item) => ({
       ...item,
@@ -299,6 +305,7 @@ export const normalizeState = (raw: Partial<AppState>): AppState => {
           && Math.round(item.recurrenceDayOfMonth) <= 31
           ? Math.round(item.recurrenceDayOfMonth)
           : undefined,
+      roundPlacementPreference: normalizeRoundPlacementPreference(item.roundPlacementPreference),
     })),
     rounds: raw.rounds?.map((round) => ({
       ...round,

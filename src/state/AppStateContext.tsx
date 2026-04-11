@@ -15,7 +15,7 @@ import {
 } from '../services/notifications';
 import { initializePushNotifications } from '../services/pushNotifications';
 import { AppState, PomodoroState, Round, Task, TaskBankItem } from '../types';
-import { buildNewRound, getDefaultRoundTitle, getRoundPlannedDate, isRoundCompleted, isRoundLockedByActivePomodoro, moveTaskInRound, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
+import { buildAutoRoundTaskGroups, buildNewRound, getDefaultRoundTitle, getRoundPlannedDate, isRoundCompleted, isRoundLockedByActivePomodoro, moveTaskInRound, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
 import { applyWorkPhaseRoundAdvance, getNextPomodoroPhase } from './pomodoroTransition';
 import { getRemainingSecondsFromClock } from './pomodoroClock';
 import { getTasksAfterRoundDeletion } from './roundDeletion';
@@ -334,34 +334,12 @@ const reducer = (state: AppState, action: Action): AppState => {
       );
       const completedRoundIds = new Set(rounds.completed.map((round) => round.id));
 
-      const tasksByCategory: Record<string, Task[]> = {};
-      const regroupableTaskIds = new Set<string>();
-
-      state.tasks.forEach((task) => {
-        if (task.plannedDate === todayKey && !(task.status === 'done' && task.roundId && completedRoundIds.has(task.roundId))) {
-          regroupableTaskIds.add(task.id);
-          tasksByCategory[task.category] = [...(tasksByCategory[task.category] ?? []), task];
-        }
-      });
+      const regroupableTasks = state.tasks.filter((task) =>
+        task.plannedDate === todayKey && !(task.status === 'done' && task.roundId && completedRoundIds.has(task.roundId)));
+      const regroupableTaskIds = new Set(regroupableTasks.map((task) => task.id));
 
       const pomodoroLimit = state.settings.pomodoroMinutes;
-      const groupedTaskIds: string[][] = [];
-
-      Object.keys(tasksByCategory).forEach((category) => {
-        let currentGroup: string[] = [];
-        let currentMinutes = 0;
-        tasksByCategory[category].forEach((task) => {
-          const wouldExceed = currentMinutes + task.estimateMinutes > pomodoroLimit && currentGroup.length > 0;
-          if (wouldExceed) {
-            groupedTaskIds.push(currentGroup);
-            currentGroup = [];
-            currentMinutes = 0;
-          }
-          currentGroup.push(task.id);
-          currentMinutes += task.estimateMinutes;
-        });
-        if (currentGroup.length > 0) groupedTaskIds.push(currentGroup);
-      });
+      const groupedTaskIds = buildAutoRoundTaskGroups(regroupableTasks, pomodoroLimit);
 
       if (groupedTaskIds.length === 0) return state;
 

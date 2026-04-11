@@ -1,4 +1,4 @@
-import { advanceActiveRound, buildNewRound, canDeleteRound, getCarryForwardRound, getCarryHistoryForRound, getDefaultRoundTitle, getHighestRoundSequence, getRoundEstimatedMinutes, getRoundTaskIdsForDisplay, getVisibleRoundId, hasEmptyRoundWithoutTasks, hasRoundsWithAssignedTasks, isRoundCompleted, isRoundLockedByActivePomodoro, moveTaskInRound, removeRoundAndNormalizeStatuses, sortRoundsChronologically, unassignTasksFromRound } from './rounds';
+import { advanceActiveRound, buildAutoRoundTaskGroups, buildNewRound, canDeleteRound, getCarryForwardRound, getCarryHistoryForRound, getDefaultRoundTitle, getHighestRoundSequence, getRoundEstimatedMinutes, getRoundTaskIdsForDisplay, getVisibleRoundId, hasEmptyRoundWithoutTasks, hasRoundsWithAssignedTasks, isRoundCompleted, isRoundLockedByActivePomodoro, moveTaskInRound, removeRoundAndNormalizeStatuses, sortRoundsChronologically, unassignTasksFromRound } from './rounds';
 
 describe('round helpers', () => {
   it('detects when a round has no tasks assigned', () => {
@@ -341,6 +341,28 @@ describe('round helpers', () => {
         'r1',
       ),
     ).toEqual({ carriedFromRoundId: undefined, carriedToRoundId: 'r2' });
+  });
+
+
+  it('prioritizes early tasks first and late tasks last when auto-grouping rounds', () => {
+    const groups = buildAutoRoundTaskGroups([
+      { id: 't3', category: 'Admin', estimateMinutes: 10, roundPlacementPreference: 'late' },
+      { id: 't2', category: 'Deep Work', estimateMinutes: 10 },
+      { id: 't1', category: 'Admin', estimateMinutes: 10, roundPlacementPreference: 'early' },
+    ], 25);
+
+    expect(groups[0]).toEqual(['t1']);
+    expect(groups[groups.length - 1]).toEqual(['t3']);
+  });
+
+  it('fills each round close to the pomodoro limit without going over', () => {
+    expect(
+      buildAutoRoundTaskGroups([
+        { id: 't1', category: 'Deep Work', estimateMinutes: 15 },
+        { id: 't2', category: 'Deep Work', estimateMinutes: 10 },
+        { id: 't3', category: 'Deep Work', estimateMinutes: 10 },
+      ], 25),
+    ).toEqual([['t1', 't2'], ['t3']]);
   });
 
   it('moves a round task up when a prior task exists', () => {
