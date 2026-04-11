@@ -15,7 +15,7 @@ import {
 } from '../services/notifications';
 import { initializePushNotifications } from '../services/pushNotifications';
 import { AppState, PomodoroState, Round, Task, TaskBankItem } from '../types';
-import { buildAutoRoundTaskGroups, buildNewRound, getDefaultRoundTitle, getRoundPlannedDate, isRoundCompleted, isRoundLockedByActivePomodoro, moveTaskInRound, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
+import { buildAutoRoundTaskGroups, buildNewRound, getDefaultRoundTitle, getRoundPlannedDate, isRoundCompleted, isRoundLockedByActivePomodoro, moveTaskInRound, normalizeRoundTitlesForDate, removeRoundAndNormalizeStatuses, unassignTasksFromRound } from './rounds';
 import { applyWorkPhaseRoundAdvance, getNextPomodoroPhase } from './pomodoroTransition';
 import { getRemainingSecondsFromClock } from './pomodoroClock';
 import { getTasksAfterRoundDeletion } from './roundDeletion';
@@ -35,7 +35,7 @@ type EditableTask = Omit<Task, 'status'>;
 type NewTaskBankItem = Omit<TaskBankItem, 'id'>;
 type EditableTaskBankItem = TaskBankItem;
 type NewRound = Round;
-type NewRoundOptions = { title?: string; taskIds?: string[]; plannedDate?: string };
+type NewRoundOptions = { taskIds?: string[]; plannedDate?: string };
 const ALARM_REPEAT_COUNT = 1;
 
 type Action =
@@ -51,7 +51,6 @@ type Action =
   | { type: 'ADD_CATEGORY'; payload: { category: string } }
   | { type: 'DELETE_CATEGORY'; payload: { category: string } }
   | { type: 'ADD_ROUND'; payload: NewRound }
-  | { type: 'UPDATE_ROUND_TITLE'; payload: { roundId: string; title: string } }
   | { type: 'DELETE_ROUND'; payload: { roundId: string } }
   | { type: 'ASSIGN_TASKS_TO_ROUND'; payload: { roundId: string; taskIds: string[] } }
   | { type: 'MOVE_TASK_IN_ROUND'; payload: { roundId: string; taskId: string; direction: 'up' | 'down' } }
@@ -206,9 +205,8 @@ const reducer = (state: AppState, action: Action): AppState => {
       const roundPlannedDate = action.payload.plannedDate ?? getTodayKey();
       const hasOpenRound = state.rounds.some((round) => getRoundPlannedDate(round) === roundPlannedDate && round.status !== 'done');
       const assignedTaskIds = new Set(action.payload.taskIds);
-      return {
-        ...state,
-        rounds: [
+      const rounds = normalizeRoundTitlesForDate(
+        [
           ...state.rounds,
           {
             ...action.payload,
@@ -216,25 +214,26 @@ const reducer = (state: AppState, action: Action): AppState => {
             status: hasOpenRound ? 'upcoming' : 'active',
           },
         ],
+        roundPlannedDate,
+      );
+      return {
+        ...state,
+        rounds,
         tasks: state.tasks.map((task) =>
           assignedTaskIds.has(task.id) && task.plannedDate === roundPlannedDate ? { ...task, roundId: action.payload.id } : task,
         ),
       };
     }
-    case 'UPDATE_ROUND_TITLE':
-      return {
-        ...state,
-        rounds: state.rounds.map((round) =>
-          round.id === action.payload.roundId ? { ...round, title: action.payload.title } : round,
-        ),
-      };
     case 'DELETE_ROUND': {
       const roundId = action.payload.roundId;
       const targetRound = state.rounds.find((round) => round.id === roundId);
+      if (!targetRound) {
+        return state;
+      }
       if (isRoundLockedByActivePomodoro(roundId, state.pomodoro.activeRoundId)) {
         return state;
       }
-      const rounds = removeRoundAndNormalizeStatuses(state.rounds, roundId);
+      const rounds = normalizeRoundTitlesForDate(removeRoundAndNormalizeStatuses(state.rounds, roundId), getRoundPlannedDate(targetRound));
       const activeRoundId = state.pomodoro.activeRoundId === roundId ? undefined : state.pomodoro.activeRoundId;
       const reviveCompletedTasks = state.settings.debugModeEnabled && targetRound?.status === 'done';
       return {
@@ -251,10 +250,12 @@ const reducer = (state: AppState, action: Action): AppState => {
       if (!state.pomodoro.activeRoundId) {
         return state;
       }
+      const activeRound = state.rounds.find((round) => round.id === state.pomodoro.activeRoundId);
+      const activeRoundDate = activeRound ? getRoundPlannedDate(activeRound) : getTodayKey();
       const totalSeconds = state.settings.pomodoroMinutes * 60;
       return {
         ...state,
-        rounds: removeRoundAndNormalizeStatuses(state.rounds, state.pomodoro.activeRoundId),
+        rounds: normalizeRoundTitlesForDate(removeRoundAndNormalizeStatuses(state.rounds, state.pomodoro.activeRoundId), activeRoundDate),
         tasks: unassignTasksFromRound(state.tasks, state.pomodoro.activeRoundId),
         pomodoro: {
           ...state.pomodoro,
@@ -367,7 +368,7 @@ const reducer = (state: AppState, action: Action): AppState => {
 
       return {
         ...state,
-        rounds: [...rounds.untouched, ...nextOpenRounds, ...rounds.completed],
+        rounds: normalizeRoundTitlesForDate([...rounds.untouched, ...nextOpenRounds, ...rounds.completed], todayKey),
         tasks: state.tasks.map((task) => {
           if (!regroupableTaskIds.has(task.id)) return task;
           if (task.plannedDate !== todayKey) return task;
@@ -387,13 +388,17 @@ const reducer = (state: AppState, action: Action): AppState => {
       const [moving] = rounds.splice(index, 1);
       rounds.splice(targetIndex, 0, moving);
       const firstOpenRoundId = rounds.find((round) => round.status !== 'done' && getRoundPlannedDate(round) === movingRoundDate)?.id;
-      return {
-        ...state,
-        rounds: rounds.map((round) =>
+      const normalizedRounds = normalizeRoundTitlesForDate(
+        rounds.map((round) =>
           round.status === 'done' || getRoundPlannedDate(round) !== movingRoundDate
             ? round
             : { ...round, status: round.id === firstOpenRoundId ? 'active' : 'upcoming' },
         ),
+        movingRoundDate,
+      );
+      return {
+        ...state,
+        rounds: normalizedRounds,
       };
     }
     case 'SET_POMODORO_MINUTES': {
@@ -787,7 +792,6 @@ interface AppStateContextValue {
   addCategory: (category: string) => void;
   deleteCategory: (category: string) => void;
   createRound: (options?: NewRoundOptions) => string;
-  updateRoundTitle: (roundId: string, title: string) => void;
   deleteRound: (roundId: string) => void;
   assignTasksToRound: (roundId: string, taskIds: string[]) => void;
   moveTaskInRound: (roundId: string, taskId: string, direction: 'up' | 'down') => void;
@@ -1119,8 +1123,6 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
         });
         return newRound.id;
       },
-      updateRoundTitle: (roundId, title) =>
-        dispatch({ type: 'UPDATE_ROUND_TITLE', payload: { roundId, title } }),
       deleteRound: (roundId) => dispatch({ type: 'DELETE_ROUND', payload: { roundId } }),
       assignTasksToRound: (roundId, taskIds) => dispatch({ type: 'ASSIGN_TASKS_TO_ROUND', payload: { roundId, taskIds } }),
       moveTaskInRound: (roundId, taskId, direction) => dispatch({ type: 'MOVE_TASK_IN_ROUND', payload: { roundId, taskId, direction } }),
