@@ -1,6 +1,7 @@
 import { AlarmTone } from './constants/alarmTones';
 
 export type TaskStatus = 'todo' | 'in_progress' | 'done';
+export type RoundPlacementPreference = 'early' | 'late';
 
 export interface Task {
   id: string;
@@ -13,6 +14,7 @@ export interface Task {
   completedAt?: string;
   roundId?: string;
   previousRoundIds?: string[];
+  roundPlacementPreference?: RoundPlacementPreference;
 }
 
 export interface TaskBankItem {
@@ -25,6 +27,7 @@ export interface TaskBankItem {
   recurrenceDays?: number;
   recurrenceWeekdays?: number[];
   recurrenceDayOfMonth?: number;
+  roundPlacementPreference?: RoundPlacementPreference;
 }
 
 export interface Round {

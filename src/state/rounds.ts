@@ -1,4 +1,4 @@
-import { Round, Task } from '../types';
+import { Round, RoundPlacementPreference, Task } from '../types';
 import { getTodayKey } from '../utils';
 
 export const getRoundPlannedDate = (round: Round): string => round.plannedDate ?? getTodayKey();
@@ -188,4 +188,52 @@ export const getVisibleRoundId = (
     return requestedRoundId;
   }
   return rounds.find((round) => round.status === 'active')?.id;
+};
+
+
+type RoundGroupingTask = Pick<Task, 'id' | 'category' | 'estimateMinutes' | 'roundPlacementPreference'>;
+
+const getPreferencePriority = (preference?: RoundPlacementPreference): number => {
+  if (preference === 'early') return 0;
+  if (preference === 'late') return 2;
+  return 1;
+};
+
+const sortTasksForAutoGrouping = (tasks: RoundGroupingTask[]): RoundGroupingTask[] =>
+  [...tasks].sort((left, right) => {
+    const preferenceOrder = getPreferencePriority(left.roundPlacementPreference) - getPreferencePriority(right.roundPlacementPreference);
+    if (preferenceOrder !== 0) return preferenceOrder;
+    if (left.category !== right.category) {
+      return left.category.localeCompare(right.category, undefined, { sensitivity: 'base' });
+    }
+    return left.id.localeCompare(right.id, undefined, { sensitivity: 'base' });
+  });
+
+export const buildAutoRoundTaskGroups = (tasks: RoundGroupingTask[], pomodoroLimit: number): string[][] => {
+  if (pomodoroLimit <= 0) return [];
+
+  const sortedTasks = sortTasksForAutoGrouping(tasks);
+  const groupedTaskIds: string[][] = [];
+  let currentGroup: string[] = [];
+  let currentMinutes = 0;
+  let previousCategory: string | undefined;
+
+  sortedTasks.forEach((task) => {
+    const startsNewCategory = Boolean(currentGroup.length > 0 && previousCategory && previousCategory !== task.category);
+    const wouldExceedLimit = currentGroup.length > 0 && currentMinutes + task.estimateMinutes > pomodoroLimit;
+
+    if (startsNewCategory || wouldExceedLimit) {
+      groupedTaskIds.push(currentGroup);
+      currentGroup = [];
+      currentMinutes = 0;
+    }
+
+    currentGroup.push(task.id);
+    currentMinutes += task.estimateMinutes;
+    previousCategory = task.category;
+  });
+
+  if (currentGroup.length > 0) groupedTaskIds.push(currentGroup);
+
+  return groupedTaskIds;
 };

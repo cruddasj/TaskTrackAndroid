@@ -33,6 +33,7 @@ interface TaskFormState {
   recurrenceDays: string;
   recurrenceWeekdays: number[];
   recurrenceDayOfMonth: string;
+  roundPlacementPreference: 'none' | 'early' | 'late';
 }
 
 const emptyForm: TaskFormState = {
@@ -45,6 +46,7 @@ const emptyForm: TaskFormState = {
   recurrenceDays: '',
   recurrenceWeekdays: [],
   recurrenceDayOfMonth: '',
+  roundPlacementPreference: 'none',
 };
 
 const lastCompletedDateFormat = new Intl.DateTimeFormat(undefined, {
@@ -144,6 +146,7 @@ export const TaskBankScreen = () => {
       recurrenceDays: task.recurrenceDays ? String(task.recurrenceDays) : '',
       recurrenceWeekdays: task.recurrenceWeekdays ?? [],
       recurrenceDayOfMonth: task.recurrenceDayOfMonth ? String(task.recurrenceDayOfMonth) : '',
+      roundPlacementPreference: task.roundPlacementPreference ?? 'none',
     });
     setOpen(true);
   };
@@ -178,6 +181,7 @@ export const TaskBankScreen = () => {
       form.recurrenceMode === 'monthDay' && Number.isFinite(recurrenceDayOfMonth) && recurrenceDayOfMonth >= 1 && recurrenceDayOfMonth <= 31
         ? Math.round(recurrenceDayOfMonth)
         : undefined;
+    const roundPlacementPreference = form.roundPlacementPreference === 'none' ? undefined : form.roundPlacementPreference;
 
     if (!title || !Number.isFinite(estimateMinutes) || estimateMinutes <= 0) return;
     if (form.recurrenceMode === 'weekdays' && (!normalizedRecurrenceWeekdays || normalizedRecurrenceWeekdays.length === 0)) return;
@@ -194,6 +198,7 @@ export const TaskBankScreen = () => {
         recurrenceDays: normalizedRecurrenceDays,
         recurrenceWeekdays: normalizedRecurrenceWeekdays,
         recurrenceDayOfMonth: normalizedRecurrenceDayOfMonth,
+        roundPlacementPreference,
       });
       showSuccessMessage('Task Bank item updated.');
     } else {
@@ -206,6 +211,7 @@ export const TaskBankScreen = () => {
         recurrenceDays: normalizedRecurrenceDays,
         recurrenceWeekdays: normalizedRecurrenceWeekdays,
         recurrenceDayOfMonth: normalizedRecurrenceDayOfMonth,
+        roundPlacementPreference,
       });
       showSuccessMessage('Task Bank item created.');
     }
@@ -394,6 +400,8 @@ export const TaskBankScreen = () => {
               <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
                 <Chip label={task.category} />
                 <Chip label={`${task.estimateMinutes} min`} variant="outlined" />
+                {task.roundPlacementPreference === 'early' && <Chip label="Prefer earlier rounds" variant="outlined" />}
+                {task.roundPlacementPreference === 'late' && <Chip label="Prefer later rounds" variant="outlined" />}
                 {task.recurrenceDays && <Chip label={`Every ${task.recurrenceDays} days`} variant="outlined" />}
                 {task.recurrenceWeekdays && task.recurrenceWeekdays.length > 0 && (
                   <Chip label={`On ${task.recurrenceWeekdays.map((weekday) => WEEKDAY_LABELS[weekday]).join(', ')}`} variant="outlined" />
@@ -515,6 +523,20 @@ export const TaskBankScreen = () => {
             value={form.estimateMinutes}
             onChange={(event) => setForm((current) => ({ ...current, estimateMinutes: event.target.value }))}
           />
+          <TextField
+            margin="dense"
+            label="Round placement preference"
+            fullWidth
+            select
+            value={form.roundPlacementPreference}
+            onChange={(event) =>
+              setForm((current) => ({ ...current, roundPlacementPreference: event.target.value as TaskFormState['roundPlacementPreference'] }))
+            }
+          >
+            <MenuItem value="none">No preference</MenuItem>
+            <MenuItem value="early">Prefer earlier rounds</MenuItem>
+            <MenuItem value="late">Prefer later rounds</MenuItem>
+          </TextField>
           <TextField
             margin="dense"
             label="Last completed date (optional)"

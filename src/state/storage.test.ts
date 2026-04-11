@@ -284,6 +284,27 @@ describe('storage', () => {
     expect(loadState().tasks[0].plannedDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 
+  it('normalizes invalid round placement preferences on tasks', () => {
+    localStorage.setItem(
+      'tasktrack.state.v2',
+      JSON.stringify({
+        tasks: [
+          {
+            id: 'legacy-1',
+            title: 'Legacy task',
+            description: 'Migrated',
+            category: 'Uncategorized',
+            estimateMinutes: 25,
+            status: 'todo',
+            roundPlacementPreference: 'middle',
+          },
+        ],
+      }),
+    );
+
+    expect(loadState().tasks[0].roundPlacementPreference).toBeUndefined();
+  });
+
   it('normalizes invalid task bank recurrence values', () => {
     localStorage.setItem(
       'tasktrack.state.v2',
@@ -309,6 +330,7 @@ describe('storage', () => {
             recurrenceDays: 2.7,
             recurrenceWeekdays: [2, 2, 7, -1],
             recurrenceDayOfMonth: 15.2,
+            roundPlacementPreference: 'middle',
           },
         ],
       }),
@@ -322,6 +344,7 @@ describe('storage', () => {
     expect(loaded.taskBank[1].recurrenceDays).toBe(3);
     expect(loaded.taskBank[1].recurrenceWeekdays).toEqual([2]);
     expect(loaded.taskBank[1].recurrenceDayOfMonth).toBe(15);
+    expect(loaded.taskBank[1].roundPlacementPreference).toBeUndefined();
   });
 
   it('sorts and deduplicates valid recurrence weekdays and adds missing round plannedDate', () => {
