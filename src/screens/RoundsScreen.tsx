@@ -4,7 +4,6 @@ import AddRounded from '@mui/icons-material/AddRounded';
 import ArrowDropDownRounded from '@mui/icons-material/ArrowDropDownRounded';
 import ArrowDropUpRounded from '@mui/icons-material/ArrowDropUpRounded';
 import DeleteOutlineRounded from '@mui/icons-material/DeleteOutlineRounded';
-import EditOutlined from '@mui/icons-material/EditOutlined';
 import WarningAmberRounded from '@mui/icons-material/WarningAmberRounded';
 import {
   Alert,
@@ -24,7 +23,6 @@ import {
   Select,
   SelectChangeEvent,
   Stack,
-  TextField,
   Typography,
 } from '@mui/material';
 import { useMemo, useState } from 'react';
@@ -35,7 +33,6 @@ import {
   canDeleteRound,
   getCarryHistoryForRound,
   getRoundPlannedDate,
-  getDefaultRoundTitle,
   getRoundEstimatedMinutes,
   getRoundTaskIdsForDisplay,
   hasEmptyRoundWithoutTasks,
@@ -46,14 +43,11 @@ import { getTodayKey, getTomorrowKey } from '../utils';
 import { getRoundDisplaySections, getUnassignedTodoTasks, shouldShowCategoryGroupingSuggestion } from './roundsScreenVisibility';
 
 export const RoundsScreen = () => {
-  const { state, assignTasksToRound, autoGroupTasksForDate, moveRound, moveTaskInRound, createRound, deleteRound, updateRoundTitle, showSuccessMessage } = useAppState();
+  const { state, assignTasksToRound, autoGroupTasksForDate, moveRound, moveTaskInRound, createRound, deleteRound, showSuccessMessage } = useAppState();
   const [editingRoundId, setEditingRoundId] = useState<string | null>(null);
   const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
   const [createRoundOpen, setCreateRoundOpen] = useState(false);
-  const [newRoundTitle, setNewRoundTitle] = useState('');
   const [newRoundTaskIds, setNewRoundTaskIds] = useState<string[]>([]);
-  const [renameRoundId, setRenameRoundId] = useState<string | null>(null);
-  const [renameRoundTitle, setRenameRoundTitle] = useState('');
   const [roundPendingDelete, setRoundPendingDelete] = useState<{ id: string; title: string } | null>(null);
   const [roundCreationValidationMessage, setRoundCreationValidationMessage] = useState<string | null>(null);
   const todayKey = getTodayKey();
@@ -124,7 +118,6 @@ export const RoundsScreen = () => {
       return;
     }
 
-    setNewRoundTitle(getDefaultRoundTitle(orderedRounds));
     setNewRoundTaskIds([]);
     setCreateRoundOpen(true);
     setRoundCreationValidationMessage(null);
@@ -132,26 +125,10 @@ export const RoundsScreen = () => {
     setSelectedTaskIds([]);
   };
   const handleCreateRound = () => {
-    const resolvedTitle = newRoundTitle.trim() || getDefaultRoundTitle(orderedRounds);
-    createRound({ title: resolvedTitle, taskIds: newRoundTaskIds, plannedDate: selectedDateKey });
+    createRound({ taskIds: newRoundTaskIds, plannedDate: selectedDateKey });
     setCreateRoundOpen(false);
-    setNewRoundTitle('');
     setNewRoundTaskIds([]);
     showSuccessMessage('New round created.');
-  };
-
-  const openRenameDialog = (roundId: string, title: string) => {
-    setRenameRoundId(roundId);
-    setRenameRoundTitle(title);
-  };
-
-  const saveRename = () => {
-    const nextTitle = renameRoundTitle.trim();
-    if (!renameRoundId || !nextTitle) return;
-    updateRoundTitle(renameRoundId, nextTitle);
-    setRenameRoundId(null);
-    setRenameRoundTitle('');
-    showSuccessMessage('Round name updated.');
   };
 
   const confirmDeleteRound = () => {
@@ -214,9 +191,6 @@ export const RoundsScreen = () => {
             <Stack direction="row" spacing={0.25}>
               {round.status !== 'done' && (
                 <>
-                  <IconButton size="small" onClick={() => openRenameDialog(round.id, round.title)} aria-label={`rename-round-${round.id}`}>
-                    <EditOutlined fontSize="small" />
-                  </IconButton>
                   <IconButton size="small" onClick={() => moveRound(round.id, 'up')} aria-label={`move-round-up-${round.id}`}>
                     <ArrowDropUpRounded />
                   </IconButton>
@@ -457,13 +431,6 @@ export const RoundsScreen = () => {
       <Dialog open={createRoundOpen} onClose={() => setCreateRoundOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>Create round</DialogTitle>
         <DialogContent>
-          <TextField
-            margin="dense"
-            label="Round name"
-            fullWidth
-            value={newRoundTitle}
-            onChange={(event) => setNewRoundTitle(event.target.value)}
-          />
           <Typography variant="subtitle2" mt={1.5} mb={0.5}>Assign tasks now (optional)</Typography>
           <Stack>
             {unassignedTasks.length === 0 && (
@@ -490,24 +457,6 @@ export const RoundsScreen = () => {
         <DialogActions>
           <Button onClick={() => setCreateRoundOpen(false)}>Cancel</Button>
           <Button variant="contained" onClick={handleCreateRound}>Create round</Button>
-        </DialogActions>
-      </Dialog>
-      <Dialog open={!!renameRoundId} onClose={() => setRenameRoundId(null)} fullWidth maxWidth="xs">
-        <DialogTitle>Rename round</DialogTitle>
-        <DialogContent>
-          <TextField
-            margin="dense"
-            label="Round name"
-            fullWidth
-            value={renameRoundTitle}
-            onChange={(event) => setRenameRoundTitle(event.target.value)}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setRenameRoundId(null)}>Cancel</Button>
-          <Button variant="contained" onClick={saveRename} disabled={!renameRoundTitle.trim()}>
-            Save name
-          </Button>
         </DialogActions>
       </Dialog>
       <Dialog open={!!roundPendingDelete} onClose={() => setRoundPendingDelete(null)} fullWidth maxWidth="xs">

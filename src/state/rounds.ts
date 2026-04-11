@@ -74,6 +74,18 @@ const getNextRoundSequence = (rounds: Round[], plannedDate?: string): number => 
 
 export const getDefaultRoundTitle = (rounds: Round[], plannedDate?: string): string => `Round ${getNextRoundSequence(rounds, plannedDate)}`;
 
+export const normalizeRoundTitlesForDate = (rounds: Round[], plannedDate: string): Round[] => {
+  let sequence = 0;
+  return rounds.map((round) => {
+    if (getRoundPlannedDate(round) !== plannedDate) {
+      return round;
+    }
+
+    sequence += 1;
+    return { ...round, title: `Round ${sequence}` };
+  });
+};
+
 const getRoundTitleSequence = (title: string): number | undefined => {
   const matched = /^Round (\d+)\b/.exec(title.trim());
   if (!matched) return undefined;

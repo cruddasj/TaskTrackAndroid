@@ -1,4 +1,4 @@
-import { advanceActiveRound, buildAutoRoundTaskGroups, buildNewRound, canDeleteRound, getCarryForwardRound, getCarryHistoryForRound, getDefaultRoundTitle, getHighestRoundSequence, getRoundEstimatedMinutes, getRoundTaskIdsForDisplay, getVisibleRoundId, hasEmptyRoundWithoutTasks, hasRoundsWithAssignedTasks, isRoundCompleted, isRoundLockedByActivePomodoro, moveTaskInRound, removeRoundAndNormalizeStatuses, sortRoundsChronologically, unassignTasksFromRound } from './rounds';
+import { advanceActiveRound, buildAutoRoundTaskGroups, buildNewRound, canDeleteRound, getCarryForwardRound, getCarryHistoryForRound, getDefaultRoundTitle, getHighestRoundSequence, getRoundEstimatedMinutes, getRoundTaskIdsForDisplay, getVisibleRoundId, hasEmptyRoundWithoutTasks, hasRoundsWithAssignedTasks, isRoundCompleted, isRoundLockedByActivePomodoro, moveTaskInRound, normalizeRoundTitlesForDate, removeRoundAndNormalizeStatuses, sortRoundsChronologically, unassignTasksFromRound } from './rounds';
 
 describe('round helpers', () => {
   it('detects when a round has no tasks assigned', () => {
@@ -85,6 +85,23 @@ describe('round helpers', () => {
         '2026-04-05',
       ),
     ).toBe('Round 3');
+  });
+
+  it('normalizes round titles to sequential names for a single date', () => {
+    expect(
+      normalizeRoundTitlesForDate(
+        [
+          { id: 'r1', title: 'Morning', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'active', plannedDate: '2026-04-05' },
+          { id: 'r2', title: 'Round 9', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'upcoming', plannedDate: '2026-04-05' },
+          { id: 'r3', title: 'Tomorrow round', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'upcoming', plannedDate: '2026-04-06' },
+        ],
+        '2026-04-05',
+      ),
+    ).toEqual([
+      { id: 'r1', title: 'Round 1', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'active', plannedDate: '2026-04-05' },
+      { id: 'r2', title: 'Round 2', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'upcoming', plannedDate: '2026-04-05' },
+      { id: 'r3', title: 'Tomorrow round', scheduledTime: '', durationMinutes: 25, taskIds: [], status: 'upcoming', plannedDate: '2026-04-06' },
+    ]);
   });
 
   it('creates an active round when all existing rounds are done', () => {
