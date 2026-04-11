@@ -26,6 +26,7 @@ import {
   shouldSendCompletionNotification,
   shouldSkipInAppAlarmAfterRecentResume,
 } from './alarmPlayback';
+import { getPomodoroCompletionNotificationCopy } from './pomodoroNotificationCopy';
 import { getTodayKey } from '../utils';
 
 type NewTask = Omit<Task, 'id' | 'status' | 'plannedDate' | 'completedAt'> & { plannedDate?: string };
@@ -822,16 +823,20 @@ interface AppStateContextValue {
 
 const AppStateContext = createContext<AppStateContextValue | undefined>(undefined);
 
-const getActiveRoundTaskSummary = (state: AppState): { hasRound: boolean; unfinishedTaskCount: number } => {
+const getActiveRoundTaskSummary = (
+  rounds: Round[],
+  tasks: Task[],
+  activeRoundId?: string,
+): { hasRound: boolean; unfinishedTaskCount: number } => {
   const activeRound =
-    state.rounds.find((round) => round.id === state.pomodoro.activeRoundId)
-    ?? state.rounds.find((round) => round.status === 'active');
+    rounds.find((round) => round.id === activeRoundId)
+    ?? rounds.find((round) => round.status === 'active');
   if (!activeRound) {
     return { hasRound: false, unfinishedTaskCount: 0 };
   }
 
   const unfinishedTaskCount = activeRound.taskIds
-    .map((taskId) => state.tasks.find((task) => task.id === taskId))
+    .map((taskId) => tasks.find((task) => task.id === taskId))
     .filter((task): task is Task => !!task && task.status !== 'done')
     .length;
   return { hasRound: true, unfinishedTaskCount };
@@ -965,16 +970,15 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
   }, [isAppActive, state.pomodoro.isRunning, state.pomodoro.phase, state.pomodoro.remainingSeconds]);
 
   useEffect(() => {
-    const titleByPhase: Record<PomodoroState['phase'], string> = {
-      work: 'Focus session complete',
-      short_break: 'Short break complete',
-      long_break: 'Long break complete',
-    };
-    const bodyByPhase: Record<PomodoroState['phase'], string> = {
-      work: 'Round complete. Your break is ready to start.',
-      short_break: 'Back to focus mode.',
-      long_break: 'Great work. Start your next focus session.',
-    };
+    const { hasRound, unfinishedTaskCount } = getActiveRoundTaskSummary(
+      state.rounds,
+      state.tasks,
+      state.pomodoro.activeRoundId,
+    );
+    const completionCopy = getPomodoroCompletionNotificationCopy(
+      state.pomodoro.phase,
+      hasRound && unfinishedTaskCount === 0,
+    );
 
     if (!state.pomodoro.isRunning || !state.pomodoro.startTime || state.pomodoro.duration <= 0 || !state.pomodoro.sessionId) {
       clearScheduledPomodoroPhaseEndNotification(state.pomodoro.sessionId).catch(() => undefined);
@@ -985,16 +989,19 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
       state.pomodoro.sessionId,
       state.pomodoro.startTime,
       state.pomodoro.duration,
-      titleByPhase[state.pomodoro.phase],
-      bodyByPhase[state.pomodoro.phase],
+      completionCopy.title,
+      completionCopy.body,
       state.settings.alarmTone,
     ).catch(() => undefined);
   }, [
+    state.rounds,
+    state.tasks,
     state.pomodoro.isRunning,
     state.pomodoro.sessionId,
     state.pomodoro.startTime,
     state.pomodoro.duration,
     state.pomodoro.phase,
+    state.pomodoro.activeRoundId,
     state.settings.alarmTone,
   ]);
 
@@ -1007,22 +1014,20 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
     const completionAlarmKey = `${state.pomodoro.sessionId ?? 'no-session'}:${state.pomodoro.phase}:${state.pomodoro.startTime ?? 0}`;
     if (handledCompletionAlarmKeyRef.current === completionAlarmKey) return;
     handledCompletionAlarmKeyRef.current = completionAlarmKey;
-
-    const titleByPhase: Record<PomodoroState['phase'], string> = {
-      work: 'Focus session complete',
-      short_break: 'Short break complete',
-      long_break: 'Long break complete',
-    };
-    const bodyByPhase: Record<PomodoroState['phase'], string> = {
-      work: 'Round complete. Your break is ready to start.',
-      short_break: 'Back to focus mode.',
-      long_break: 'Great work. Start your next focus session.',
-    };
+    const { hasRound, unfinishedTaskCount } = getActiveRoundTaskSummary(
+      state.rounds,
+      state.tasks,
+      state.pomodoro.activeRoundId,
+    );
+    const completionCopy = getPomodoroCompletionNotificationCopy(
+      state.pomodoro.phase,
+      hasRound && unfinishedTaskCount === 0,
+    );
 
     if (shouldSendCompletionNotification(Capacitor.isNativePlatform(), isAppActive)) {
       notifyPomodoroComplete(
-        titleByPhase[state.pomodoro.phase],
-        bodyByPhase[state.pomodoro.phase],
+        completionCopy.title,
+        completionCopy.body,
         state.settings.alarmTone,
       ).catch(() => undefined);
     }
@@ -1047,7 +1052,6 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
       return;
     }
 
-    const { hasRound, unfinishedTaskCount } = getActiveRoundTaskSummary(state);
     if (hasRound && unfinishedTaskCount > 0) {
       dispatch({ type: 'COMPLETE_POMODORO' });
       return;
