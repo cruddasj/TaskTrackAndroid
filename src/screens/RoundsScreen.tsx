@@ -30,6 +30,7 @@ import {
 import { useMemo, useState } from 'react';
 import { PlanningDay, PlanningDayToggle } from '../components/PlanningDayToggle';
 import { useAppState } from '../state/AppStateContext';
+import { Round } from '../types';
 import {
   canDeleteRound,
   getCarryHistoryForRound,
@@ -42,7 +43,7 @@ import {
   isRoundCompleted,
 } from '../state/rounds';
 import { getTodayKey, getTomorrowKey } from '../utils';
-import { getUnassignedTodoTasks, shouldShowCategoryGroupingSuggestion } from './roundsScreenVisibility';
+import { getRoundDisplaySections, getUnassignedTodoTasks, shouldShowCategoryGroupingSuggestion } from './roundsScreenVisibility';
 
 export const RoundsScreen = () => {
   const { state, assignTasksToRound, autoGroupTasksForDate, moveRound, moveTaskInRound, createRound, deleteRound, updateRoundTitle, showSuccessMessage } = useAppState();
@@ -93,8 +94,8 @@ export const RoundsScreen = () => {
   const availableTasks = useMemo(() => {
     return todaysTasks.filter((task) => !task.roundId || task.roundId === editingRound?.id);
   }, [todaysTasks, editingRound]);
-  const plannedRounds = useMemo(
-    () => orderedRounds.filter((round) => round.status !== 'done'),
+  const { plannedRounds, completedRounds } = useMemo(
+    () => getRoundDisplaySections(orderedRounds),
     [orderedRounds],
   );
   const roundIds = useMemo(() => new Set(orderedRounds.map((round) => round.id)), [orderedRounds]);
@@ -169,6 +170,157 @@ export const RoundsScreen = () => {
     showSuccessMessage(`Assigned task to ${targetRound.title}.`);
   };
 
+  const renderRoundCard = (round: Round) => {
+    const isActivePomodoroRound = isRoundLockedByActivePomodoro(round.id, state.pomodoro.activeRoundId);
+    const canDeleteSelectedRound = canDeleteRound(round, state.pomodoro.activeRoundId, state.settings.debugModeEnabled);
+    const displayTaskIds = getRoundTaskIdsForDisplay(round, todaysTasks);
+    const estimatedMinutes = roundEstimatedMinutes[round.id] ?? 0;
+    const roundDetails = round.status === 'done'
+      ? `${round.durationMinutes} min completed`
+      : `Estimated ${estimatedMinutes} min`;
+
+    return (
+      <Card
+        key={round.id}
+        sx={{
+          bgcolor: round.status === 'active' ? '#20201f' : round.status === 'done' ? '#131313' : '#1a1a1a',
+          opacity: round.status === 'done' ? 0.75 : 1,
+        }}
+      >
+        <CardContent>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1} spacing={1}>
+            <Stack direction="row" spacing={0.75} alignItems="center">
+              <Stack spacing={0}>
+                <Typography variant="h5">
+                  {round.title}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {roundDetails}
+                </Typography>
+              </Stack>
+              {estimatedMinutes > state.settings.pomodoroMinutes && (
+                <WarningAmberRounded color="warning" fontSize="small" aria-label={`round-overflow-warning-${round.id}`} />
+              )}
+            </Stack>
+            {round.status === 'done' && (
+              <Chip
+                size="small"
+                color="success"
+                icon={<CheckCircleRounded />}
+                label="Completed"
+                aria-label={`completed-round-chip-${round.id}`}
+              />
+            )}
+            <Stack direction="row" spacing={0.25}>
+              {round.status !== 'done' && (
+                <>
+                  <IconButton size="small" onClick={() => openRenameDialog(round.id, round.title)} aria-label={`rename-round-${round.id}`}>
+                    <EditOutlined fontSize="small" />
+                  </IconButton>
+                  <IconButton size="small" onClick={() => moveRound(round.id, 'up')} aria-label={`move-round-up-${round.id}`}>
+                    <ArrowDropUpRounded />
+                  </IconButton>
+                  <IconButton size="small" onClick={() => moveRound(round.id, 'down')} aria-label={`move-round-down-${round.id}`}>
+                    <ArrowDropDownRounded />
+                  </IconButton>
+                </>
+              )}
+              {canDeleteSelectedRound && (
+                <IconButton size="small" onClick={() => {
+                  setRoundPendingDelete({ id: round.id, title: round.title });
+                }} aria-label={`delete-round-${round.id}`}>
+                  <DeleteOutlineRounded color="error" />
+                </IconButton>
+              )}
+            </Stack>
+          </Stack>
+          <Stack spacing={1} mb={2}>
+            {displayTaskIds.map((taskId) => {
+              const task = todaysTasks.find((candidate) => candidate.id === taskId);
+              if (!task) return null;
+              const { carriedFromRoundId, carriedToRoundId } = getCarryHistoryForRound(task, round.id);
+              const carriedFromRound = carriedFromRoundId
+                ? state.rounds.find((candidate) => candidate.id === carriedFromRoundId)
+                : undefined;
+              const carriedToRound = carriedToRoundId
+                ? state.rounds.find((candidate) => candidate.id === carriedToRoundId)
+                : undefined;
+              const carriedMessage = carriedToRound
+                ? carriedFromRound
+                  ? `(Not completed in this round, carried over from ${carriedFromRound.title} to ${carriedToRound.title})`
+                  : `(Not completed in this round, carried over to ${carriedToRound.title})`
+                : null;
+              const taskOrderIndex = round.taskIds.indexOf(task.id);
+              return (
+                <Stack direction="row" spacing={1} alignItems="center" key={task.id}>
+                  {task.status === 'done' && !carriedMessage
+                    ? <CheckCircleRounded fontSize="small" color="success" />
+                    : <CircleOutlined fontSize="small" color="disabled" />}
+                  <Typography sx={{ flex: 1 }}>
+                    {task.title}
+                    {carriedMessage ? ` ${carriedMessage}` : ''}
+                  </Typography>
+                  {round.status !== 'done' && task.roundId === round.id && (
+                    <Stack direction="row" spacing={0.25}>
+                      <IconButton
+                        size="small"
+                        aria-label={`move-task-up-${round.id}-${task.id}`}
+                        onClick={() => moveTaskInRound(round.id, task.id, 'up')}
+                        disabled={taskOrderIndex <= 0}
+                      >
+                        <ArrowDropUpRounded fontSize="small" />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        aria-label={`move-task-down-${round.id}-${task.id}`}
+                        onClick={() => moveTaskInRound(round.id, task.id, 'down')}
+                        disabled={taskOrderIndex < 0 || taskOrderIndex >= round.taskIds.length - 1}
+                      >
+                        <ArrowDropDownRounded fontSize="small" />
+                      </IconButton>
+                    </Stack>
+                  )}
+                </Stack>
+              );
+            })}
+            {displayTaskIds.length === 0 && <Typography color="text.secondary">No tasks assigned yet.</Typography>}
+          </Stack>
+          {(roundEstimatedMinutes[round.id] ?? 0) > state.settings.pomodoroMinutes && (
+            <Alert severity="success" icon={<WarningAmberRounded color="warning" />}>
+              This round is estimated at {roundEstimatedMinutes[round.id]} minutes, which is above your {state.settings.pomodoroMinutes}
+              -minute round setting. Tasks will likely roll over into later rounds.
+            </Alert>
+          )}
+          {round.status === 'done' ? (
+            <Typography color="text.secondary">
+              {state.settings.debugModeEnabled
+                ? 'Completed round. Delete is available while debug mode is enabled.'
+                : 'Completed round (read-only).'}
+            </Typography>
+          ) : (
+            <Stack
+              direction={isActivePomodoroRound ? 'column' : 'row'}
+              alignItems="flex-start"
+              spacing={1}
+              flexWrap="wrap"
+              useFlexGap
+              mt={(roundEstimatedMinutes[round.id] ?? 0) > state.settings.pomodoroMinutes ? 1 : 0}
+            >
+              {isActivePomodoroRound && (
+                <Typography color="warning.main" variant="body2">
+                  Active timer round cannot be deleted here. Use the timer page to abandon it.
+                </Typography>
+              )}
+              <Button variant="outlined" onClick={() => openRoundAssignment(round.id)}>
+                {round.taskIds.length > 0 ? 'Edit tasks' : 'Assign tasks'}
+              </Button>
+            </Stack>
+          )}
+        </CardContent>
+      </Card>
+    );
+  };
+
   return (
     <Stack spacing={2}>
       <Box>
@@ -227,155 +379,18 @@ export const RoundsScreen = () => {
           </Stack>
         </CardContent>
       </Card>
-      {orderedRounds.map((round) => {
-        const isActivePomodoroRound = isRoundLockedByActivePomodoro(round.id, state.pomodoro.activeRoundId);
-        const canDeleteSelectedRound = canDeleteRound(round, state.pomodoro.activeRoundId, state.settings.debugModeEnabled);
-        const displayTaskIds = getRoundTaskIdsForDisplay(round, todaysTasks);
-        const estimatedMinutes = roundEstimatedMinutes[round.id] ?? 0;
-        const roundDetails = round.status === 'done'
-          ? `${round.durationMinutes} min completed`
-          : `Estimated ${estimatedMinutes} min`;
-        return (
-          <Card
-          key={round.id}
-          sx={{
-            bgcolor: round.status === 'active' ? '#20201f' : round.status === 'done' ? '#131313' : '#1a1a1a',
-            opacity: round.status === 'done' ? 0.75 : 1,
-          }}
-          >
-            <CardContent>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1} spacing={1}>
-              <Stack direction="row" spacing={0.75} alignItems="center">
-                <Stack spacing={0}>
-                  <Typography variant="h5">
-                    {round.title}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {roundDetails}
-                  </Typography>
-                </Stack>
-                {estimatedMinutes > state.settings.pomodoroMinutes && (
-                  <WarningAmberRounded color="warning" fontSize="small" aria-label={`round-overflow-warning-${round.id}`} />
-                )}
-              </Stack>
-              {round.status === 'done' && (
-                <Chip
-                  size="small"
-                  color="success"
-                  icon={<CheckCircleRounded />}
-                  label="Completed"
-                  aria-label={`completed-round-chip-${round.id}`}
-                />
-              )}
-              <Stack direction="row" spacing={0.25}>
-                {round.status !== 'done' && (
-                  <>
-                    <IconButton size="small" onClick={() => openRenameDialog(round.id, round.title)} aria-label={`rename-round-${round.id}`}>
-                      <EditOutlined fontSize="small" />
-                    </IconButton>
-                    <IconButton size="small" onClick={() => moveRound(round.id, 'up')} aria-label={`move-round-up-${round.id}`}>
-                      <ArrowDropUpRounded />
-                    </IconButton>
-                    <IconButton size="small" onClick={() => moveRound(round.id, 'down')} aria-label={`move-round-down-${round.id}`}>
-                      <ArrowDropDownRounded />
-                    </IconButton>
-                  </>
-                )}
-                {canDeleteSelectedRound && (
-                  <IconButton size="small" onClick={() => {
-                    setRoundPendingDelete({ id: round.id, title: round.title });
-                  }} aria-label={`delete-round-${round.id}`}>
-                    <DeleteOutlineRounded color="error" />
-                  </IconButton>
-                )}
-              </Stack>
-            </Stack>
-              <Stack spacing={1} mb={2}>
-                {displayTaskIds.map((taskId) => {
-                const task = todaysTasks.find((candidate) => candidate.id === taskId);
-                if (!task) return null;
-                const { carriedFromRoundId, carriedToRoundId } = getCarryHistoryForRound(task, round.id);
-                const carriedFromRound = carriedFromRoundId
-                  ? state.rounds.find((candidate) => candidate.id === carriedFromRoundId)
-                  : undefined;
-                const carriedToRound = carriedToRoundId
-                  ? state.rounds.find((candidate) => candidate.id === carriedToRoundId)
-                  : undefined;
-                const carriedMessage = carriedToRound
-                  ? carriedFromRound
-                    ? `(Not completed in this round, carried over from ${carriedFromRound.title} to ${carriedToRound.title})`
-                    : `(Not completed in this round, carried over to ${carriedToRound.title})`
-                  : null;
-                const taskOrderIndex = round.taskIds.indexOf(task.id);
-                return (
-                  <Stack direction="row" spacing={1} alignItems="center" key={task.id}>
-                    {task.status === 'done' && !carriedMessage
-                      ? <CheckCircleRounded fontSize="small" color="success" />
-                      : <CircleOutlined fontSize="small" color="disabled" />}
-                    <Typography sx={{ flex: 1 }}>
-                      {task.title}
-                      {carriedMessage ? ` ${carriedMessage}` : ''}
-                    </Typography>
-                    {round.status !== 'done' && task.roundId === round.id && (
-                      <Stack direction="row" spacing={0.25}>
-                        <IconButton
-                          size="small"
-                          aria-label={`move-task-up-${round.id}-${task.id}`}
-                          onClick={() => moveTaskInRound(round.id, task.id, 'up')}
-                          disabled={taskOrderIndex <= 0}
-                        >
-                          <ArrowDropUpRounded fontSize="small" />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          aria-label={`move-task-down-${round.id}-${task.id}`}
-                          onClick={() => moveTaskInRound(round.id, task.id, 'down')}
-                          disabled={taskOrderIndex < 0 || taskOrderIndex >= round.taskIds.length - 1}
-                        >
-                          <ArrowDropDownRounded fontSize="small" />
-                        </IconButton>
-                      </Stack>
-                    )}
-                  </Stack>
-                );
-              })}
-                {displayTaskIds.length === 0 && <Typography color="text.secondary">No tasks assigned yet.</Typography>}
-              </Stack>
-              {(roundEstimatedMinutes[round.id] ?? 0) > state.settings.pomodoroMinutes && (
-              <Alert severity="success" icon={<WarningAmberRounded color="warning" />}>
-                This round is estimated at {roundEstimatedMinutes[round.id]} minutes, which is above your {state.settings.pomodoroMinutes}
-                -minute round setting. Tasks will likely roll over into later rounds.
-              </Alert>
-            )}
-            {round.status === 'done' ? (
-              <Typography color="text.secondary">
-                {state.settings.debugModeEnabled
-                  ? 'Completed round. Delete is available while debug mode is enabled.'
-                  : 'Completed round (read-only).'}
-              </Typography>
-            ) : (
-              <Stack
-                direction={isActivePomodoroRound ? 'column' : 'row'}
-                alignItems="flex-start"
-                spacing={1}
-                flexWrap="wrap"
-                useFlexGap
-                mt={(roundEstimatedMinutes[round.id] ?? 0) > state.settings.pomodoroMinutes ? 1 : 0}
-              >
-                {isActivePomodoroRound && (
-                  <Typography color="warning.main" variant="body2">
-                    Active timer round cannot be deleted here. Use the timer page to abandon it.
-                  </Typography>
-                )}
-                <Button variant="outlined" onClick={() => openRoundAssignment(round.id)}>
-                  {round.taskIds.length > 0 ? 'Edit tasks' : 'Assign tasks'}
-                </Button>
-              </Stack>
-            )}
-            </CardContent>
-          </Card>
-        );
-      })}
+      {(planningDay === 'today' ? plannedRounds : orderedRounds).length > 0 && (
+        <Typography variant="h6">
+          {planningDay === 'today' ? `Planned (${plannedRounds.length})` : `Rounds (${orderedRounds.length})`}
+        </Typography>
+      )}
+      {(planningDay === 'today' ? plannedRounds : orderedRounds).map((round) => renderRoundCard(round))}
+      {planningDay === 'today' && completedRounds.length > 0 && (
+        <>
+          <Typography variant="h6" mt={1}>Completed ({completedRounds.length})</Typography>
+          {completedRounds.map((round) => renderRoundCard(round))}
+        </>
+      )}
       <Dialog
         open={!!editingRound}
         onClose={() => setEditingRoundId(null)}
