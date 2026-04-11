@@ -346,9 +346,9 @@ describe('round helpers', () => {
 
   it('prioritizes early tasks first and late tasks last when auto-grouping rounds', () => {
     const groups = buildAutoRoundTaskGroups([
-      { id: 't3', category: 'Admin', estimateMinutes: 10, roundPlacementPreference: 'late' },
-      { id: 't2', category: 'Deep Work', estimateMinutes: 10 },
-      { id: 't1', category: 'Admin', estimateMinutes: 10, roundPlacementPreference: 'early' },
+      { id: 't3', title: 'Inbox cleanup', category: 'Admin', estimateMinutes: 10, roundPlacementPreference: 'late' },
+      { id: 't2', title: 'Build review', category: 'Deep Work', estimateMinutes: 10 },
+      { id: 't1', title: 'Weekly plan', category: 'Admin', estimateMinutes: 10, roundPlacementPreference: 'early' },
     ], 25);
 
     expect(groups[0]).toEqual(['t1']);
@@ -358,11 +358,24 @@ describe('round helpers', () => {
   it('fills each round close to the pomodoro limit without going over', () => {
     expect(
       buildAutoRoundTaskGroups([
-        { id: 't1', category: 'Deep Work', estimateMinutes: 15 },
-        { id: 't2', category: 'Deep Work', estimateMinutes: 10 },
-        { id: 't3', category: 'Deep Work', estimateMinutes: 10 },
+        { id: 't1', title: 'Implement endpoint', category: 'Deep Work', estimateMinutes: 15 },
+        { id: 't2', title: 'Write tests', category: 'Deep Work', estimateMinutes: 10 },
+        { id: 't3', title: 'Refactor hook', category: 'Deep Work', estimateMinutes: 10 },
       ], 25),
     ).toEqual([['t1', 't2'], ['t3']]);
+  });
+
+  it('uses task bank preference updates when regrouping existing today tasks', () => {
+    expect(
+      buildAutoRoundTaskGroups(
+        [
+          { id: 't1', title: 'Plan roadmap', category: 'Work', estimateMinutes: 10 },
+          { id: 't2', title: 'Close inbox', category: 'Admin', estimateMinutes: 10, roundPlacementPreference: 'late' },
+        ],
+        25,
+        [{ title: 'Plan roadmap', category: 'Work', roundPlacementPreference: 'early' }],
+      ),
+    ).toEqual([['t1'], ['t2']]);
   });
 
   it('moves a round task up when a prior task exists', () => {

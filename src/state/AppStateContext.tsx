@@ -341,7 +341,7 @@ const reducer = (state: AppState, action: Action): AppState => {
       const regroupableTaskIds = new Set(regroupableTasks.map((task) => task.id));
 
       const pomodoroLimit = state.settings.pomodoroMinutes;
-      const groupedTaskIds = buildAutoRoundTaskGroups(regroupableTasks, pomodoroLimit);
+      const groupedTaskIds = buildAutoRoundTaskGroups(regroupableTasks, pomodoroLimit, state.taskBank);
 
       if (groupedTaskIds.length === 0) return state;
 
