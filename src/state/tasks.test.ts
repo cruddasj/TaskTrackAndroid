@@ -81,6 +81,15 @@ describe('sortCategoriesAlphabetically', () => {
 });
 
 describe('filterTaskBankItems', () => {
+  const defaultFilters = {
+    query: '',
+    category: 'all',
+    recurrence: 'all' as const,
+    recurrencePattern: 'all' as const,
+    recurrenceWeekday: 'all' as const,
+    recurrenceDayOfMonth: 'all' as const,
+    recurrenceEveryXDays: 'all' as const,
+  };
   const taskBank = [
     { id: '1', title: 'Deep work block', description: 'No meetings', category: 'Work', estimateMinutes: 60 },
     { id: '2', title: 'Grocery restock', description: 'Buy fruit', category: 'Home', estimateMinutes: 30, recurrenceDays: 7 },
@@ -89,23 +98,30 @@ describe('filterTaskBankItems', () => {
   ];
 
   it('filters by search query across title, description, and category', () => {
-    expect(filterTaskBankItems(taskBank, { query: 'fruit', category: 'all', recurrence: 'all', recurrencePattern: 'all' }).map((item) => item.id)).toEqual(['2']);
-    expect(filterTaskBankItems(taskBank, { query: 'health', category: 'all', recurrence: 'all', recurrencePattern: 'all' }).map((item) => item.id)).toEqual(['3']);
+    expect(filterTaskBankItems(taskBank, { ...defaultFilters, query: 'fruit' }).map((item) => item.id)).toEqual(['2']);
+    expect(filterTaskBankItems(taskBank, { ...defaultFilters, query: 'health' }).map((item) => item.id)).toEqual(['3']);
   });
 
   it('filters by category', () => {
-    expect(filterTaskBankItems(taskBank, { query: '', category: 'Work', recurrence: 'all', recurrencePattern: 'all' }).map((item) => item.id)).toEqual(['1']);
+    expect(filterTaskBankItems(taskBank, { ...defaultFilters, category: 'Work' }).map((item) => item.id)).toEqual(['1']);
   });
 
   it('filters by recurrence type', () => {
-    expect(filterTaskBankItems(taskBank, { query: '', category: 'all', recurrence: 'one-off', recurrencePattern: 'all' }).map((item) => item.id)).toEqual(['1']);
-    expect(filterTaskBankItems(taskBank, { query: '', category: 'all', recurrence: 'recurring', recurrencePattern: 'all' }).map((item) => item.id)).toEqual(['2', '3', '4']);
+    expect(filterTaskBankItems(taskBank, { ...defaultFilters, recurrence: 'one-off' }).map((item) => item.id)).toEqual(['1']);
+    expect(filterTaskBankItems(taskBank, { ...defaultFilters, recurrence: 'recurring' }).map((item) => item.id)).toEqual(['2', '3', '4']);
   });
 
   it('filters recurring tasks by recurrence pattern', () => {
-    expect(filterTaskBankItems(taskBank, { query: '', category: 'all', recurrence: 'all', recurrencePattern: 'every-x-days' }).map((item) => item.id)).toEqual(['2']);
-    expect(filterTaskBankItems(taskBank, { query: '', category: 'all', recurrence: 'all', recurrencePattern: 'day-of-week' }).map((item) => item.id)).toEqual(['3']);
-    expect(filterTaskBankItems(taskBank, { query: '', category: 'all', recurrence: 'all', recurrencePattern: 'day-of-month' }).map((item) => item.id)).toEqual(['4']);
+    expect(filterTaskBankItems(taskBank, { ...defaultFilters, recurrencePattern: 'every-x-days' }).map((item) => item.id)).toEqual(['2']);
+    expect(filterTaskBankItems(taskBank, { ...defaultFilters, recurrencePattern: 'day-of-week' }).map((item) => item.id)).toEqual(['3']);
+    expect(filterTaskBankItems(taskBank, { ...defaultFilters, recurrencePattern: 'day-of-month' }).map((item) => item.id)).toEqual(['4']);
+  });
+
+  it('filters recurring tasks by specific weekday, day of month, and day interval', () => {
+    expect(filterTaskBankItems(taskBank, { ...defaultFilters, recurrenceWeekday: 6 })).toEqual([]);
+    expect(filterTaskBankItems(taskBank, { ...defaultFilters, recurrenceWeekday: 3 }).map((item) => item.id)).toEqual(['3']);
+    expect(filterTaskBankItems(taskBank, { ...defaultFilters, recurrenceDayOfMonth: 15 }).map((item) => item.id)).toEqual(['4']);
+    expect(filterTaskBankItems(taskBank, { ...defaultFilters, recurrenceEveryXDays: 7 }).map((item) => item.id)).toEqual(['2']);
   });
 });
 

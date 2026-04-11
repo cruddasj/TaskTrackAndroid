@@ -107,11 +107,14 @@ interface TaskBankFilterOptions {
   category: string;
   recurrence: 'all' | 'one-off' | 'recurring';
   recurrencePattern: 'all' | 'every-x-days' | 'day-of-week' | 'day-of-month';
+  recurrenceWeekday: 'all' | number;
+  recurrenceDayOfMonth: 'all' | number;
+  recurrenceEveryXDays: 'all' | number;
 }
 
 export const filterTaskBankItems = (
   taskBank: TaskBankItem[],
-  { query, category, recurrence, recurrencePattern }: TaskBankFilterOptions,
+  { query, category, recurrence, recurrencePattern, recurrenceWeekday, recurrenceDayOfMonth, recurrenceEveryXDays }: TaskBankFilterOptions,
 ): TaskBankItem[] => {
   const normalizedQuery = query.trim().toLocaleLowerCase();
   return taskBank.filter((item) => {
@@ -126,6 +129,9 @@ export const filterTaskBankItems = (
     if (recurrencePattern === 'every-x-days' && !isEveryXDaysRecurring) return false;
     if (recurrencePattern === 'day-of-week' && !isWeekdayRecurring) return false;
     if (recurrencePattern === 'day-of-month' && !isMonthDayRecurring) return false;
+    if (recurrenceWeekday !== 'all' && !item.recurrenceWeekdays?.includes(recurrenceWeekday)) return false;
+    if (recurrenceDayOfMonth !== 'all' && item.recurrenceDayOfMonth !== recurrenceDayOfMonth) return false;
+    if (recurrenceEveryXDays !== 'all' && item.recurrenceDays !== recurrenceEveryXDays) return false;
 
     if (!normalizedQuery) return true;
     return [item.title, item.description, item.category].some((value) =>

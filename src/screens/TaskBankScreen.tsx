@@ -68,6 +68,9 @@ export const TaskBankScreen = () => {
   const [selectedRecurrenceFilter, setSelectedRecurrenceFilter] = useState<'all' | 'one-off' | 'recurring'>('all');
   const [selectedRecurrencePatternFilter, setSelectedRecurrencePatternFilter] =
     useState<'all' | 'every-x-days' | 'day-of-week' | 'day-of-month'>('all');
+  const [selectedRecurrenceWeekdayFilter, setSelectedRecurrenceWeekdayFilter] = useState<'all' | number>('all');
+  const [selectedRecurrenceDayOfMonthFilter, setSelectedRecurrenceDayOfMonthFilter] = useState<'all' | number>('all');
+  const [selectedRecurrenceEveryXDaysFilter, setSelectedRecurrenceEveryXDaysFilter] = useState<'all' | number>('all');
   const [showSearchFilters, setShowSearchFilters] = useState(false);
   const isAndroid = useMemo(() => typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent), []);
   const selectedDateKey = planningDay === 'today' ? todayKey : tomorrowKey;
@@ -82,9 +85,21 @@ export const TaskBankScreen = () => {
         category: selectedCategoryFilter,
         recurrence: selectedRecurrenceFilter,
         recurrencePattern: selectedRecurrencePatternFilter,
+        recurrenceWeekday: selectedRecurrenceWeekdayFilter,
+        recurrenceDayOfMonth: selectedRecurrenceDayOfMonthFilter,
+        recurrenceEveryXDays: selectedRecurrenceEveryXDaysFilter,
       },
     ),
-    [searchQuery, selectedCategoryFilter, selectedRecurrenceFilter, selectedRecurrencePatternFilter, sortedTaskBank],
+    [
+      searchQuery,
+      selectedCategoryFilter,
+      selectedRecurrenceFilter,
+      selectedRecurrencePatternFilter,
+      selectedRecurrenceWeekdayFilter,
+      selectedRecurrenceDayOfMonthFilter,
+      selectedRecurrenceEveryXDaysFilter,
+      sortedTaskBank,
+    ],
   );
   const lastCompletionByTitle = useMemo(() => getLastCompletedAtByTaskTitle(state.tasks), [state.tasks]);
 
@@ -104,6 +119,12 @@ export const TaskBankScreen = () => {
       setSelectedCategoryFilter('all');
     }
   }, [categoryFilterOptions, selectedCategoryFilter]);
+
+  useEffect(() => {
+    setSelectedRecurrenceWeekdayFilter('all');
+    setSelectedRecurrenceDayOfMonthFilter('all');
+    setSelectedRecurrenceEveryXDaysFilter('all');
+  }, [selectedRecurrencePatternFilter]);
 
   const openCreateBankDialog = () => {
     setEditingTaskBankId(null);
@@ -283,6 +304,61 @@ export const TaskBankScreen = () => {
                   <MenuItem value="day-of-week">Day of week</MenuItem>
                   <MenuItem value="day-of-month">Day of month</MenuItem>
                 </TextField>
+                {selectedRecurrencePatternFilter === 'day-of-week' && (
+                  <TextField
+                    label="Specific weekday"
+                    select
+                    fullWidth
+                    value={selectedRecurrenceWeekdayFilter}
+                    onChange={(event) => {
+                      const nextValue = event.target.value;
+                      setSelectedRecurrenceWeekdayFilter(nextValue === 'all' ? 'all' : Number(nextValue));
+                    }}
+                  >
+                    <MenuItem value="all">Any weekday</MenuItem>
+                    {WEEKDAY_LABELS.map((label, weekday) => (
+                      <MenuItem key={label} value={weekday}>{label}</MenuItem>
+                    ))}
+                  </TextField>
+                )}
+                {selectedRecurrencePatternFilter === 'day-of-month' && (
+                  <TextField
+                    label="Specific day of month"
+                    select
+                    fullWidth
+                    value={selectedRecurrenceDayOfMonthFilter}
+                    onChange={(event) => {
+                      const nextValue = event.target.value;
+                      setSelectedRecurrenceDayOfMonthFilter(nextValue === 'all' ? 'all' : Number(nextValue));
+                    }}
+                  >
+                    <MenuItem value="all">Any day of month</MenuItem>
+                    {Array.from({ length: 31 }, (_, index) => index + 1).map((day) => (
+                      <MenuItem key={day} value={day}>Day {day}</MenuItem>
+                    ))}
+                  </TextField>
+                )}
+                {selectedRecurrencePatternFilter === 'every-x-days' && (
+                  <TextField
+                    label="Specific day interval"
+                    select
+                    fullWidth
+                    value={selectedRecurrenceEveryXDaysFilter}
+                    onChange={(event) => {
+                      const nextValue = event.target.value;
+                      setSelectedRecurrenceEveryXDaysFilter(nextValue === 'all' ? 'all' : Number(nextValue));
+                    }}
+                  >
+                    <MenuItem value="all">Any day interval</MenuItem>
+                    {Array.from(
+                      new Set(sortedTaskBank.map((item) => item.recurrenceDays).filter((value): value is number => Boolean(value && value > 0))),
+                    )
+                      .sort((a, b) => a - b)
+                      .map((value) => (
+                        <MenuItem key={value} value={value}>Every {value} days</MenuItem>
+                      ))}
+                  </TextField>
+                )}
               </Stack>
             </Collapse>
           </Stack>
