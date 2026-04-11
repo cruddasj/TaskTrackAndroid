@@ -191,7 +191,8 @@ export const getVisibleRoundId = (
 };
 
 
-type RoundGroupingTask = Pick<Task, 'id' | 'category' | 'estimateMinutes' | 'roundPlacementPreference'>;
+type RoundGroupingTask = Pick<Task, 'id' | 'title' | 'category' | 'estimateMinutes' | 'roundPlacementPreference'>;
+type RoundGroupingTaskBankItem = Pick<Task, 'title' | 'category' | 'roundPlacementPreference'>;
 
 const getPreferencePriority = (preference?: RoundPlacementPreference): number => {
   if (preference === 'early') return 0;
@@ -199,9 +200,35 @@ const getPreferencePriority = (preference?: RoundPlacementPreference): number =>
   return 1;
 };
 
-const sortTasksForAutoGrouping = (tasks: RoundGroupingTask[]): RoundGroupingTask[] =>
+const normalizeGroupPreferenceKey = (value: string): string => value.trim().toLocaleLowerCase();
+
+const getTaskPreferenceOverrideMap = (
+  tasks: RoundGroupingTask[],
+  taskBank: RoundGroupingTaskBankItem[],
+): Map<string, RoundPlacementPreference | undefined> => {
+  const preferenceByTitleAndCategory = new Map<string, RoundPlacementPreference | undefined>();
+  taskBank.forEach((item) => {
+    const key = `${normalizeGroupPreferenceKey(item.title)}::${normalizeGroupPreferenceKey(item.category)}`;
+    preferenceByTitleAndCategory.set(key, item.roundPlacementPreference);
+  });
+
+  const preferenceByTaskId = new Map<string, RoundPlacementPreference | undefined>();
+  tasks.forEach((task) => {
+    const key = `${normalizeGroupPreferenceKey(task.title)}::${normalizeGroupPreferenceKey(task.category)}`;
+    if (!preferenceByTitleAndCategory.has(key)) return;
+    preferenceByTaskId.set(task.id, preferenceByTitleAndCategory.get(key));
+  });
+  return preferenceByTaskId;
+};
+
+const sortTasksForAutoGrouping = (
+  tasks: RoundGroupingTask[],
+  preferenceOverrideByTaskId: Map<string, RoundPlacementPreference | undefined>,
+): RoundGroupingTask[] =>
   [...tasks].sort((left, right) => {
-    const preferenceOrder = getPreferencePriority(left.roundPlacementPreference) - getPreferencePriority(right.roundPlacementPreference);
+    const leftPreference = preferenceOverrideByTaskId.get(left.id) ?? left.roundPlacementPreference;
+    const rightPreference = preferenceOverrideByTaskId.get(right.id) ?? right.roundPlacementPreference;
+    const preferenceOrder = getPreferencePriority(leftPreference) - getPreferencePriority(rightPreference);
     if (preferenceOrder !== 0) return preferenceOrder;
     if (left.category !== right.category) {
       return left.category.localeCompare(right.category, undefined, { sensitivity: 'base' });
@@ -209,10 +236,15 @@ const sortTasksForAutoGrouping = (tasks: RoundGroupingTask[]): RoundGroupingTask
     return left.id.localeCompare(right.id, undefined, { sensitivity: 'base' });
   });
 
-export const buildAutoRoundTaskGroups = (tasks: RoundGroupingTask[], pomodoroLimit: number): string[][] => {
+export const buildAutoRoundTaskGroups = (
+  tasks: RoundGroupingTask[],
+  pomodoroLimit: number,
+  taskBank: RoundGroupingTaskBankItem[] = [],
+): string[][] => {
   if (pomodoroLimit <= 0) return [];
 
-  const sortedTasks = sortTasksForAutoGrouping(tasks);
+  const preferenceOverrideByTaskId = getTaskPreferenceOverrideMap(tasks, taskBank);
+  const sortedTasks = sortTasksForAutoGrouping(tasks, preferenceOverrideByTaskId);
   const groupedTaskIds: string[][] = [];
   let currentGroup: string[] = [];
   let currentMinutes = 0;
