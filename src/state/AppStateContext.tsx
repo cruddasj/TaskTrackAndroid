@@ -27,6 +27,7 @@ import {
   shouldSkipInAppAlarmAfterRecentResume,
 } from './alarmPlayback';
 import { getPomodoroCompletionNotificationCopy } from './pomodoroNotificationCopy';
+import { getStalePomodoroSessionId } from './pomodoroNotificationScheduling';
 import { getTodayKey } from '../utils';
 
 type NewTask = Omit<Task, 'id' | 'status' | 'plannedDate' | 'completedAt'> & { plannedDate?: string };
@@ -849,6 +850,7 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
   const [isAppActive, setIsAppActive] = useState(() => document.visibilityState !== 'hidden');
   const stopAlarmRef = useRef<(() => void) | null>(null);
   const handledCompletionAlarmKeyRef = useRef<string | null>(null);
+  const scheduledPhaseEndSessionIdRef = useRef<number | null>(null);
   const resumedAtRef = useRef<number | null>(null);
   const lastAppActiveRef = useRef(document.visibilityState !== 'hidden');
   const activeNotificationSyncRef = useRef({
@@ -980,8 +982,15 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
       hasRound && unfinishedTaskCount === 0,
     );
 
+    const currentSessionId = state.pomodoro.sessionId ?? null;
+    const staleSessionId = getStalePomodoroSessionId(scheduledPhaseEndSessionIdRef.current, currentSessionId);
+    if (staleSessionId) {
+      clearScheduledPomodoroPhaseEndNotification(staleSessionId).catch(() => undefined);
+    }
+
     if (!state.pomodoro.isRunning || !state.pomodoro.startTime || state.pomodoro.duration <= 0 || !state.pomodoro.sessionId) {
       clearScheduledPomodoroPhaseEndNotification(state.pomodoro.sessionId).catch(() => undefined);
+      scheduledPhaseEndSessionIdRef.current = currentSessionId;
       return;
     }
 
@@ -993,6 +1002,7 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
       completionCopy.body,
       state.settings.alarmTone,
     ).catch(() => undefined);
+    scheduledPhaseEndSessionIdRef.current = state.pomodoro.sessionId;
   }, [
     state.rounds,
     state.tasks,
