@@ -13,6 +13,20 @@ const formatLocalDayKey = (date: Date): string => {
 
 export const WEEKDAY_LABELS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] as const;
 export const WEEKDAY_SELECTION_ORDER = [1, 2, 3, 4, 5, 6, 0] as const;
+const WEEKDAY_SORT_RANK = new Map<number, number>(WEEKDAY_SELECTION_ORDER.map((weekday, index) => [weekday, index]));
+
+export const normalizeRecurrenceWeekdays = (weekdays?: number[]): number[] | undefined => {
+  if (!weekdays || weekdays.length === 0) return undefined;
+  const normalized = [...new Set(weekdays)]
+    .filter((weekday): weekday is number => Number.isInteger(weekday) && weekday >= 0 && weekday <= 6)
+    .sort((a, b) => {
+      const rankA = WEEKDAY_SORT_RANK.get(a) ?? Number.MAX_SAFE_INTEGER;
+      const rankB = WEEKDAY_SORT_RANK.get(b) ?? Number.MAX_SAFE_INTEGER;
+      if (rankA !== rankB) return rankA - rankB;
+      return a - b;
+    });
+  return normalized.length > 0 ? normalized : undefined;
+};
 
 export const areAllTasksCompletedForDate = (tasks: Task[], plannedDate: string): boolean => {
   const tasksForDate = tasks.filter((task) => task.plannedDate === plannedDate);
@@ -234,14 +248,15 @@ export const suggestRecurringTaskBankItems = (
         const completedWithinCurrentWeekdayPeriod = Number.isFinite(lastCompletedMs)
           && previousOccurrenceMs !== null
           && lastCompletedMs > previousOccurrenceMs;
+        const shouldEnforceWeekdayCompletionGate = enforceRecurrencePeriodCompletionGate && uniqueRecurrenceWeekdays.size === 1;
         if (uniqueRecurrenceWeekdays.has(todayWeekday)) {
-          return !(enforceRecurrencePeriodCompletionGate && completedWithinCurrentWeekdayPeriod);
+          return !(shouldEnforceWeekdayCompletionGate && completedWithinCurrentWeekdayPeriod);
         }
 
         if (!hasScheduledWeekdayInPastWeek(uniqueRecurrenceWeekdays)) return false;
         const lastAppearanceMs = recentAppearanceByTitle.get(titleKey);
         if (!(lastAppearanceMs === undefined || nowMs - lastAppearanceMs >= 7 * DAY_IN_MS)) return false;
-        return !(enforceRecurrencePeriodCompletionGate && completedWithinCurrentWeekdayPeriod);
+        return !(shouldEnforceWeekdayCompletionGate && completedWithinCurrentWeekdayPeriod);
       }
     }
 
