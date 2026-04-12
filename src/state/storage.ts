@@ -1,5 +1,6 @@
 import { AppState } from '../types';
 import { DEFAULT_ALARM_TONE, normalizeAlarmTone } from '../constants/alarmTones';
+import { normalizeRecurrenceWeekdays } from './tasks';
 
 const STORAGE_KEY = 'tasktrack.state.v2';
 const DEFAULT_POMODORO_MINUTES = 25;
@@ -294,11 +295,7 @@ export const normalizeState = (raw: Partial<AppState>): AppState => {
           ? item.lastCompletedOn
           : undefined,
       recurrenceWeekdays:
-        item.recurrenceWeekdays && item.recurrenceWeekdays.length > 0
-          ? [...new Set(item.recurrenceWeekdays)]
-            .filter((weekday): weekday is number => typeof weekday === 'number' && Number.isInteger(weekday) && weekday >= 0 && weekday <= 6)
-            .sort((a, b) => a - b)
-          : undefined,
+        normalizeRecurrenceWeekdays(item.recurrenceWeekdays),
       recurrenceDayOfMonth:
         typeof item.recurrenceDayOfMonth === 'number' && Number.isFinite(item.recurrenceDayOfMonth)
           && Math.round(item.recurrenceDayOfMonth) >= 1

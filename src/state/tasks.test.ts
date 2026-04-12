@@ -5,6 +5,7 @@ import {
   getLastCompletedAtByTaskTitle,
   getTaskBankCategoriesWithAssignedTasks,
   hasDuplicateTodayTaskTitle,
+  normalizeRecurrenceWeekdays,
   sortCategoriesAlphabetically,
   sortTaskBankItemsAlphabetically,
   sortTasksAlphabetically,
@@ -49,6 +50,10 @@ describe('task title validation', () => {
 describe('weekday selection order', () => {
   it('starts from Monday and ends with Sunday for Task Bank weekday selection', () => {
     expect(WEEKDAY_SELECTION_ORDER).toEqual([1, 2, 3, 4, 5, 6, 0]);
+  });
+
+  it('normalizes saved weekday recurrence order to match Task Bank display order', () => {
+    expect(normalizeRecurrenceWeekdays([0, 6, 0, 2])).toEqual([2, 6, 0]);
   });
 });
 
@@ -246,6 +251,17 @@ describe('suggestRecurringTaskBankItems', () => {
     const suggestions = suggestRecurringTaskBankItems(taskBank, tasks, '2026-04-04', cooldownOff, new Date('2026-04-04T12:00:00.000Z'));
 
     expect(suggestions).toEqual([]);
+  });
+
+  it('suggests multi-weekday recurring items on a second due day even when completed yesterday', () => {
+    const taskBank = [
+      { id: 'tb1', title: 'Weekend reset', description: 'Plan next week', category: 'Personal projects', estimateMinutes: 30, recurrenceWeekdays: [6, 0] },
+    ];
+    const tasks = [buildTask({ id: 'done-1', title: 'Weekend reset', status: 'done', plannedDate: '2026-03-28', completedAt: '2026-03-28T18:00:00.000Z' })];
+
+    const suggestions = suggestRecurringTaskBankItems(taskBank, tasks, '2026-03-29', cooldownOff, new Date('2026-03-29T12:00:00.000Z'));
+
+    expect(suggestions.map((item) => item.id)).toEqual(['tb1']);
   });
 
   it('suggests weekday-recurring items for tomorrow after cool down has elapsed', () => {

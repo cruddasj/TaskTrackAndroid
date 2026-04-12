@@ -379,6 +379,27 @@ describe('storage', () => {
     expect(loaded.rounds[0].plannedDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 
+  it('normalizes recurrence weekdays using Task Bank weekday display order', () => {
+    localStorage.setItem(
+      'tasktrack.state.v2',
+      JSON.stringify({
+        taskBank: [
+          {
+            id: 'tb-4',
+            title: 'Weekend reset',
+            description: 'Plan and prep',
+            category: 'Personal projects',
+            estimateMinutes: 30,
+            recurrenceWeekdays: [0, 6],
+          },
+        ],
+      }),
+    );
+
+    const loaded = loadState();
+    expect(loaded.taskBank[0].recurrenceWeekdays).toEqual([6, 0]);
+  });
+
   it('creates demo data with historical completed tasks', () => {
     const demoState = createDemoState(seedState);
     const todayKey = getTodayKey();

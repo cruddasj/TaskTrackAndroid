@@ -14,6 +14,7 @@ import {
   getLastCompletedAtByTaskTitle,
   getTaskBankCategoriesWithAssignedTasks,
   hasDuplicateTodayTaskTitle,
+  normalizeRecurrenceWeekdays,
   sortCategoriesAlphabetically,
   sortTaskBankItemsAlphabetically,
   WEEKDAY_LABELS,
@@ -173,10 +174,9 @@ export const TaskBankScreen = () => {
     const normalizedLastCompletedOn = /^\d{4}-\d{2}-\d{2}$/.test(lastCompletedOn) ? lastCompletedOn : undefined;
     const recurrenceDayOfMonth = Number(form.recurrenceDayOfMonth);
     const normalizedRecurrenceDays = getNormalizedRecurrenceDays(form.recurrenceMode, form.recurrenceDays);
-    const normalizedRecurrenceWeekdays =
-      form.recurrenceMode === 'weekdays'
-        ? [...new Set(form.recurrenceWeekdays)].filter((weekday) => Number.isInteger(weekday) && weekday >= 0 && weekday <= 6).sort((a, b) => a - b)
-        : undefined;
+    const normalizedRecurrenceWeekdays = form.recurrenceMode === 'weekdays'
+      ? normalizeRecurrenceWeekdays(form.recurrenceWeekdays)
+      : undefined;
     const normalizedRecurrenceDayOfMonth =
       form.recurrenceMode === 'monthDay' && Number.isFinite(recurrenceDayOfMonth) && recurrenceDayOfMonth >= 1 && recurrenceDayOfMonth <= 31
         ? Math.round(recurrenceDayOfMonth)
