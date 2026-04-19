@@ -105,6 +105,13 @@ export const TaskBankScreen = () => {
     ],
   );
   const lastCompletionByTitle = useMemo(() => getLastCompletedAtByTaskTitle(state.tasks), [state.tasks]);
+  const hasActiveSearchFilters = searchQuery.trim().length > 0
+    || selectedCategoryFilter !== 'all'
+    || selectedRecurrenceFilter !== 'all'
+    || selectedRecurrencePatternFilter !== 'all'
+    || selectedRecurrenceWeekdayFilter !== 'all'
+    || selectedRecurrenceDayOfMonthFilter !== 'all'
+    || selectedRecurrenceEveryXDaysFilter !== 'all';
 
   const formatLastCompletedLabel = (completedAtMs: number): string => {
     return lastCompletedDateFormat.format(new Date(completedAtMs));
@@ -128,6 +135,16 @@ export const TaskBankScreen = () => {
     setSelectedRecurrenceDayOfMonthFilter('all');
     setSelectedRecurrenceEveryXDaysFilter('all');
   }, [selectedRecurrencePatternFilter]);
+
+  const clearSearchFilters = () => {
+    setSearchQuery('');
+    setSelectedCategoryFilter('all');
+    setSelectedRecurrenceFilter('all');
+    setSelectedRecurrencePatternFilter('all');
+    setSelectedRecurrenceWeekdayFilter('all');
+    setSelectedRecurrenceDayOfMonthFilter('all');
+    setSelectedRecurrenceEveryXDaysFilter('all');
+  };
 
   const openCreateBankDialog = () => {
     setEditingTaskBankId(null);
@@ -272,6 +289,14 @@ export const TaskBankScreen = () => {
                     ),
                   }}
                 />
+                <Button
+                  variant="text"
+                  onClick={clearSearchFilters}
+                  disabled={!hasActiveSearchFilters}
+                  sx={{ alignSelf: 'flex-start', px: 0 }}
+                >
+                  Clear all filters
+                </Button>
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
                   <TextField
                     label="Filter by category"
