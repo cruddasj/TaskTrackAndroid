@@ -4,6 +4,10 @@ const DAY_IN_MS = 24 * 60 * 60 * 1000;
 
 const normalizeTaskTitle = (title: string): string => title.trim().toLocaleLowerCase();
 const parseDayKeyToUtcMs = (dayKey: string): number => new Date(`${dayKey}T00:00:00.000Z`).getTime();
+const getUtcDayStartMs = (timestampMs: number): number => {
+  const date = new Date(timestampMs);
+  return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+};
 const formatLocalDayKey = (date: Date): string => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -194,7 +198,7 @@ export const suggestRecurringTaskBankItems = (
     if (task.plannedDate === plannedDate) {
       plannedDateTasksTitles.add(titleKey);
     }
-    if (planningTomorrow && task.plannedDate === previousDayKey) {
+    if (planningTomorrow && task.plannedDate === previousDayKey && task.status !== 'done') {
       previousDayTaskTitles.add(titleKey);
     }
     const plannedMs = parseDayKeyToUtcMs(task.plannedDate);
@@ -279,6 +283,7 @@ export const suggestRecurringTaskBankItems = (
     const recurrenceDays = item.recurrenceDays;
     if (!recurrenceDays || recurrenceDays <= 0) return false;
     if (!Number.isFinite(lastCompletedMs)) return true;
-    return nowMs - lastCompletedMs >= recurrenceDays * DAY_IN_MS;
+    const lastCompletedDayStartMs = getUtcDayStartMs(lastCompletedMs);
+    return todayStartMs - lastCompletedDayStartMs >= recurrenceDays * DAY_IN_MS;
   });
 };
