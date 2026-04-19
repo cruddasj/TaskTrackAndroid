@@ -8,9 +8,12 @@ updates:
     labels:
       - "dependencies"
     groups:
-      npm-all-dependencies:
+      npm-minor-and-patch:
         patterns:
           - "*"
+        update-types:
+          - "minor"
+          - "patch"
 
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -21,6 +24,9 @@ updates:
       - "dependencies"
       - "github-actions"
     groups:
-      github-actions-all-dependencies:
+      github-actions-minor-and-patch:
         patterns:
           - "*"
+        update-types:
+          - "minor"
+          - "patch"
