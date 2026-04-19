@@ -1,6 +1,7 @@
 import { AppState } from '../types';
 import { DEFAULT_ALARM_TONE, normalizeAlarmTone } from '../constants/alarmTones';
 import { normalizeRecurrenceWeekdays } from './tasks';
+import { getDateKeyWithOffset } from '../utils';
 
 const STORAGE_KEY = 'tasktrack.state.v2';
 const DEFAULT_POMODORO_MINUTES = 25;
@@ -17,11 +18,7 @@ const DEFAULT_RECURRING_SUGGESTION_COOLDOWN_ENABLED = false;
 const DEFAULT_RECURRING_SUGGESTION_COOLDOWN_DAYS = 3;
 const DEFAULT_SHOW_FIRST_TIME_GUIDANCE = true;
 const DEFAULT_HAS_SEEN_WELCOME_MODAL = false;
-const getDateKey = (daysAgo = 0): string => {
-  const date = new Date();
-  date.setDate(date.getDate() - daysAgo);
-  return date.toISOString().slice(0, 10);
-};
+const getDateKey = (daysAgo = 0): string => getDateKeyWithOffset(-daysAgo);
 const getCompletedAtIso = (daysAgo: number, hour: number): string => {
   const date = new Date();
   date.setDate(date.getDate() - daysAgo);
