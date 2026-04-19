@@ -265,6 +265,7 @@ describe('storage', () => {
   });
 
   it('adds plannedDate when loading older persisted tasks', () => {
+    const todayKey = getTodayKey();
     localStorage.setItem(
       'tasktrack.state.v2',
       JSON.stringify({
@@ -281,7 +282,7 @@ describe('storage', () => {
       }),
     );
 
-    expect(loadState().tasks[0].plannedDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(loadState().tasks[0].plannedDate).toBe(todayKey);
   });
 
   it('normalizes invalid round placement preferences on tasks', () => {
@@ -348,6 +349,7 @@ describe('storage', () => {
   });
 
   it('sorts and deduplicates valid recurrence weekdays and adds missing round plannedDate', () => {
+    const todayKey = getTodayKey();
     localStorage.setItem(
       'tasktrack.state.v2',
       JSON.stringify({
@@ -376,7 +378,7 @@ describe('storage', () => {
 
     const loaded = loadState();
     expect(loaded.taskBank[0].recurrenceWeekdays).toEqual([1, 2, 5]);
-    expect(loaded.rounds[0].plannedDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(loaded.rounds[0].plannedDate).toBe(todayKey);
   });
 
   it('normalizes recurrence weekdays using Task Bank weekday display order', () => {
