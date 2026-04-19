@@ -228,7 +228,8 @@ export const suggestRecurringTaskBankItems = (
   return taskBank.filter((item) => {
     const titleKey = normalizeTaskTitle(item.title);
     if (plannedDateTasksTitles.has(titleKey)) return false;
-    if (planningTomorrow && previousDayTaskTitles.has(titleKey)) return false;
+    const isDailyRecurring = item.recurrenceDays === 1;
+    if (planningTomorrow && previousDayTaskTitles.has(titleKey) && !isDailyRecurring) return false;
 
     const trackedLastCompletedMs = completionByTitle.get(titleKey);
     const manualLastCompletedMs = item.lastCompletedOn ? parseDayKeyToUtcMs(item.lastCompletedOn) : undefined;
