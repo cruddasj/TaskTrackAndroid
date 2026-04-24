@@ -389,6 +389,23 @@ describe('suggestRecurringTaskBankItems', () => {
 
     expect(suggestions).toEqual([]);
   });
+
+  it('uses the selected planning day when evaluating cool down for tomorrow suggestions', () => {
+    const taskBank = [
+      { id: 'tb1', title: 'Saturday reset', description: 'Plan next week', category: 'Personal projects', estimateMinutes: 30, recurrenceWeekdays: [6] },
+    ];
+    const tasks = [buildTask({ id: 'done-1', title: 'Saturday reset', status: 'done', plannedDate: '2026-04-01', completedAt: '2026-04-01T09:00:00.000Z' })];
+
+    const suggestions = suggestRecurringTaskBankItems(
+      taskBank,
+      tasks,
+      '2026-04-04',
+      { cooldownEnabled: true, cooldownDays: 3 },
+      new Date('2026-04-03T12:00:00.000Z'),
+    );
+
+    expect(suggestions.map((item) => item.id)).toEqual(['tb1']);
+  });
 });
 
 describe('getLastCompletedAtByTaskTitle', () => {

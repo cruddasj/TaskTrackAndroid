@@ -176,8 +176,8 @@ export const suggestRecurringTaskBankItems = (
   options: { cooldownEnabled: boolean; cooldownDays: number },
   now: Date = new Date(),
 ): TaskBankItem[] => {
-  const nowMs = now.getTime();
   const todayStartMs = parseDayKeyToUtcMs(plannedDate);
+  const suggestionReferenceMs = todayStartMs;
   const plannedDateUtc = new Date(todayStartMs);
   const todayWeekday = plannedDateUtc.getUTCDay();
   const todayDayOfMonth = plannedDateUtc.getUTCDate();
@@ -242,7 +242,11 @@ export const suggestRecurringTaskBankItems = (
     const shouldApplyCooldown = options.cooldownEnabled && isWeeklyOrMonthlyRecurring;
     const enforceRecurrencePeriodCompletionGate = !options.cooldownEnabled;
 
-    if (shouldApplyCooldown && Number.isFinite(lastCompletedMs) && nowMs - lastCompletedMs < cooldownWindowMs) {
+    if (
+      shouldApplyCooldown
+      && Number.isFinite(lastCompletedMs)
+      && suggestionReferenceMs - getUtcDayStartMs(lastCompletedMs) < cooldownWindowMs
+    ) {
       return false;
     }
 
@@ -260,7 +264,7 @@ export const suggestRecurringTaskBankItems = (
 
         if (!hasScheduledWeekdayInPastWeek(uniqueRecurrenceWeekdays)) return false;
         const lastAppearanceMs = recentAppearanceByTitle.get(titleKey);
-        if (!(lastAppearanceMs === undefined || nowMs - lastAppearanceMs >= 7 * DAY_IN_MS)) return false;
+        if (!(lastAppearanceMs === undefined || suggestionReferenceMs - lastAppearanceMs >= 7 * DAY_IN_MS)) return false;
         return !(shouldEnforceWeekdayCompletionGate && completedWithinCurrentWeekdayPeriod);
       }
     }
