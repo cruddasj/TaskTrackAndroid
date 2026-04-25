@@ -212,7 +212,7 @@ export const getVisibleRoundId = (
 };
 
 
-type RoundGroupingTask = Pick<Task, 'id' | 'title' | 'category' | 'estimateMinutes' | 'roundPlacementPreference'>;
+type RoundGroupingTask = Pick<Task, 'id' | 'title' | 'category' | 'estimateMinutes' | 'roundPlacementPreference' | 'prerequisiteTaskIds'>;
 type RoundGroupingTaskBankItem = Pick<Task, 'title' | 'category' | 'roundPlacementPreference'>;
 
 const getPreferencePriority = (preference?: RoundPlacementPreference): number => {
@@ -257,6 +257,59 @@ const sortTasksForAutoGrouping = (
     return left.id.localeCompare(right.id, undefined, { sensitivity: 'base' });
   });
 
+const getDependencyAwareTaskOrder = (
+  sortedTasks: RoundGroupingTask[],
+): { orderedTasks: RoundGroupingTask[]; hasCycle: boolean } => {
+  const sortedTaskIds = sortedTasks.map((task) => task.id);
+  const taskById = new Map(sortedTasks.map((task) => [task.id, task]));
+  const orderByTaskId = new Map(sortedTaskIds.map((taskId, index) => [taskId, index]));
+  const inDegree = new Map(sortedTaskIds.map((taskId) => [taskId, 0]));
+  const dependentsByTaskId = new Map<string, string[]>();
+
+  sortedTasks.forEach((task) => {
+    const prerequisiteIds = Array.from(new Set(task.prerequisiteTaskIds ?? []))
+      .filter((prerequisiteId) => prerequisiteId !== task.id && taskById.has(prerequisiteId));
+    prerequisiteIds.forEach((prerequisiteId) => {
+      inDegree.set(task.id, (inDegree.get(task.id) ?? 0) + 1);
+      const dependents = dependentsByTaskId.get(prerequisiteId) ?? [];
+      dependents.push(task.id);
+      dependentsByTaskId.set(prerequisiteId, dependents);
+    });
+  });
+
+  const queue = sortedTaskIds.filter((taskId) => (inDegree.get(taskId) ?? 0) === 0);
+  const orderedTaskIds: string[] = [];
+
+  while (queue.length > 0) {
+    queue.sort((left, right) => (orderByTaskId.get(left) ?? 0) - (orderByTaskId.get(right) ?? 0));
+    const [nextTaskId] = queue.splice(0, 1);
+    orderedTaskIds.push(nextTaskId);
+    const dependents = dependentsByTaskId.get(nextTaskId) ?? [];
+    dependents.forEach((dependentId) => {
+      const nextDegree = (inDegree.get(dependentId) ?? 0) - 1;
+      inDegree.set(dependentId, nextDegree);
+      if (nextDegree === 0) {
+        queue.push(dependentId);
+      }
+    });
+  }
+
+  if (orderedTaskIds.length === sortedTasks.length) {
+    return {
+      orderedTasks: orderedTaskIds.map((taskId) => taskById.get(taskId)).filter((task): task is RoundGroupingTask => Boolean(task)),
+      hasCycle: false,
+    };
+  }
+
+  const unresolvedTaskIds = sortedTaskIds.filter((taskId) => !orderedTaskIds.includes(taskId));
+  return {
+    orderedTasks: [...orderedTaskIds, ...unresolvedTaskIds]
+      .map((taskId) => taskById.get(taskId))
+      .filter((task): task is RoundGroupingTask => Boolean(task)),
+    hasCycle: true,
+  };
+};
+
 export const buildAutoRoundTaskGroups = (
   tasks: RoundGroupingTask[],
   pomodoroLimit: number,
@@ -266,12 +319,16 @@ export const buildAutoRoundTaskGroups = (
 
   const preferenceOverrideByTaskId = getTaskPreferenceOverrideMap(tasks, taskBank);
   const sortedTasks = sortTasksForAutoGrouping(tasks, preferenceOverrideByTaskId);
+  const dependencyAwareOrdering = getDependencyAwareTaskOrder(sortedTasks);
+  if (dependencyAwareOrdering.hasCycle) {
+    console.warn('Task dependency cycle detected while grouping rounds. Using a stable fallback order.');
+  }
   const groupedTaskIds: string[][] = [];
   let currentGroup: string[] = [];
   let currentMinutes = 0;
   let previousCategory: string | undefined;
 
-  sortedTasks.forEach((task) => {
+  dependencyAwareOrdering.orderedTasks.forEach((task) => {
     const startsNewCategory = Boolean(currentGroup.length > 0 && previousCategory && previousCategory !== task.category);
     const wouldExceedLimit = currentGroup.length > 0 && currentMinutes + task.estimateMinutes > pomodoroLimit;
 

@@ -23,6 +23,7 @@ import {
 import { TaskBankItem } from '../types';
 import { getTodayKey, getTomorrowKey, normalizeOptionalDescription } from '../utils';
 import { getNormalizedRecurrenceDays, getTaskBankFormRecurrenceMode, TaskBankRecurrenceMode } from './taskBankRecurrence';
+import { canSaveTaskBankItemWithoutCycle, normalizeDependencyIds } from '../state/taskDependencies';
 
 interface TaskFormState {
   title: string;
@@ -35,6 +36,7 @@ interface TaskFormState {
   recurrenceWeekdays: number[];
   recurrenceDayOfMonth: string;
   roundPlacementPreference: 'none' | 'early' | 'late';
+  prerequisiteTaskBankItemIds: string[];
 }
 
 const emptyForm: TaskFormState = {
@@ -48,6 +50,7 @@ const emptyForm: TaskFormState = {
   recurrenceWeekdays: [],
   recurrenceDayOfMonth: '',
   roundPlacementPreference: 'none',
+  prerequisiteTaskBankItemIds: [],
 };
 
 const lastCompletedDateFormat = new Intl.DateTimeFormat(undefined, {
@@ -75,6 +78,7 @@ export const TaskBankScreen = () => {
   const [selectedRecurrenceDayOfMonthFilter, setSelectedRecurrenceDayOfMonthFilter] = useState<'all' | number>('all');
   const [selectedRecurrenceEveryXDaysFilter, setSelectedRecurrenceEveryXDaysFilter] = useState<'all' | number>('all');
   const [showSearchFilters, setShowSearchFilters] = useState(false);
+  const [dependencyValidationMessage, setDependencyValidationMessage] = useState<string | null>(null);
   const isAndroid = useMemo(() => typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent), []);
   const selectedDateKey = planningDay === 'today' ? todayKey : tomorrowKey;
   const sortedTaskBank = useMemo(() => sortTaskBankItemsAlphabetically(state.taskBank), [state.taskBank]);
@@ -149,6 +153,7 @@ export const TaskBankScreen = () => {
   const openCreateBankDialog = () => {
     setEditingTaskBankId(null);
     setForm({ ...emptyForm, category: state.categories[0] ?? '' });
+    setDependencyValidationMessage(null);
     setOpen(true);
   };
 
@@ -165,7 +170,9 @@ export const TaskBankScreen = () => {
       recurrenceWeekdays: task.recurrenceWeekdays ?? [],
       recurrenceDayOfMonth: task.recurrenceDayOfMonth ? String(task.recurrenceDayOfMonth) : '',
       roundPlacementPreference: task.roundPlacementPreference ?? 'none',
+      prerequisiteTaskBankItemIds: task.prerequisiteTaskBankItemIds ?? [],
     });
+    setDependencyValidationMessage(null);
     setOpen(true);
   };
 
@@ -173,6 +180,7 @@ export const TaskBankScreen = () => {
     setOpen(false);
     setEditingTaskBankId(null);
     setForm(emptyForm);
+    setDependencyValidationMessage(null);
   };
 
   const confirmDeleteTaskBankItem = () => {
@@ -199,10 +207,25 @@ export const TaskBankScreen = () => {
         ? Math.round(recurrenceDayOfMonth)
         : undefined;
     const roundPlacementPreference = form.roundPlacementPreference === 'none' ? undefined : form.roundPlacementPreference;
+    const normalizedPrerequisiteTaskBankItemIds = normalizeDependencyIds(form.prerequisiteTaskBankItemIds) ?? [];
 
     if (!title || !Number.isFinite(estimateMinutes) || estimateMinutes <= 0) return;
     if (form.recurrenceMode === 'weekdays' && (!normalizedRecurrenceWeekdays || normalizedRecurrenceWeekdays.length === 0)) return;
     if (form.recurrenceMode === 'monthDay' && normalizedRecurrenceDayOfMonth === undefined) return;
+    const candidateId = editingTaskBankId ?? `new:${title.toLocaleLowerCase()}`;
+    if (normalizedPrerequisiteTaskBankItemIds.includes(candidateId)) {
+      setDependencyValidationMessage('A task cannot depend on itself.');
+      return;
+    }
+    const canSaveWithoutCycle = canSaveTaskBankItemWithoutCycle(
+      state.taskBank,
+      { id: candidateId, prerequisiteTaskBankItemIds: normalizedPrerequisiteTaskBankItemIds },
+    );
+    if (!canSaveWithoutCycle) {
+      setDependencyValidationMessage('These prerequisites create a loop. Remove one and try again.');
+      return;
+    }
+    setDependencyValidationMessage(null);
 
     if (editingTaskBankId) {
       updateTaskBankItem({
@@ -216,6 +239,7 @@ export const TaskBankScreen = () => {
         recurrenceWeekdays: normalizedRecurrenceWeekdays,
         recurrenceDayOfMonth: normalizedRecurrenceDayOfMonth,
         roundPlacementPreference,
+        prerequisiteTaskBankItemIds: normalizedPrerequisiteTaskBankItemIds,
       });
       showSuccessMessage('Task Bank item updated.');
     } else {
@@ -229,6 +253,7 @@ export const TaskBankScreen = () => {
         recurrenceWeekdays: normalizedRecurrenceWeekdays,
         recurrenceDayOfMonth: normalizedRecurrenceDayOfMonth,
         roundPlacementPreference,
+        prerequisiteTaskBankItemIds: normalizedPrerequisiteTaskBankItemIds,
       });
       showSuccessMessage('Task Bank item created.');
     }
@@ -432,6 +457,10 @@ export const TaskBankScreen = () => {
                   <Chip label={`On ${task.recurrenceWeekdays.map((weekday) => WEEKDAY_LABELS[weekday]).join(', ')}`} variant="outlined" />
                 )}
                 {task.recurrenceDayOfMonth && <Chip label={`Day ${task.recurrenceDayOfMonth} of month`} variant="outlined" />}
+                {task.prerequisiteTaskBankItemIds?.map((prerequisiteId) => {
+                  const prerequisiteTitle = state.taskBank.find((item) => item.id === prerequisiteId)?.title ?? 'Missing task';
+                  return <Chip key={`${task.id}-prereq-${prerequisiteId}`} label={`After: ${prerequisiteTitle}`} variant="outlined" />;
+                })}
               </Stack>
               <Button
                 size="small"
@@ -661,6 +690,38 @@ export const TaskBankScreen = () => {
               value={form.recurrenceDayOfMonth}
               onChange={(event) => setForm((current) => ({ ...current, recurrenceDayOfMonth: event.target.value }))}
             />
+          )}
+          <TextField
+            margin="dense"
+            label="Must be done after"
+            fullWidth
+            select
+            value={form.prerequisiteTaskBankItemIds}
+            onChange={(event) => {
+              const rawValue = event.target.value;
+              const nextIds = Array.isArray(rawValue) ? rawValue : [String(rawValue)];
+              const dedupedIds = Array.from(new Set(nextIds));
+              const safeIds = dedupedIds.filter((id) => id !== editingTaskBankId);
+              setForm((current) => ({ ...current, prerequisiteTaskBankItemIds: safeIds }));
+              setDependencyValidationMessage(null);
+            }}
+            SelectProps={{ multiple: true }}
+            helperText="Optional. Choose tasks that must be completed before this one."
+          >
+            {sortedTaskBank
+              .filter((task) => task.id !== editingTaskBankId)
+              .map((task) => (
+                <MenuItem key={task.id} value={task.id}>{task.title}</MenuItem>
+              ))}
+          </TextField>
+          {dependencyValidationMessage && (
+            <Alert
+              icon={<InfoOutlined fontSize="inherit" />}
+              severity="success"
+              sx={{ mt: 1, bgcolor: 'rgba(145,247,142,0.12)', color: 'primary.main', '& .MuiAlert-icon': { color: 'primary.main' } }}
+            >
+              {dependencyValidationMessage}
+            </Alert>
           )}
         </DialogContent>
         <DialogActions>

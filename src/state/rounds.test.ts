@@ -414,6 +414,48 @@ describe('round helpers', () => {
     ).toEqual([['t1'], ['t2']]);
   });
 
+  it('keeps prerequisite chains in order when auto-grouping rounds', () => {
+    expect(
+      buildAutoRoundTaskGroups(
+        [
+          { id: 't3', title: 'Deploy', category: 'Work', estimateMinutes: 10, prerequisiteTaskIds: ['t2'] },
+          { id: 't2', title: 'Test', category: 'Work', estimateMinutes: 10, prerequisiteTaskIds: ['t1'] },
+          { id: 't1', title: 'Build', category: 'Work', estimateMinutes: 10 },
+        ],
+        15,
+      ),
+    ).toEqual([['t1'], ['t2'], ['t3']]);
+  });
+
+  it('supports fan-out dependencies without scheduling dependents too early', () => {
+    expect(
+      buildAutoRoundTaskGroups(
+        [
+          { id: 't1', title: 'Collect inputs', category: 'Admin', estimateMinutes: 10 },
+          { id: 't2', title: 'Write draft', category: 'Work', estimateMinutes: 10, prerequisiteTaskIds: ['t1'] },
+          { id: 't3', title: 'Create slides', category: 'Work', estimateMinutes: 10, prerequisiteTaskIds: ['t1'] },
+        ],
+        20,
+      ),
+    ).toEqual([['t1'], ['t2', 't3']]);
+  });
+
+  it('falls back to stable ordering and warns when dependency cycles are detected', () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+    const groups = buildAutoRoundTaskGroups(
+      [
+        { id: 't1', title: 'Task 1', category: 'Work', estimateMinutes: 10, prerequisiteTaskIds: ['t2'] },
+        { id: 't2', title: 'Task 2', category: 'Work', estimateMinutes: 10, prerequisiteTaskIds: ['t1'] },
+      ],
+      20,
+    );
+
+    expect(groups).toEqual([['t1', 't2']]);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    warnSpy.mockRestore();
+  });
+
   it('moves a round task up when a prior task exists', () => {
     expect(moveTaskInRound(['t1', 't2', 't3'], 't2', 'up')).toEqual(['t2', 't1', 't3']);
   });

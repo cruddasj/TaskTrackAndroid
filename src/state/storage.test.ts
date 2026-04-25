@@ -412,4 +412,58 @@ describe('storage', () => {
     expect(demoState.tasks.some((task) => task.status === 'done' && task.completedAt && task.plannedDate < todayKey)).toBe(true);
     expect(demoState.tasks.some((task) => task.plannedDate === todayKey)).toBe(true);
   });
+
+  it('normalizes invalid dependency arrays for tasks and task bank items', () => {
+    localStorage.setItem(
+      'tasktrack.state.v2',
+      JSON.stringify({
+        tasks: [
+          {
+            id: 'task-1',
+            title: 'Task A',
+            description: '',
+            category: 'Work',
+            estimateMinutes: 15,
+            status: 'todo',
+            plannedDate: '2026-04-01',
+            prerequisiteTaskIds: ['task-2', 'task-2', '', 22, null],
+          },
+          {
+            id: 'task-2',
+            title: 'Task B',
+            description: '',
+            category: 'Work',
+            estimateMinutes: 15,
+            status: 'todo',
+            plannedDate: '2026-04-01',
+            prerequisiteTaskIds: 'task-1',
+          },
+        ],
+        taskBank: [
+          {
+            id: 'bank-1',
+            title: 'Template A',
+            description: '',
+            category: 'Work',
+            estimateMinutes: 20,
+            prerequisiteTaskBankItemIds: ['bank-2', 'bank-2', ' ', false],
+          },
+          {
+            id: 'bank-2',
+            title: 'Template B',
+            description: '',
+            category: 'Work',
+            estimateMinutes: 20,
+            prerequisiteTaskBankItemIds: 'bank-1',
+          },
+        ],
+      }),
+    );
+
+    const loaded = loadState();
+    expect(loaded.tasks[0].prerequisiteTaskIds).toEqual(['task-2']);
+    expect(loaded.tasks[1].prerequisiteTaskIds).toBeUndefined();
+    expect(loaded.taskBank[0].prerequisiteTaskBankItemIds).toEqual(['bank-2']);
+    expect(loaded.taskBank[1].prerequisiteTaskBankItemIds).toBeUndefined();
+  });
 });

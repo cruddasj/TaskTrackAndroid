@@ -15,7 +15,10 @@ export interface Task {
   roundId?: string;
   previousRoundIds?: string[];
   roundPlacementPreference?: RoundPlacementPreference;
+  sourceTaskBankItemId?: string;
+  prerequisiteTaskIds?: string[];
 }
+
 
 export interface TaskBankItem {
   id: string;
@@ -28,7 +31,9 @@ export interface TaskBankItem {
   recurrenceWeekdays?: number[];
   recurrenceDayOfMonth?: number;
   roundPlacementPreference?: RoundPlacementPreference;
+  prerequisiteTaskBankItemIds?: string[];
 }
+
 
 export interface Round {
   id: string;

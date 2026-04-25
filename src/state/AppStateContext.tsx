@@ -29,6 +29,7 @@ import {
 import { getPomodoroCompletionNotificationCopy } from './pomodoroNotificationCopy';
 import { getStalePomodoroSessionId } from './pomodoroNotificationScheduling';
 import { getTodayKey } from '../utils';
+import { mapTaskBankPrerequisiteIdsToTaskIds, normalizeDependencyIds } from './taskDependencies';
 
 type NewTask = Omit<Task, 'id' | 'status' | 'plannedDate' | 'completedAt'> & { plannedDate?: string };
 type EditableTask = Omit<Task, 'status'>;
@@ -113,6 +114,7 @@ const reducer = (state: AppState, action: Action): AppState => {
             status: 'todo',
             ...action.payload,
             plannedDate: action.payload.plannedDate ?? getTodayKey(),
+            prerequisiteTaskIds: normalizeDependencyIds(action.payload.prerequisiteTaskIds),
           },
         ],
       };
@@ -145,19 +147,56 @@ const reducer = (state: AppState, action: Action): AppState => {
     case 'ADD_TASK_FROM_BANK': {
       const sourceTask = state.taskBank.find((item) => item.id === action.payload.taskBankItemId);
       if (!sourceTask) return state;
+      const plannedDate = action.payload.plannedDate ?? getTodayKey();
+      const id = crypto.randomUUID();
+      const tasksForDate = state.tasks.filter((task) => task.plannedDate === plannedDate);
+      const prerequisiteTaskIds = mapTaskBankPrerequisiteIdsToTaskIds(sourceTask, tasksForDate)
+        ?.filter((taskId) => taskId !== id);
       return {
         ...state,
-        tasks: [...state.tasks, { ...sourceTask, id: crypto.randomUUID(), status: 'todo', plannedDate: action.payload.plannedDate ?? getTodayKey() }],
+        tasks: [
+          ...state.tasks,
+          {
+            id,
+            title: sourceTask.title,
+            description: sourceTask.description,
+            category: sourceTask.category,
+            estimateMinutes: sourceTask.estimateMinutes,
+            status: 'todo',
+            plannedDate,
+            roundPlacementPreference: sourceTask.roundPlacementPreference,
+            sourceTaskBankItemId: sourceTask.id,
+            prerequisiteTaskIds,
+          },
+        ],
       };
     }
     case 'ADD_TASK_BANK_ITEM': {
       const id = crypto.randomUUID();
-      return { ...state, taskBank: [...state.taskBank, { ...action.payload, id }] };
+      return {
+        ...state,
+        taskBank: [
+          ...state.taskBank,
+          {
+            ...action.payload,
+            id,
+            prerequisiteTaskBankItemIds: normalizeDependencyIds(action.payload.prerequisiteTaskBankItemIds),
+          },
+        ],
+      };
     }
     case 'UPDATE_TASK_BANK_ITEM':
       return {
         ...state,
-        taskBank: state.taskBank.map((task) => (task.id !== action.payload.id ? task : { ...task, ...action.payload })),
+        taskBank: state.taskBank.map((task) => (
+          task.id !== action.payload.id
+            ? task
+            : {
+              ...task,
+              ...action.payload,
+              prerequisiteTaskBankItemIds: normalizeDependencyIds(action.payload.prerequisiteTaskBankItemIds),
+            }
+        )),
       };
     case 'DELETE_TASK_BANK_ITEM':
       return { ...state, taskBank: state.taskBank.filter((task) => task.id !== action.payload.id) };
