@@ -3,6 +3,9 @@ module.exports = {
   testEnvironment: 'jsdom',
   roots: ['<rootDir>/src'],
   testMatch: ['**/?(*.)+(spec|test).[tj]s?(x)'],
+  transform: {
+    '^.+\\.[tj]sx?$': ['ts-jest', { tsconfig: 'tsconfig.jest.json' }],
+  },
   collectCoverage: true,
   collectCoverageFrom: ['src/state/storage.ts', 'src/services/notifications.ts'],
   coverageDirectory: 'coverage',
