@@ -13,7 +13,7 @@ import { getTaskPrimaryActionLabel, getTaskSecondaryActionLabel, shouldShowDoneH
 import { getPlanningDayFromQuery } from './planningDayQuery';
 import { PlanningDay, PlanningDayToggle } from '../components/PlanningDayToggle';
 import { useAppState } from '../state/AppStateContext';
-import { hasDuplicateTodayTaskTitle, sortCategoriesAlphabetically, sortTasksAlphabetically, suggestRecurringTaskBankItems, WEEKDAY_LABELS } from '../state/tasks';
+import { hasDuplicateTodayTaskTitle, sortCategoriesAlphabetically, sortTaskBankItemsAlphabetically, sortTasksAlphabetically, suggestRecurringTaskBankItems, WEEKDAY_LABELS } from '../state/tasks';
 import { Task, TaskBankItem } from '../types';
 import { getTodayKey, getTomorrowKey, normalizeOptionalDescription } from '../utils';
 
@@ -62,6 +62,10 @@ export const TodaysTasksScreen = () => {
   const taskActionButtonSx = { p: 0.625 };
   const taskActionRowSx = { flexShrink: 0, alignSelf: 'flex-start' } as const;
   const sortedCategories = useMemo(() => sortCategoriesAlphabetically(state.categories), [state.categories]);
+  const sortedRecurringSuggestions = useMemo(
+    () => sortTaskBankItemsAlphabetically(recurringSuggestions),
+    [recurringSuggestions],
+  );
 
   const formatRecurrenceLabel = (task: TaskBankItem): string => {
     if (task.recurrenceWeekdays && task.recurrenceWeekdays.length > 0) {
@@ -454,7 +458,7 @@ export const TodaysTasksScreen = () => {
           ) : (
             <Stack spacing={1.5} mt={0.5}>
               <Typography color="text.secondary">Due suggestions are preselected by default. Tap “Add suggested tasks” to create Today&apos;s Tasks for the checked items.</Typography>
-              {recurringSuggestions.map((task) => (
+              {sortedRecurringSuggestions.map((task) => (
                 <Stack key={task.id} direction="row" alignItems="flex-start" spacing={1}>
                   <Checkbox
                     checked={selectedRecurringSuggestionIds.includes(task.id)}
