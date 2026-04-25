@@ -264,7 +264,7 @@ describe('suggestRecurringTaskBankItems', () => {
     expect(suggestions.map((item) => item.id)).toEqual(['tb1']);
   });
 
-  it('does not suggest weekday-recurring items when completed in the current recurrence period', () => {
+  it('suggests weekday-recurring items on their configured day when last completion was before that day', () => {
     const taskBank = [
       { id: 'tb1', title: 'Washing up', description: 'Kitchen cleanup', category: 'Household chores', estimateMinutes: 20, recurrenceWeekdays: [6] },
     ];
@@ -272,7 +272,7 @@ describe('suggestRecurringTaskBankItems', () => {
 
     const suggestions = suggestRecurringTaskBankItems(taskBank, tasks, '2026-04-04', cooldownOff, new Date('2026-04-04T12:00:00.000Z'));
 
-    expect(suggestions).toEqual([]);
+    expect(suggestions.map((item) => item.id)).toEqual(['tb1']);
   });
 
   it('suggests multi-weekday recurring items on a second due day even when completed yesterday', () => {
