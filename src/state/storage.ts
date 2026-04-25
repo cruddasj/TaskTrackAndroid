@@ -1,6 +1,7 @@
 import { AppState } from '../types';
 import { DEFAULT_ALARM_TONE, normalizeAlarmTone } from '../constants/alarmTones';
 import { normalizeRecurrenceWeekdays } from './tasks';
+import { normalizeDependencyIds } from './taskDependencies';
 import { getDateKeyWithOffset } from '../utils';
 
 const STORAGE_KEY = 'tasktrack.state.v2';
@@ -268,6 +269,7 @@ export const normalizeState = (raw: Partial<AppState>): AppState => {
       recurrenceWeekdays: undefined,
       recurrenceDayOfMonth: undefined,
       roundPlacementPreference: normalizeRoundPlacementPreference(task.roundPlacementPreference),
+      prerequisiteTaskBankItemIds: undefined,
     })) ??
     defaultState.taskBank;
   const normalizedState: AppState = {
@@ -280,6 +282,7 @@ export const normalizeState = (raw: Partial<AppState>): AppState => {
         ...task,
         plannedDate: task.plannedDate ?? getDateKey(),
         roundPlacementPreference: normalizeRoundPlacementPreference(task.roundPlacementPreference),
+        prerequisiteTaskIds: normalizeDependencyIds(task.prerequisiteTaskIds),
       })) ?? defaultState.tasks,
     taskBank: taskBank.map((item) => ({
       ...item,
@@ -300,6 +303,7 @@ export const normalizeState = (raw: Partial<AppState>): AppState => {
           ? Math.round(item.recurrenceDayOfMonth)
           : undefined,
       roundPlacementPreference: normalizeRoundPlacementPreference(item.roundPlacementPreference),
+      prerequisiteTaskBankItemIds: normalizeDependencyIds(item.prerequisiteTaskBankItemIds),
     })),
     rounds: raw.rounds?.map((round) => ({
       ...round,

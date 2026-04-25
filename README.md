@@ -6,6 +6,7 @@ TaskTrack is a Pomodoro-driven task planner designed for daily execution. It run
 
 - Guides users through onboarding, then provides a focused Pomodoro workflow for planning tasks, grouping them into rounds, and tracking completion progress from the dashboard.
 - Supports a reusable **Task Bank** plus **Today's Tasks**, including duplicate prevention, quick-add actions, and recurring-task suggestions based on either interval rules (every X days) or weekday rules (for example, Sundays, with overdue catch-up suggestions if missed in the previous week).
+- Supports task dependencies in the Task Bank ("must be done after"), carries those dependencies into day plans when possible, and keeps auto-generated round suggestions dependency-safe so prerequisite tasks are always scheduled before dependent tasks.
 - Includes round management and assignment flows (auto-grouping by category, manual assignment, unassigned-task visibility, reordering, deletion recovery) with mobile-friendly controls and beginner-focused guidance copy.
 - Runs full work/break timer cycles with configurable durations, alarm tone/volume/repeat settings, local persistence, and recent activity insights/history used for recurring suggestions.
 - Uses native local-notification scheduling for Pomodoro phase completion on Android so sessions remain reliable when the app is backgrounded or closed, including pause/resume by cancelling and rescheduling the same session notification id.
