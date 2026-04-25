@@ -253,10 +253,10 @@ export const suggestRecurringTaskBankItems = (
     if (item.recurrenceWeekdays && item.recurrenceWeekdays.length > 0) {
       const uniqueRecurrenceWeekdays = new Set(item.recurrenceWeekdays.filter((weekday) => Number.isInteger(weekday) && weekday >= 0 && weekday <= 6));
       if (uniqueRecurrenceWeekdays.size > 0) {
-        const previousOccurrenceMs = getMostRecentWeekdayOccurrenceMs(uniqueRecurrenceWeekdays, false);
+        const currentOccurrenceMs = getMostRecentWeekdayOccurrenceMs(uniqueRecurrenceWeekdays, true);
         const completedWithinCurrentWeekdayPeriod = Number.isFinite(lastCompletedMs)
-          && previousOccurrenceMs !== null
-          && lastCompletedMs > previousOccurrenceMs;
+          && currentOccurrenceMs !== null
+          && lastCompletedMs >= currentOccurrenceMs;
         const shouldEnforceWeekdayCompletionGate = enforceRecurrencePeriodCompletionGate && uniqueRecurrenceWeekdays.size === 1;
         if (uniqueRecurrenceWeekdays.has(todayWeekday)) {
           return !(shouldEnforceWeekdayCompletionGate && completedWithinCurrentWeekdayPeriod);
