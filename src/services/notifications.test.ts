@@ -141,6 +141,17 @@ describe('notifications service', () => {
     }));
   });
 
+  it('does not schedule immediate native completion notification when permission is denied', async () => {
+    isNativePlatformMock.mockReturnValue(true);
+    checkPermissionsMock.mockResolvedValue({ display: 'denied' });
+    requestPermissionsMock.mockResolvedValue({ display: 'denied' });
+
+    await notifyPomodoroComplete('Done', 'Body', 'clock_bell');
+
+    expect(createChannelMock).not.toHaveBeenCalled();
+    expect(scheduleMock).not.toHaveBeenCalled();
+  });
+
   it('schedules completion notification without channel id when channel creation fails', async () => {
     isNativePlatformMock.mockReturnValue(true);
     createChannelMock.mockRejectedValueOnce(new Error('channel unavailable'));
@@ -317,6 +328,24 @@ describe('notifications service', () => {
     expect(scheduleMock).toHaveBeenNthCalledWith(2, expect.objectContaining({
       notifications: [expect.objectContaining({ body: 'Long break ends at 09:05' })],
     }));
+  });
+
+  it('returns early when syncing active timer notification on web', async () => {
+    await syncActivePomodoroNotification('work', 301);
+
+    expect(checkPermissionsMock).not.toHaveBeenCalled();
+    expect(scheduleMock).not.toHaveBeenCalled();
+  });
+
+  it('does not sync active timer notification when native permission is denied', async () => {
+    isNativePlatformMock.mockReturnValue(true);
+    checkPermissionsMock.mockResolvedValue({ display: 'denied' });
+    requestPermissionsMock.mockResolvedValue({ display: 'denied' });
+
+    await syncActivePomodoroNotification('work', 301);
+
+    expect(createChannelMock).not.toHaveBeenCalled();
+    expect(scheduleMock).not.toHaveBeenCalled();
   });
 
   it('clears the active timer notification on native platforms', async () => {
