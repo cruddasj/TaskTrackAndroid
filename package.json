@@ -28,17 +28,17 @@
     "@capawesome-team/capacitor-android-battery-optimization": "^8.0.1",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
-    "@mui/icons-material": "^9.4.0",
-    "@mui/material": "^9.4.0",
-    "react": "^19.3.0",
-    "react-dom": "^19.3.0",
+    "@mui/icons-material": "^9.5.0",
+    "@mui/material": "^9.5.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "react-router-dom": "^7.18.4"
   },
   "devDependencies": {
     "@capacitor/cli": "^8.5.3",
     "@eslint/js": "^10.0.1",
     "@types/jest": "^30.0.0",
-    "@types/node": "^26.6.4",
+    "@types/node": "^26.6.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
@@ -47,11 +47,11 @@
     "eslint-plugin-react-refresh": "^0.5.7",
     "jest": "^30.5.2",
     "jest-environment-jsdom": "^30.5.2",
-    "ts-jest": "^29.4.14",
+    "ts-jest": "^29.4.15",
     "typescript": "~5.9.3",
-    "typescript-eslint": "^8.71.1",
-    "vite": "^8.3.3",
+    "typescript-eslint": "^8.71.2",
+    "vite": "^8.3.4",
     "vite-plugin-pwa": "^2.0.0",
-    "vitest": "^5.0.3"
+    "vitest": "^5.0.4"
   }
 }
